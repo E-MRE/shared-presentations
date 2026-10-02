@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c0e12" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Vektör</title>
+    <script>
+      (() => {
+        let storedTheme = null;
+        try {
+          storedTheme = window.localStorage.getItem('vektor-theme');
+        } catch {
+          // Storage can be unavailable in restricted browsing contexts.
+        }
+
+        const systemTheme = window.matchMedia('(prefers-color-scheme: light)').matches
+          ? 'light'
+          : 'dark';
+        const theme = storedTheme === 'light' || storedTheme === 'dark'
+          ? storedTheme
+          : systemTheme;
+
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from 'react';
+      import { createRoot } from 'react-dom/client';
+      import './src/styles/index.css';
+
+      const root = createRoot(document.getElementById('root'));
+      root.render(React.createElement(
+        'main',
+        { className: 'foundation-placeholder', lang: 'tr' },
+        React.createElement('h1', null, 'Vektör'),
+        React.createElement('p', null, 'Uygulama temeli hazır.')
+      ));
+    </script>
+  </body>
+</html>

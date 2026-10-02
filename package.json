@@ -1,0 +1,50 @@
+{
+  "name": "vektor-presentations",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js --max-warnings=0",
+    "test:unit": "vitest run",
+    "test:upload": "vitest run tests/content tests/editor",
+    "test:rules:unit": "vitest run tests/rules",
+    "test:rules": "npx -y --engine-strict=false firebase-tools emulators:exec --project shared-presentations --only firestore \"npm run test:rules:unit\"",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "fflate": "0.8.3",
+    "firebase": "12.19.0",
+    "modern-screenshot": "4.7.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router-dom": "7.18.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@firebase/rules-unit-testing": "5.0.2",
+    "@playwright/test": "1.63.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "eslint": "10.11.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "firebase-tools": "15.32.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.0",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.5",
+    "@opentelemetry/core": "^2.8.0",
+    "basic-ftp": "^6.2.1",
+    "uuid": "^11.1.1"
+  }
+}

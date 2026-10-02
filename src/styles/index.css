@@ -1,0 +1,21 @@
+@import './tokens.css';
+@import './styles.css';
+
+.foundation-placeholder {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.foundation-placeholder h1 {
+  color: var(--brand-primary);
+  font-size: var(--text-3xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.foundation-placeholder p {
+  color: var(--text-secondary);
+}
