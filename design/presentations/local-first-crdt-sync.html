@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local-First Veritabanları ve CRDT Tabanlı Gerçek Zamanlı Sync</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0B0E14;
+      --card-bg: #111724;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --emerald: #10B981;
+      --cyan: #06B6D4;
+      --indigo: #6366F1;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Schibsted Grotesk', -apple-system, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+    .deck-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem;
+    }
+    .slide {
+      position: absolute;
+      inset: 2rem;
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+      pointer-events: none;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--emerald);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      width: fit-content;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(2.2rem, 4.5vw, 3.75rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.12;
+      margin-bottom: 1.25rem;
+      color: #FFFFFF;
+    }
+    h2 {
+      font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      color: #FFFFFF;
+    }
+    p.lead {
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 820px;
+      margin-bottom: 2rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .card h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+    .card p {
+      font-size: 0.925rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .mono-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      background: #060910;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: #A7F3D0;
+      line-height: 1.5;
+    }
+    .stat-box {
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border-radius: 12px;
+    }
+    .stat-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .controls-bar {
+      min-height: 60px;
+      border-top: 1px solid var(--border);
+      background: rgba(17, 23, 36, 0.75);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 2rem;
+      font-size: 0.875rem;
+    }
+    .slide-progress {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .dot {
+      width: 28px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.18);
+      transition: background 0.2s, opacity 0.2s;
+      cursor: pointer;
+      opacity: 0.5;
+    }
+    .dot.active {
+      background: var(--emerald);
+      opacity: 1;
+    }
+    .nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: #FFFFFF;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-container">
+    <!-- SLIDE 1 -->
+    <div class="slide active" data-index="0">
+      <div class="tag">⚡ DAĞITIK SİSTEMLER</div>
+      <h1>Local-First: CRDT Tabanlı Gerçek Zamanlı Sync</h1>
+      <p class="lead">Bulut merkezli mimarilerden veri sahipliğine: Sıfır ağ gecikmeli yerel okuma/yazma, Yjs operasyonel dönüşümleri ve çevrimdışı dayanıklılık.</p>
+      <div class="grid-3">
+        <div class="card stat-box">
+          <div class="stat-number">0ms</div>
+          <div class="stat-label">Yerel Okuma/Yazma Gecikmesi</div>
+        </div>
+        <div class="card stat-box">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Çevrimdışı Çalışabilirlik</div>
+        </div>
+        <div class="card stat-box">
+          <div class="stat-number">Çatışmasız</div>
+          <div class="stat-label">Matematiksel CRDT Yakınsaması</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide" data-index="1">
+      <div class="tag">🧬 MATEMATİKSEL TEMEL</div>
+      <h2>CRDT Nasıl Çalışır? (State vs Operation)</h2>
+      <p class="lead">Geleneksel veritabanları sunucuyu mutlak hakem kabul ederken, CRDT deterministik matematik kurallarıyla her uçta aynı sonuca ulaşır.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Yjs ve Biyel İkili Ağaç Yapısı</h3>
+          <p>Her karakter ve düğüm benzersiz bir ClientID ve Clock ile etiketlenir. Paketlerin geliş sırası değişse bile sonuç aynıdır.</p>
+          <div class="mono-code">
+import * as Y from 'yjs';
+const doc = new Y.Doc();
+const ytext = doc.getText('document');
+ytext.insert(0, 'Local-first mimari');
+const update = Y.encodeStateAsUpdate(doc);
+          </div>
+        </div>
+        <div class="card">
+          <h3>Neden LWW (Last-Write-Wins) Yetersiz?</h3>
+          <p>Sistem saatine güvenen son yazan kazanır yaklaşımları, ağ kopukluklarında kullanıcının emeğini sessizce ezebilir.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide" data-index="2">
+      <div class="tag">🌐 EDGE AĞI</div>
+      <h2>WebSocket & WebRTC Edge Routing</h2>
+      <p class="lead">Veri paketlerinin istemciler arasında en kısa yoldan aktarımı: Cloudflare Workers veya Fly.io edge relay noktaları.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>P2P Doğrudan Kanal</h3>
+          <p>Aynı ofis veya ağdaki cihazlar WebRTC DataChannel üzerinden sunucuya gitmeden senkronize olur.</p>
+        </div>
+        <div class="card">
+          <h3>Edge Persistence</h3>
+          <p>SQLite / Turso / ElectricSQL gibi uç veritabanlarında snapshot saklanır.</p>
+        </div>
+        <div class="card">
+          <h3>Sıfır Lock & Bloke</h3>
+          <p>İstemciler asla sunucudan onay beklemez; anında ekrana basar (Optimistic UI).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide" data-index="3">
+      <div class="tag">🔋 ÇEVRİMDIŞI DENEYİMİ</div>
+      <h2>Metroda, Uçakta ve Zayıf Ağda Dayanıklılık</h2>
+      <p class="lead">Ağ bağlantısı koptuğunda kullanıcı hiçbir hata görmez, çalışmaya devam eder ve yeniden bağlandığında delta paketleri birleşir.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Delta Tabanlı Sync</h3>
+          <p>Tüm doküman yerine sadece üretilen fark ikilisi (binary diff) gönderilir. Ağ tüketimi %92 azalır.</p>
+          <div class="mono-code">
+// Bağlantı kurulduğunda tek hamlede sync
+Y.applyUpdate(clientDoc, remoteDeltaBinary);
+          </div>
+        </div>
+        <div class="card">
+          <h3>IndexedDB / SQLite Yerel Depolama</h3>
+          <p>Uygulama kapatılsa dahi dokümanın son hali cihazda kalıcıdır. Sayfa yenilendiğinde sıfır yükleme ekranı.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide" data-index="4">
+      <div class="tag">🏁 BENCHMARK</div>
+      <h2>Geleneksel REST vs Local-First Karşılaştırması</h2>
+      <p class="lead">Kullanıcı etkileşiminde elde edilen hız ve kullanıcı memnuniyeti sıçraması.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>İlk İçerik Gösterimi</h3>
+          <p>REST: 450ms - 1200ms<br><strong style="color: var(--emerald);">Local-First: &lt; 8ms (Anında)</strong></p>
+        </div>
+        <div class="card">
+          <h3>Sunucu Yükü & Maliyet</h3>
+          <p>İşlemci yükü uç noktalara dağıtıldığı için sunucu faturası %75 oranında düşer.</p>
+        </div>
+        <div class="card">
+          <h3>Veri Gizliliği</h3>
+          <p>Uçtan uca şifreleme (E2EE) anahtarları sadece kullanıcının cihazında saklanabilir.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-bar">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted);">
+      Slayt <span id="current-num" style="color: #FFF; font-weight: 600;">1</span> / <span id="total-num">5</span>
+    </div>
+    <div class="slide-progress" id="progress-dots">
+      <div class="dot active" onclick="goToSlide(0)"></div>
+      <div class="dot" onclick="goToSlide(1)"></div>
+      <div class="dot" onclick="goToSlide(2)"></div>
+      <div class="dot" onclick="goToSlide(3)"></div>
+      <div class="dot" onclick="goToSlide(4)"></div>
+    </div>
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="prevSlide()">← Önceki</button>
+      <button class="nav-btn" onclick="nextSlide()">Sonraki →</button>
+    </div>
+  </div>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    const currentNum = document.getElementById('current-num');
+    const totalNum = document.getElementById('total-num');
+
+    totalNum.textContent = slides.length;
+
+    function goToSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = index;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      currentNum.textContent = current + 1;
+    }
+
+    function nextSlide() {
+      if (current < slides.length - 1) goToSlide(current + 1);
+    }
+
+    function prevSlide() {
+      if (current > 0) goToSlide(current - 1);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') nextSlide();
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') prevSlide();
+    });
+
+    window.addEventListener('message', (event) => {
+      if (event.data === 'next') nextSlide();
+      if (event.data === 'prev') prevSlide();
+      if (event.data && event.data.type === 'goto') goToSlide(event.data.index);
+    });
+  </script>
+</body>
+</html>

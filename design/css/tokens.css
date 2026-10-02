@@ -1,0 +1,213 @@
+/**
+ * VEKTÖR DESIGN SYSTEM - TOKENS
+ * Refined & Intentional 3-Tier Token Architecture
+ * Neutral Obsidian + Editorial Typography (Schibsted Grotesk + JetBrains Mono)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  /* ==========================================================================
+     1. PRIMITIVE TOKENS (Temel Değerler)
+     ========================================================================== */
+  --font-sans: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --primitive-white: #FFFFFF;
+  --primitive-black: #000000;
+
+  --primitive-gray-50: #F9FAFB;
+  --primitive-gray-100: #F3F4F6;
+  --primitive-gray-200: #E5E7EB;
+  --primitive-gray-300: #D1D5DB;
+  --primitive-gray-400: #9CA3AF;
+  --primitive-gray-500: #6B7280;
+  --primitive-gray-600: #4B5563;
+  --primitive-gray-700: #374151;
+  --primitive-gray-800: #1F242D;
+  --primitive-gray-850: #181C23;
+  --primitive-gray-900: #12151B;
+  --primitive-gray-950: #0C0E12;
+
+  --primitive-blue-400: #60A5FA;
+  --primitive-blue-500: #3B82F6;
+  --primitive-blue-600: #2563EB;
+  --primitive-blue-700: #1D4ED8;
+
+  --primitive-emerald-400: #34D399;
+  --primitive-emerald-500: #10B981;
+  --primitive-emerald-600: #059669;
+
+  --primitive-amber-400: #FBBF24;
+  --primitive-amber-500: #F59E0B;
+  --primitive-amber-600: #D97706;
+
+  --primitive-rose-400: #FB7185;
+  --primitive-rose-500: #F43F5E;
+  --primitive-rose-600: #E11D48;
+
+  /* Spacing Scale (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Typography Scale */
+  --text-2xs: 0.75rem;    /* 12px - micro labels, tags */
+  --text-xs: 0.8125rem;   /* 13px - secondary captions */
+  --text-sm: 0.875rem;    /* 14px - standard UI text */
+  --text-base: 1rem;      /* 16px - body text */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: 2.75rem;    /* 44px */
+
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --tracking-tight: -0.025em;
+  --tracking-snug: -0.012em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.03em;
+
+  /* Radii - Contextual & Grounded */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Transitions - Intentional Exponential Deceleration */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 320ms;
+
+  /* ==========================================================================
+     2. SEMANTIC TOKENS (Dark Mode Default - Charcoal / Studio Graphite)
+     ========================================================================== */
+  --bg-canvas: #0C0E12;
+  --bg-surface: #12151B;
+  --bg-surface-raised: #181C23;
+  --bg-surface-hover: #1E232C;
+  --bg-surface-active: #242A34;
+  --bg-overlay: rgba(12, 14, 18, 0.85);
+
+  --text-primary: #F3F4F6;
+  --text-secondary: #9CA3AF;
+  --text-muted: #9CA3AF;
+  --text-inverse: #0C0E12;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.24);
+  --border-focus: var(--primitive-blue-500);
+
+  --brand-primary: var(--primitive-white);
+  --brand-primary-hover: #E5E7EB;
+  --brand-accent: var(--primitive-blue-500);
+
+  --status-published: var(--primitive-emerald-400);
+  --status-published-bg: rgba(16, 185, 129, 0.1);
+  --status-published-border: rgba(16, 185, 129, 0.2);
+
+  --status-pending: var(--primitive-amber-400);
+  --status-pending-bg: rgba(245, 158, 11, 0.1);
+  --status-pending-border: rgba(245, 158, 11, 0.2);
+
+  --status-rejected: var(--primitive-rose-400);
+  --status-rejected-bg: rgba(244, 63, 94, 0.1);
+  --status-rejected-border: rgba(244, 63, 94, 0.2);
+
+  /* Shadows: Soft, Directional, Real Elevation */
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 8px 24px -4px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 20px 48px -12px rgba(0, 0, 0, 0.75);
+
+  /* Glass Surface */
+  --backdrop-blur: blur(12px);
+  --glass-surface: rgba(12, 14, 18, 0.85);
+
+  /* ==========================================================================
+     3. COMPONENT TOKENS
+     ========================================================================== */
+  --header-height: 64px;
+  --max-width-site: 1320px;
+
+  --card-bg: var(--bg-surface);
+  --card-border: var(--border-subtle);
+  --card-radius: var(--radius-lg);
+
+  --btn-primary-bg: #F3F4F6;
+  --btn-primary-text: #0C0E12;
+  --btn-secondary-bg: var(--bg-surface-raised);
+  --btn-secondary-text: var(--text-primary);
+  --btn-secondary-border: var(--border-subtle);
+
+  --input-bg: var(--bg-surface-raised);
+  --input-border: var(--border-subtle);
+  --input-text: var(--text-primary);
+  --input-placeholder: var(--text-secondary);
+}
+
+/* ==========================================================================
+   LIGHT MODE OVERRIDES (Editorial Gallery Paper)
+   ========================================================================== */
+[data-theme="light"] {
+  --bg-canvas: #F9FAFB;
+  --bg-surface: #FFFFFF;
+  --bg-surface-raised: #F3F4F6;
+  --bg-surface-hover: #E5E7EB;
+  --bg-surface-active: #D1D5DB;
+  --bg-overlay: rgba(18, 21, 27, 0.45);
+
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+  --text-inverse: #FFFFFF;
+
+  --border-subtle: #E5E7EB;
+  --border-medium: #D1D5DB;
+  --border-strong: #9CA3AF;
+  --border-focus: var(--primitive-blue-600);
+
+  --brand-primary: #111827;
+  --brand-primary-hover: #1F2937;
+  --brand-accent: var(--primitive-blue-600);
+
+  --status-published: var(--primitive-emerald-600);
+  --status-published-bg: #ECFDF5;
+  --status-published-border: #A7F3D0;
+
+  --status-pending: var(--primitive-amber-600);
+  --status-pending-bg: #FFFBEB;
+  --status-pending-border: #FDE68A;
+
+  --status-rejected: var(--primitive-rose-600);
+  --status-rejected-bg: #FFF1F2;
+  --status-rejected-border: #FECDD3;
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 10px 24px -4px rgba(0, 0, 0, 0.1);
+  --shadow-modal: 0 20px 48px -12px rgba(0, 0, 0, 0.15);
+
+  --glass-surface: rgba(249, 250, 251, 0.88);
+
+  --btn-primary-bg: #111827;
+  --btn-primary-text: #FFFFFF;
+}

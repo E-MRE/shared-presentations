@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vektör — Ekip HTML Sunum Arşivi</title>
+  <meta name="description" content="Ekip içi teknik sunumlar, mimari kararlar ve tasarım kayıtları.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' rx='48' fill='%23111827'/><path d='M88.32,229.65A16,16,0,0,1,64,216.13V39.87a16,16,0,0,1,24.32-13.52L232.4,114.49a15.74,15.74,0,0,1,0,27Z' fill='%23FFF'/></svg>">
+
+  <!-- Design System Tokens & Styles -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       HEADER & NAVIGATION
+       ========================================================================== -->
+  <header class="site-header" role="banner">
+    <div class="header-container">
+      <!-- Brand Identity (Restrained, pure wordmark) -->
+      <a href="#" class="brand" onclick="switchTab('all'); return false;" aria-label="Vektör Ana Sayfa">
+        <span class="brand-title">Vektör</span>
+      </a>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <!-- Theme Toggle -->
+        <button class="btn-icon" id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Tema Değiştir" title="Koyu/Açık Tema">
+          <svg width="17" height="17" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34L52.69,41.37A8,8,0,0,0,41.37,52.69ZM120,216v24a8,8,0,0,0,16,0V216a8,8,0,0,0-16,0Zm83.31-29.66a8,8,0,0,0,11.32-11.32l-16.97-16.97a8,8,0,0,0-11.32,11.32ZM41.37,203.31a8,8,0,0,0,11.32,11.32l16.97-16.97A8,8,0,0,0,58.34,186.34ZM216,120h24a8,8,0,0,1,0,16H216a8,8,0,0,1,0-16ZM16,120H40a8,8,0,0,1,0,16H16a8,8,0,0,1,0-16Zm181.66-61.66a8,8,0,0,0-11.32,11.32l16.97,16.97a8,8,0,0,0,11.32-11.32Z"/></svg>
+        </button>
+
+        <!-- Primary Upload Button -->
+        <button class="btn btn-primary" onclick="openUploadModal()" aria-label="Yeni Sunum Yükle">
+          <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg>
+          <span>Sunum Yükle</span>
+        </button>
+
+        <!-- User Authentication Slot -->
+        <div id="header-user-slot"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       EDITORIAL PAGE INTRO (Compact, Quiet, Zero Marketing Slop)
+       ========================================================================== -->
+  <section class="page-intro" aria-labelledby="intro-title">
+    <div class="intro-container">
+      <div class="intro-heading-group">
+        <h1 class="intro-title" id="intro-title">Sunum Arşivi</h1>
+        <p class="intro-desc">Ekip içi teknik sunumlar, mimari kararlar ve araştırma kayıtları.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       TOOLBAR & FILTER SECTION
+       ========================================================================== -->
+  <nav class="toolbar-section" aria-label="Sunum Filtreleme ve Arama">
+    <div class="toolbar-container">
+      <!-- View Mode Tabs -->
+      <div class="view-tabs" id="view-tabs-container" role="tablist">
+        <!-- Rendered dynamically by JS -->
+      </div>
+
+      <!-- Search Box -->
+      <div class="toolbar-controls">
+        <div class="search-box">
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+          <input type="text" class="search-input" id="search-input" placeholder="Sunum veya konuşmacı ara..." aria-label="Sunum Ara">
+          <span class="search-clear" id="search-clear" onclick="clearSearch()" aria-label="Aramayı Temizle">✕</span>
+        </div>
+      </div>
+
+      <!-- Category Filter Chips -->
+      <div class="category-strip" role="group" aria-label="Kategoriye göre filtrele">
+        <button class="cat-chip active" data-cat="all" onclick="selectCategory('all')">Tümü</button>
+        <button class="cat-chip" data-cat="Frontend & Flutter" onclick="selectCategory('Frontend & Flutter')">Frontend & Flutter</button>
+        <button class="cat-chip" data-cat="AI & LLM" onclick="selectCategory('AI & LLM')">AI & LLM</button>
+        <button class="cat-chip" data-cat="UI/UX & Design" onclick="selectCategory('UI/UX & Design')">UI/UX & Design</button>
+        <button class="cat-chip" data-cat="Mimari & Backend" onclick="selectCategory('Mimari & Backend')">Mimari & Backend</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==========================================================================
+       MAIN CONTENT: PRESENTATION CARDS GRID
+       ========================================================================== -->
+  <main class="main-content" id="main-content">
+    <section class="deck-grid" id="deck-grid" aria-label="Sunum Listesi">
+      <!-- Rendered dynamically by JS (Newest First) -->
+    </section>
+  </main>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-meta">
+        <strong>Vektör</strong> — Ekip İçi HTML Sunum Arşivi
+      </div>
+      <div class="footer-links">
+        <button class="footer-link-btn" onclick="openDesignDrawer()">Tasarım Sistemi Sözlüğü</button>
+        <a href="#intro-title" class="footer-link">Başa Dön ↑</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       PRESENTATION THEATER (IMMERSIVE FULLSCREEN VIEWER)
+       ========================================================================== -->
+  <div class="theater-overlay" id="theater-overlay" role="dialog" aria-modal="true" aria-labelledby="theater-title">
+    <div class="theater-topbar">
+      <div class="theater-info">
+        <div class="theater-title" id="theater-title">Sunum Başlığı</div>
+        <div class="theater-author" id="theater-author">Yazar • Kategori</div>
+      </div>
+
+      <div class="theater-actions">
+        <span class="theater-shortcut-hint">Klavye: ← / → Slayt • F Tam Ekran • Esc Kapat</span>
+        <button class="btn btn-secondary" onclick="openTheaterInNewTab()" title="Yeni Sekmede Aç">
+          <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor"><path d="M224,104a8,8,0,0,1-16,0V59.31l-82.34,82.35a8,8,0,0,1-11.32-11.32L196.69,48H152a8,8,0,0,1,0-16h72a8,8,0,0,1,8,8Zm-40,88a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80a8,8,0,0,1,8-8h56a8,8,0,0,1,0-16H48A24,24,0,0,0,24,80V192a24,24,0,0,0,24,24H176a24,24,0,0,0,24-24V136a8,8,0,0,1-16,0Z"/></svg>
+          <span>Ayrı Aç</span>
+        </button>
+        <button class="btn btn-secondary" onclick="toggleTheaterFullscreen()" title="Tam Ekran (F)">
+          <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor"><path d="M216,48V88a8,8,0,0,1-16,0V56H168a8,8,0,0,1,0-16h40A8,8,0,0,1,216,48ZM88,40H48a8,8,0,0,0-8,8V88a8,8,0,0,0,16,0V56H88a8,8,0,0,0,0-16ZM48,216H88a8,8,0,0,0,0-16H56V168a8,8,0,0,0-16,0v40A8,8,0,0,0,48,216Zm160-48a8,8,0,0,0-8,8v32H168a8,8,0,0,0,0,16h40a8,8,0,0,0,8-8V168A8,8,0,0,0,208,168Z"/></svg>
+          <span>Tam Ekran</span>
+        </button>
+        <button class="btn btn-primary" onclick="closeTheater()" title="Kapat (ESC)">
+          <span>Kapat</span>
+          <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="theater-viewport">
+      <div class="theater-frame-box" id="theater-frame-box">
+        <iframe id="theater-iframe" class="theater-iframe" title="Canlı Sunum Görünümü" allow="fullscreen" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       UPLOAD MODAL (YENİ SUNUM YÜKLEME EKRANI)
+       ========================================================================== -->
+  <div class="modal-overlay" id="upload-modal" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 class="modal-title" id="upload-modal-title">Yeni Sunum Yükle</h2>
+          <span class="modal-subtitle">Sunum yüklendikten sonra admin onay sürecine iletilir.</span>
+        </div>
+        <button class="modal-close" onclick="closeUploadModal()" aria-label="Pencereyi Kapat">✕</button>
+      </div>
+
+      <form id="upload-form" onsubmit="submitUpload(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="upload-title">
+              Sunum Başlığı <span class="req">*</span>
+            </label>
+            <input type="text" class="form-input" id="upload-title" placeholder="Örn: 2026 Mimarisi: Event-Driven Microservices" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="upload-description">
+              Özet & Açıklama <span class="req">*</span>
+            </label>
+            <textarea class="form-textarea" id="upload-description" placeholder="Sunumun ele aldığı konular ve ana kazanımlar..." required></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+            <div class="form-group">
+              <label class="form-label" for="upload-category">Kategori</label>
+              <select class="form-select" id="upload-category">
+                <option value="Frontend & Flutter">Frontend & Flutter</option>
+                <option value="AI & LLM">AI & LLM</option>
+                <option value="UI/UX & Design">UI/UX & Design</option>
+                <option value="Mimari & Backend">Mimari & Backend</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="upload-author">Konuşmacı</label>
+              <input type="text" class="form-input" id="upload-author" readonly>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="upload-tags">Etiketler (Virgülle ayırın)</label>
+            <input type="text" class="form-input" id="upload-tags" placeholder="#flutter, #performance, #mimari">
+          </div>
+
+          <!-- HTML File Dropzone -->
+          <div class="form-group">
+            <label class="form-label">HTML Sunum Dosyası (.html)</label>
+            <div class="dropzone" id="upload-dropzone">
+              <div class="dropzone-icon">
+                <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor"><path d="M240,136v64a16,16,0,0,1-16,16H32a16,16,0,0,1-16-16V136a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H32v64H224V136H176a8,8,0,0,1,0-16h48A16,16,0,0,1,240,136ZM82.34,77.66,120,40V144a8,8,0,0,0,16,0V40l37.66,37.66a8,8,0,0,0,11.31-11.32l-51.31-51.31a8,8,0,0,0-11.32,0L71,66.34A8,8,0,0,0,82.34,77.66Z"/></svg>
+              </div>
+              <div class="dropzone-text">
+                <strong>Dosya seçmek için tıklayın</strong> veya sürükleyin
+              </div>
+              <div class="form-hint">Tekil .html dosyası</div>
+              <input type="file" id="upload-file" accept=".html" style="display: none;">
+            </div>
+          </div>
+
+          <!-- Live Slide Preview in modal -->
+          <div class="upload-preview-box" id="upload-preview-box">
+            <iframe id="upload-preview-frame" class="upload-preview-frame" title="Yükleme Önizlemesi"></iframe>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">İptal</button>
+          <button type="submit" class="btn btn-primary">
+            <span>Onaya Gönder</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       AUTH MODAL (KULLANICI GİRİŞİ & PERSONA SEÇİCİ)
+       ========================================================================== -->
+  <div class="modal-overlay" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 class="modal-title" id="auth-modal-title">Ekip Girişi</h2>
+          <span class="modal-subtitle">Sunum yönetimi için profilinizi seçin.</span>
+        </div>
+        <button class="modal-close" onclick="closeAuthModal()" aria-label="Pencereyi Kapat">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="persona-grid" id="persona-grid">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAuthModal()">Vazgeç</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       EDIT MODAL (SUNUM DÜZENLEME)
+       ========================================================================== -->
+  <div class="modal-overlay" id="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 class="modal-title" id="edit-modal-title">Sunumu Düzenle</h2>
+          <span class="modal-subtitle">Sunum bilgilerini güncelleyin.</span>
+        </div>
+        <button class="modal-close" onclick="closeEditModal()" aria-label="Pencereyi Kapat">✕</button>
+      </div>
+
+      <form id="edit-form" onsubmit="submitEdit(event)">
+        <input type="hidden" id="edit-deck-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="edit-title">Sunum Başlığı</label>
+            <input type="text" class="form-input" id="edit-title" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-description">Açıklama</label>
+            <textarea class="form-textarea" id="edit-description" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-category">Kategori</label>
+            <select class="form-select" id="edit-category">
+              <option value="Frontend & Flutter">Frontend & Flutter</option>
+              <option value="AI & LLM">AI & LLM</option>
+              <option value="UI/UX & Design">UI/UX & Design</option>
+              <option value="Mimari & Backend">Mimari & Backend</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-tags">Etiketler</label>
+            <input type="text" class="form-input" id="edit-tags">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeEditModal()">İptal</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       DESIGN SYSTEM DRAWER (CANLI TOKEN SÖZLÜĞÜ)
+       ========================================================================== -->
+  <div class="drawer-overlay" id="design-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="drawer-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 class="modal-title" id="drawer-title">Tasarım Sistemi & Tokenlar</h2>
+          <span class="modal-subtitle">Vektör 3-Katmanlı Mimari (Primitive → Semantic → Component)</span>
+        </div>
+        <button class="modal-close" onclick="closeDesignDrawer()" aria-label="Paneli Kapat">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <h3 style="font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+          1. Renk Değerleri
+        </h3>
+        <div class="token-swatch-grid">
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: var(--bg-canvas); border: 1px solid var(--border-medium);"></div>
+            <span class="swatch-name">--bg-canvas</span>
+            <span class="swatch-val">#0C0E12 / #F9FAFB</span>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: var(--bg-surface); border: 1px solid var(--border-subtle);"></div>
+            <span class="swatch-name">--bg-surface</span>
+            <span class="swatch-val">#12151B / #FFFFFF</span>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: var(--status-published);"></div>
+            <span class="swatch-name">--status-published</span>
+            <span class="swatch-val">#10B981 (Yayında)</span>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: var(--status-pending);"></div>
+            <span class="swatch-name">--status-pending</span>
+            <span class="swatch-val">#F59E0B (Onay Bekliyor)</span>
+          </div>
+        </div>
+
+        <h3 style="font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); margin-top: 20px; margin-bottom: 8px;">
+          2. Tipografi (Instrument Sans & JetBrains Mono)
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 8px; background: var(--bg-surface-raised); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div style="font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em;">
+            Başlık Metni (20px / 700)
+          </div>
+          <div style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55;">
+            Gövde Metni (14px) - Yüksek kontrast, net ve dengeli okuma.
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary);">
+            JetBrains Mono (12px) - Kod blokları, sayaçlar ve meta veriler
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDesignDrawer()">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- App Core Engine -->
+  <script src="js/app.js"></script>
+</body>
+</html>

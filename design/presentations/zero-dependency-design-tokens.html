@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Tokens Mimarisi: Figma'dan Koda Sıfır Kayıp Köprüsü</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0C0F17;
+      --card-bg: #141A28;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --pink: #F472B6;
+      --amber: #F59E0B;
+      --indigo: #6366F1;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Schibsted Grotesk', -apple-system, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+    .deck-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem;
+    }
+    .slide {
+      position: absolute;
+      inset: 2rem;
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+      pointer-events: none;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #F472B6;
+      background: rgba(244, 114, 182, 0.12);
+      border: 1px solid rgba(244, 114, 182, 0.25);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      width: fit-content;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(2.2rem, 4.5vw, 3.75rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.12;
+      margin-bottom: 1.25rem;
+      color: #FFFFFF;
+    }
+    h2 {
+      font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      color: #FFFFFF;
+    }
+    p.lead {
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 820px;
+      margin-bottom: 2rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .card h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+    .card p {
+      font-size: 0.925rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .mono-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      background: #080B12;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: #F472B6;
+      line-height: 1.5;
+    }
+    .stat-box {
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border-radius: 12px;
+    }
+    .stat-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .controls-bar {
+      min-height: 60px;
+      border-top: 1px solid var(--border);
+      background: rgba(18, 24, 38, 0.75);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 2rem;
+      font-size: 0.875rem;
+    }
+    .slide-progress {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .dot {
+      width: 28px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.18);
+      transition: background 0.2s, opacity 0.2s;
+      cursor: pointer;
+      opacity: 0.5;
+    }
+    .dot.active {
+      background: var(--pink);
+      opacity: 1;
+    }
+    .nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: #FFFFFF;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-container">
+    <!-- SLIDE 1 -->
+    <div class="slide active" data-index="0">
+      <div class="tag">🎨 DİZAYN SİSTEMİ</div>
+      <h1>Design Tokens: Figma'dan Koda Sıfır Kayıp Köprüsü</h1>
+      <p class="lead">Tasarımcı ve geliştirici arasındaki semantik köprü: Üç katmanlı token hiyerarşisi, tek kaynaktan üretim ve tema yönetimi.</p>
+      <div class="grid-3">
+        <div class="card stat-box">
+          <div class="stat-number">3 Katman</div>
+          <div class="stat-label">Primitive → Semantic → Component</div>
+        </div>
+        <div class="card stat-box">
+          <div class="stat-number">0 Hardcode</div>
+          <div class="stat-label">Hex veya Pixel Bağımlılığı Yok</div>
+        </div>
+        <div class="card stat-box">
+          <div class="stat-number">AAA</div>
+          <div class="stat-label">Otomatik Kontrast Doğrulama</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide" data-index="1">
+      <div class="tag">🧱 3-KATMANLI HİYERARŞİ</div>
+      <h2>Neden Doğrudan Renk Değil, Semantik Alias?</h2>
+      <p class="lead">Doğrudan `blue-600` veya `#2563EB` kullanmak tema değişiminde tüm kod tabanını kırar.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Token Akış Şeması</h3>
+          <p>Primitive değer ham renktir. Semantic değer onun niyetini ifade eder. Component değeri ise bileşene özeldir.</p>
+          <div class="mono-code">
+/* 1. Primitive */
+--primitive-indigo-500: #6366F1;
+
+/* 2. Semantic */
+--brand-primary: var(--primitive-indigo-500);
+
+/* 3. Component */
+--btn-primary-bg: var(--brand-primary);
+          </div>
+        </div>
+        <div class="card">
+          <h3>Karanlık Modda Zahmetsiz Geçiş</h3>
+          <p>Yalnızca semantic katman yer değiştirir. Bileşen stilleriniz (`.btn-primary`) tek bir satır dahi değişmeden koyu temaya adapte olur.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide" data-index="2">
+      <div class="tag">🤖 OTOMASYON HATTI</div>
+      <h2>Figma Variables'tan Koda Otomatik Dağıtım</h2>
+      <p class="lead">Tasarımcının Figma'da onayladığı token'lar GitHub Actions hattında otomatik derlenip paketlenir.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>1. Figma Token Sync</h3>
+          <p>Değişkenler JSON olarak depoya commit edilir.</p>
+        </div>
+        <div class="card">
+          <h3>2. Style Dictionary</h3>
+          <p>Tek bir JSON kaynağından CSS variables, Flutter Dart ve iOS Swift dosyaları üretilir.</p>
+        </div>
+        <div class="card">
+          <h3>3. Statik Analiz</h3>
+          <p>Kod tabanında izinsiz hex renk kullanımı tespit edilirse PR reddedilir.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide" data-index="3">
+      <div class="tag">👁️ ERİŞİLEBİLİRLİK</div>
+      <h2>WCAG 2.2 Kontrast Matrisi</h2>
+      <p class="lead">Yüksek kontrast sadece bir tercih değil, kapsayıcı ürün tasarımının vazgeçilmezidir.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>4.5:1 Metin Kontrastı</h3>
+          <p>Tüm gövde metinleri arka planla en az 4.5:1 kontrast oranını karşılamak zorundadır. Başlıklar için minimum 3:1 eşiği aranır.</p>
+          <div class="mono-code">
+// Test Kontrol Kriteri
+test('semantic text tokens pass WCAG AAA', () => {
+  expect(contrast(textPrimary, bgCanvas)).toBeGreaterThan(7.0);
+});
+          </div>
+        </div>
+        <div class="card">
+          <h3>Focus Ring & Görsel Sınırlar</h3>
+          <p>Odak göstergeleri (Focus states) hiçbir zaman `outline: none` ile gizlenmez; her iki temada da yüksek görünürlüklü halka sunulur.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide" data-index="4">
+      <div class="tag">🚀 GELECEK</div>
+      <h2>Tasarım Sistemimizin Sonraki Adımları</h2>
+      <p class="lead">Takımımızın tasarım kütüphanesini önümüzdeki çeyrekte taşıyacağımız yeni seviyeler.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Mikro-Kütüphaneler</h3>
+          <p>Web ve mobil için paylaşımlı tek tip bileşen kütüphanesi.</p>
+        </div>
+        <div class="card">
+          <h3>Motion Tokenları</h3>
+          <p>Spring easing değerlerinin de koda ortak token olarak aktarımı.</p>
+        </div>
+        <div class="card">
+          <h3>Canlı Dokümantasyon</h3>
+          <p>Tasarımcı ve yazılımcının aynı dili konuştuğu interaktif sözlük.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-bar">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted);">
+      Slayt <span id="current-num" style="color: #FFF; font-weight: 600;">1</span> / <span id="total-num">5</span>
+    </div>
+    <div class="slide-progress" id="progress-dots">
+      <div class="dot active" onclick="goToSlide(0)"></div>
+      <div class="dot" onclick="goToSlide(1)"></div>
+      <div class="dot" onclick="goToSlide(2)"></div>
+      <div class="dot" onclick="goToSlide(3)"></div>
+      <div class="dot" onclick="goToSlide(4)"></div>
+    </div>
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="prevSlide()">← Önceki</button>
+      <button class="nav-btn" onclick="nextSlide()">Sonraki →</button>
+    </div>
+  </div>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    const currentNum = document.getElementById('current-num');
+    const totalNum = document.getElementById('total-num');
+
+    totalNum.textContent = slides.length;
+
+    function goToSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = index;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      currentNum.textContent = current + 1;
+    }
+
+    function nextSlide() {
+      if (current < slides.length - 1) goToSlide(current + 1);
+    }
+
+    function prevSlide() {
+      if (current > 0) goToSlide(current - 1);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') nextSlide();
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') prevSlide();
+    });
+
+    window.addEventListener('message', (event) => {
+      if (event.data === 'next') nextSlide();
+      if (event.data === 'prev') prevSlide();
+      if (event.data && event.data.type === 'goto') goToSlide(event.data.index);
+    });
+  </script>
+</body>
+</html>
