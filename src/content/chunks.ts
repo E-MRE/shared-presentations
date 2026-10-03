@@ -9,7 +9,7 @@
  * - src/contracts/services.ts
  */
 
-import { gzipSync, gunzipSync } from 'fflate';
+import { gzipSync, Gunzip } from 'fflate';
 import {
   MAX_CHUNK_BYTES,
   MAX_CHUNKS_COUNT,
@@ -39,6 +39,7 @@ export interface ChunkingResult {
 /**
  * Encodes payload (gzip for HTML, identity for PPTX) and divides it into ordered chunks
  * of <= 900,000 bytes with a canonical manifest.
+ * Strictly verifies uncompressed bounds before compression.
  */
 export function prepareChunks(
   data: Uint8Array,
@@ -54,6 +55,14 @@ export function prepareChunks(
   let encodedData: Uint8Array;
 
   if (kind === 'html') {
+    // 1. Strict uncompressed size verification BEFORE compression
+    if (data.length > MAX_HTML_UNPACKED_BYTES) {
+      return err({
+        code: AppErrorCode.FILE_TOO_LARGE,
+        message: `Açılmış HTML boyutu sınırını aşıyor (maksimum 25 MB). Mevcut: ${data.length} bayt.`,
+      });
+    }
+
     try {
       encodedData = gzipSync(data, { level: 9, mtime: 0 });
     } catch (gzipErr) {
@@ -64,6 +73,7 @@ export function prepareChunks(
       });
     }
 
+    // 2. Strict compressed size verification
     if (encodedData.length > MAX_HTML_ENCODED_BYTES) {
       return err({
         code: AppErrorCode.FILE_TOO_LARGE,
@@ -72,14 +82,14 @@ export function prepareChunks(
     }
   } else if (kind === 'pptx') {
     // Identity encoding for PPTX
-    encodedData = data;
-
-    if (encodedData.length > MAX_PPTX_BYTES) {
+    if (data.length > MAX_PPTX_BYTES) {
       return err({
         code: AppErrorCode.FILE_TOO_LARGE,
-        message: `PPTX dosya boyutu sınırını aşıyor (maksimum 8 MB). Mevcut: ${encodedData.length} bayt.`,
+        message: `PPTX dosya boyutu sınırını aşıyor (maksimum 8 MB). Mevcut: ${data.length} bayt.`,
       });
     }
+
+    encodedData = data;
   } else {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
@@ -140,7 +150,7 @@ export function prepareChunks(
 
 /**
  * Reconstructs and verifies presentation content from chunks and manifest.
- * Performs bounded decompression for HTML decks to prevent decompression bombs.
+ * Performs incremental bounded decompression for HTML decks to prevent decompression bombs.
  */
 export function reconstructPresentation(
   chunks: Array<PreparedChunk | DeckChunk>,
@@ -169,24 +179,28 @@ export function reconstructPresentation(
     });
   }
 
-  if (manifest.length > MAX_CHUNKS_COUNT) {
+  if (manifest.length < MIN_CHUNKS_COUNT || manifest.length > MAX_CHUNKS_COUNT) {
     return err({
       code: AppErrorCode.CHUNK_TOO_LARGE,
       message: `Parça sayısı izin verilen azami değeri aşıyor (maksimum ${MAX_CHUNKS_COUNT}): ${manifest.length}`,
     });
   }
 
-  // Validate manifest ordering 0..n-1
+  // Validate manifest ordering and finite integer sizes
   let expectedSum = 0;
   for (let i = 0; i < manifest.length; i++) {
     const entry = manifest[i];
-    if (entry.index !== i) {
+    if (!Number.isInteger(entry.index) || entry.index !== i) {
       return err({
         code: AppErrorCode.MALFORMED_MANIFEST,
         message: `Manifest sıralaması geçersiz: dizin ${i} beklenen, ancak ${entry.index} bulundu.`,
       });
     }
-    if (typeof entry.size !== 'number' || entry.size <= 0 || entry.size > MAX_CHUNK_BYTES) {
+    if (
+      !Number.isInteger(entry.size) ||
+      entry.size <= 0 ||
+      entry.size > MAX_CHUNK_BYTES
+    ) {
       return err({
         code: AppErrorCode.CHUNK_TOO_LARGE,
         message: `Manifest parça boyutu geçersiz (${entry.size} bayt, parça ${i}).`,
@@ -195,13 +209,35 @@ export function reconstructPresentation(
     expectedSum += entry.size;
   }
 
+  // Enforce aggregate encoded limits BEFORE stitching
+  if (kind === 'html' && expectedSum > MAX_HTML_ENCODED_BYTES) {
+    return err({
+      code: AppErrorCode.FILE_TOO_LARGE,
+      message: `Manifest toplam kodlanmış boyutu (${expectedSum} bayt) izin verilen azami HTML sınırını (${MAX_HTML_ENCODED_BYTES} bayt) aşıyor.`,
+    });
+  }
+
+  if (kind === 'pptx' && expectedSum > MAX_PPTX_BYTES) {
+    return err({
+      code: AppErrorCode.FILE_TOO_LARGE,
+      message: `Manifest toplam boyutu (${expectedSum} bayt) izin verilen azami PPTX sınırını (${MAX_PPTX_BYTES} bayt) aşıyor.`,
+    });
+  }
+
+  if (expectedSizes && expectedSizes.encoded !== expectedSum) {
+    return err({
+      code: AppErrorCode.MALFORMED_MANIFEST,
+      message: `Kodlanmış veri boyutu (${expectedSum}) bildirilen boyut (${expectedSizes.encoded}) ile uyuşmuyor.`,
+    });
+  }
+
   // Sort chunks by index to ensure proper sequential stitching
   const sortedChunks = [...chunks].sort((a, b) => a.index - b.index);
 
   // Validate chunk payload against manifest
   for (let i = 0; i < sortedChunks.length; i++) {
     const chunk = sortedChunks[i];
-    if (chunk.index !== i) {
+    if (!Number.isInteger(chunk.index) || chunk.index !== i) {
       return err({
         code: AppErrorCode.MALFORMED_MANIFEST,
         message: `Eksik veya hatalı parça dizini: parça ${i} beklenirken ${chunk.index} bulundu.`,
@@ -225,13 +261,6 @@ export function reconstructPresentation(
     writeOffset += chunk.data.length;
   }
 
-  if (expectedSizes && expectedSizes.encoded !== expectedSum) {
-    return err({
-      code: AppErrorCode.MALFORMED_MANIFEST,
-      message: `Kodlanmış veri boyutu (${expectedSum}) bildirilen boyut (${expectedSizes.encoded}) ile uyuşmuyor.`,
-    });
-  }
-
   if (kind === 'pptx') {
     return ok({
       kind: 'pptx',
@@ -246,22 +275,57 @@ export function reconstructPresentation(
   }
 
   if (kind === 'html') {
-    let decompressed: Uint8Array;
-    try {
-      decompressed = gunzipSync(stitched);
-    } catch (gunzipErr) {
+    // Incremental streaming gunzip with immediate abort upon exceeding MAX_HTML_UNPACKED_BYTES
+    const decompressedChunks: Uint8Array[] = [];
+    let totalDecompressed = 0;
+    let limitExceeded = false;
+    let decompressError: Error | null = null;
+
+    const gunzip = new Gunzip((chunk) => {
+      if (chunk && chunk.length > 0) {
+        totalDecompressed += chunk.length;
+        if (totalDecompressed > MAX_HTML_UNPACKED_BYTES) {
+          limitExceeded = true;
+          return;
+        }
+        decompressedChunks.push(chunk);
+      }
+    });
+
+    const FEED_CHUNK = 8192;
+    for (let off = 0; off < stitched.length; off += FEED_CHUNK) {
+      if (limitExceeded) break;
+      const end = Math.min(off + FEED_CHUNK, stitched.length);
+      const isFinal = end === stitched.length;
+      try {
+        gunzip.push(stitched.subarray(off, end), isFinal);
+      } catch (gzErr) {
+        decompressError = gzErr instanceof Error ? gzErr : new Error(String(gzErr));
+        break;
+      }
+    }
+
+    if (limitExceeded || totalDecompressed > MAX_HTML_UNPACKED_BYTES) {
       return err({
-        code: AppErrorCode.INVALID_ARGUMENT,
-        message: 'Gzip sıkıştırması açılamadı: bozuk veya geçersiz içerik.',
-        details: gunzipErr,
+        code: AppErrorCode.FILE_TOO_LARGE,
+        message: `Açılmış HTML boyutu sınırını aşıyor (maksimum 25 MB).`,
       });
     }
 
-    if (decompressed.length > MAX_HTML_UNPACKED_BYTES) {
+    if (decompressError) {
       return err({
-        code: AppErrorCode.FILE_TOO_LARGE,
-        message: `Açılmış HTML boyutu sınırını aşıyor (maksimum 25 MB). Mevcut: ${decompressed.length} bayt.`,
+        code: AppErrorCode.INVALID_ARGUMENT,
+        message: 'Gzip sıkıştırması açılamadı: bozuk veya geçersiz içerik.',
+        details: decompressError,
       });
+    }
+
+    // Assemble decompressed buffer
+    const decompressed = new Uint8Array(totalDecompressed);
+    let dOff = 0;
+    for (const c of decompressedChunks) {
+      decompressed.set(c, dOff);
+      dOff += c.length;
     }
 
     let html: string;

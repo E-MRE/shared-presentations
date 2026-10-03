@@ -66,10 +66,14 @@ export interface PipelineWarning {
   details?: unknown;
 }
 
-/** Result of pipeline execution including warnings */
+/** Result of pipeline execution including warnings and cover selections */
 export interface PipelineResult extends PreparedContent {
   /** Extracted or resolved deck title */
   title: string;
+  /** User-provided cover override if present and valid (source: 'upload') */
+  overrideCover?: CoverDescriptor;
+  /** The actively selected cover descriptor (precedence: overrideCover ?? autoCover ?? defaultCover) */
+  selectedCover: CoverDescriptor;
   /** Observable warnings accumulated during pipeline execution */
   warnings: PipelineWarning[];
 }

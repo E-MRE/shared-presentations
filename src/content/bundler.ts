@@ -40,7 +40,7 @@ export interface BundledHtmlResult {
 }
 
 /**
- * Decodes HTML entities commonly found in titles and attributes.
+ * Decodes HTML entities commonly found in titles, paths, and attributes.
  */
 function decodeHtmlEntities(str: string): string {
   return str
@@ -67,7 +67,54 @@ function titleFromFileName(fileName: string): string {
 }
 
 /**
- * Parses srcset attribute and inlines local URLs to data URIs.
+ * Finds the end of an HTML tag respecting single and double quotes in attributes,
+ * so quoted '>' characters (e.g. title="a > b") do not end the tag early.
+ */
+function findTagEnd(html: string, start: number): number {
+  let inQuote: string | null = null;
+  for (let i = start + 1; i < html.length; i++) {
+    const ch = html[i];
+    if (inQuote !== null) {
+      if (ch === inQuote) {
+        inQuote = null;
+      }
+    } else {
+      if (ch === '"' || ch === "'") {
+        inQuote = ch;
+      } else if (ch === '>') {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/**
+ * Replaces or updates an attribute in an HTML tag string safely.
+ */
+function replaceAttribute(tagStr: string, attrName: string, newValue: string): string {
+  const regex = new RegExp(`(\\b${attrName}\\s*=\\s*)(?:'[^']*'|"[^"]*"|[^\\s>]+)`, 'i');
+  if (regex.test(tagStr)) {
+    return tagStr.replace(regex, (_match, prefix) => `${prefix}"${newValue}"`);
+  }
+  const isSelfClosing = tagStr.endsWith('/>');
+  const insertPos = isSelfClosing ? tagStr.length - 2 : tagStr.length - 1;
+  return `${tagStr.slice(0, insertPos)} ${attrName}="${newValue}"${tagStr.slice(insertPos)}`;
+}
+
+/**
+ * Extracts the value of a specific attribute from an HTML tag string.
+ */
+function getAttributeValue(tagStr: string, attrName: string): string | null {
+  const regex = new RegExp(`\\b${attrName}\\s*=\\s*(?:'([^']*)'|"([^"]*)"|([^\\s>]+))`, 'i');
+  const match = tagStr.match(regex);
+  if (!match) return null;
+  return match[1] ?? match[2] ?? match[3] ?? null;
+}
+
+/**
+ * Parses srcset attribute respecting data URIs with commas,
+ * inlining relative paths to data URIs.
  */
 function processSrcset(
   srcset: string,
@@ -75,20 +122,49 @@ function processSrcset(
   fileMap: Map<string, BundleFile>,
   warnings: PipelineWarning[],
 ): string {
-  const candidates = srcset.split(',');
-  const processedCandidates: string[] = [];
+  const candidates: Array<{ url: string; descriptor: string }> = [];
+  let pos = 0;
 
-  for (const candidate of candidates) {
-    const trimmed = candidate.trim();
-    if (!trimmed) continue;
+  while (pos < srcset.length) {
+    while (pos < srcset.length && /\s/.test(srcset[pos])) pos++;
+    if (pos >= srcset.length) break;
 
-    const parts = trimmed.split(/\s+/);
-    const url = parts[0];
-    const descriptor = parts.slice(1).join(' ');
+    const urlStart = pos;
+    const isData = srcset.slice(pos, pos + 5).toLowerCase() === 'data:';
+    let dataCommaSeen = false;
 
-    const category = classifyUrl(url);
+    while (pos < srcset.length) {
+      const ch = srcset[pos];
+      if (/\s/.test(ch)) break;
+      if (ch === ',') {
+        if (isData && !dataCommaSeen) {
+          dataCommaSeen = true;
+          pos++;
+          continue;
+        }
+        break;
+      }
+      pos++;
+    }
+
+    const rawUrl = srcset.slice(urlStart, pos);
+    while (pos < srcset.length && /\s/.test(srcset[pos])) pos++;
+
+    const descStart = pos;
+    while (pos < srcset.length && srcset[pos] !== ',') pos++;
+    const descriptor = srcset.slice(descStart, pos).trim();
+
+    candidates.push({ url: rawUrl, descriptor });
+    if (pos < srcset.length && srcset[pos] === ',') pos++;
+  }
+
+  const processed: string[] = [];
+  for (const { url, descriptor } of candidates) {
+    const decodedUrl = decodeHtmlEntities(url).trim();
+    const category = classifyUrl(decodedUrl);
+
     if (category === 'data-uri' || category === 'fragment-only') {
-      processedCandidates.push(trimmed);
+      processed.push(descriptor ? `${url} ${descriptor}` : url);
       continue;
     }
 
@@ -98,7 +174,7 @@ function processSrcset(
         message: `Çözümlenmemiş harici srcset kaynağı: ${url}`,
         target: url,
       });
-      processedCandidates.push(trimmed);
+      processed.push(descriptor ? `${url} ${descriptor}` : url);
       continue;
     }
 
@@ -108,29 +184,32 @@ function processSrcset(
         message: `Güvensiz harici HTTP srcset kaynağı: ${url}`,
         target: url,
       });
-      processedCandidates.push(trimmed);
+      processed.push(descriptor ? `${url} ${descriptor}` : url);
       continue;
     }
 
     // Local relative file
-    const resolvedPath = resolveRelativePath(containingDir, url);
+    const { cleanPath, hash } = stripQueryAndHash(decodedUrl);
+    const resolvedPath = resolveRelativePath(containingDir, cleanPath);
     const targetFile = fileMap.get(resolvedPath);
 
     if (targetFile) {
       const mime = getMimeType(resolvedPath);
-      const dataUri = toDataUri(targetFile.data, mime);
-      processedCandidates.push(descriptor ? `${dataUri} ${descriptor}` : dataUri);
+      const dataUri = toDataUri(targetFile.data, mime) + (hash || '');
+      processed.push(descriptor ? `${dataUri} ${descriptor}` : dataUri);
     } else {
       warnings.push({
         code: 'MISSING_RESOURCE',
         message: `Pakette bulunamayan yerel srcset kaynağı: ${url}`,
         target: url,
       });
-      processedCandidates.push(descriptor ? `${TRANSPARENT_1X1_GIF} ${descriptor}` : TRANSPARENT_1X1_GIF);
+      processed.push(
+        descriptor ? `${TRANSPARENT_1X1_GIF} ${descriptor}` : TRANSPARENT_1X1_GIF,
+      );
     }
   }
 
-  return processedCandidates.join(', ');
+  return processed.join(', ');
 }
 
 /**
@@ -143,7 +222,6 @@ export function processCssContent(
   warnings: PipelineWarning[],
   visitedCssFiles: Set<string> = new Set(),
 ): string {
-  // Regex matching comments, strings, @import rules, and url() expressions in order
   const CSS_TOKEN_REGEX =
     /\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|@import\s+(?:url\s*\(\s*(['"]?)(.*?)\1\s*\)|(['"])(.*?)\3|([^;\s]+))\s*([^;]*?);|url\s*\(\s*(['"]?)(.*?)\7\s*\)/gi;
 
@@ -160,12 +238,12 @@ export function processCssContent(
       _urlQuote,
       urlValue,
     ) => {
-      // 1. Comments: preserve as-is
+      // 1. Comments: preserve verbatim
       if (match.startsWith('/*')) {
         return match;
       }
 
-      // 2. Quoted string literals: preserve as-is
+      // 2. Quoted string literals: preserve verbatim
       if (match.startsWith('"') || match.startsWith("'")) {
         return match;
       }
@@ -300,7 +378,6 @@ export function processCssContent(
           message: `CSS içinde bulunamayan yerel url() kaynağı: ${rawUrl}`,
           target: rawUrl,
         });
-        // Inert placeholder prevents any parent-origin leaks
         return `url("${TRANSPARENT_1X1_GIF}")`;
       }
 
@@ -312,53 +389,97 @@ export function processCssContent(
 }
 
 /**
- * Inlines local ES module import specifiers within inline module scripts.
+ * Inlines local ES module specifiers recursively with cycle detection.
  */
-function processModuleScript(
-  scriptContent: string,
+function processModuleFile(
+  modulePath: string,
+  fileMap: Map<string, BundleFile>,
+  warnings: PipelineWarning[],
+  visitedModules: Set<string> = new Set(),
+): string {
+  if (visitedModules.has(modulePath)) {
+    warnings.push({
+      code: 'CYCLE_DETECTED',
+      message: `Modül içe aktarma döngüsü tespit edildi: ${modulePath}`,
+      target: modulePath,
+    });
+    return `/* Cycle detected: ${modulePath} */\nexport {};\n`;
+  }
+
+  const file = fileMap.get(modulePath);
+  if (!file) {
+    warnings.push({
+      code: 'MISSING_RESOURCE',
+      message: `Pakette bulunamayan yerel modül dosyası: ${modulePath}`,
+      target: modulePath,
+    });
+    return `/* Missing module: ${modulePath} */\nexport {};\n`;
+  }
+
+  const nextVisited = new Set(visitedModules);
+  nextVisited.add(modulePath);
+
+  const rawCode = new TextDecoder('utf-8').decode(file.data);
+  const dir = getDirectoryName(modulePath);
+  return processModuleCode(rawCode, dir, fileMap, warnings, nextVisited);
+}
+
+/**
+ * Processes module code, converting relative import specifiers into data URIs.
+ */
+function processModuleCode(
+  code: string,
   containingDir: string,
   fileMap: Map<string, BundleFile>,
   warnings: PipelineWarning[],
+  visitedModules: Set<string> = new Set(),
 ): string {
-  // Regex matching `import ... from '...'` or `export ... from '...'`
-  const MODULE_IMPORT_REGEX =
-    /((?:import|export)\s+(?:[\w*\s{},]*\s+from\s+)?)(['"])(.*?)\2/g;
+  const MODULE_SPECIFIER_REGEX =
+    /((?:import|export)\s+(?:[\w*\s{},]*\s+from\s+)?|import\s*\(\s*)(['"])(.*?)\2(\s*\))?/g;
 
-  return scriptContent.replace(MODULE_IMPORT_REGEX, (match, prefix, quote, specifier) => {
-    const trimmedSpecifier = specifier.trim();
-    const category = classifyUrl(trimmedSpecifier);
+  return code.replace(
+    MODULE_SPECIFIER_REGEX,
+    (match, prefix, quote, specifier, closingParen) => {
+      const trimmedSpecifier = decodeHtmlEntities(specifier).trim();
+      const category = classifyUrl(trimmedSpecifier);
 
-    if (category === 'data-uri' || category === 'blob-uri') {
-      return match;
-    }
+      if (category === 'data-uri' || category === 'blob-uri') {
+        return match;
+      }
 
-    if (category === 'external-https' || category === 'external-protocol-relative') {
-      warnings.push({
-        code: 'EXTERNAL_RESOURCE',
-        message: `Modül scripti içinde harici import: ${trimmedSpecifier}`,
-        target: trimmedSpecifier,
-      });
-      return match;
-    }
+      if (category === 'external-https' || category === 'external-protocol-relative') {
+        warnings.push({
+          code: 'EXTERNAL_RESOURCE',
+          message: `Modül scripti içinde harici import: ${trimmedSpecifier}`,
+          target: trimmedSpecifier,
+        });
+        return match;
+      }
 
-    if (category === 'external-http') {
-      warnings.push({
-        code: 'INSECURE_RESOURCE',
-        message: `Modül scripti içinde güvensiz HTTP import: ${trimmedSpecifier}`,
-        target: trimmedSpecifier,
-      });
-      return match;
-    }
+      if (category === 'external-http') {
+        warnings.push({
+          code: 'INSECURE_RESOURCE',
+          message: `Modül scripti içinde güvensiz HTTP import: ${trimmedSpecifier}`,
+          target: trimmedSpecifier,
+        });
+        return match;
+      }
 
-    // Relative module import (e.g. './util.js', '../core/math.mjs')
-    if (trimmedSpecifier.startsWith('.') || trimmedSpecifier.startsWith('/')) {
-      const resolvedPath = resolveRelativePath(containingDir, trimmedSpecifier);
-      const importedFile = fileMap.get(resolvedPath);
+      const { cleanPath } = stripQueryAndHash(trimmedSpecifier);
+      const resolvedPath = resolveRelativePath(containingDir, cleanPath);
 
-      if (importedFile) {
-        const mime = getMimeType(resolvedPath);
-        const dataUri = toDataUri(importedFile.data, mime);
-        return `${prefix}${quote}${dataUri}${quote}`;
+      if (resolvedPath && fileMap.has(resolvedPath)) {
+        const inlinedNested = processModuleFile(
+          resolvedPath,
+          fileMap,
+          warnings,
+          visitedModules,
+        );
+        const dataUri = toDataUri(
+          new TextEncoder().encode(inlinedNested),
+          'text/javascript',
+        );
+        return `${prefix}${quote}${dataUri}${quote}${closingParen || ''}`;
       }
 
       warnings.push({
@@ -366,15 +487,14 @@ function processModuleScript(
         message: `Modül scripti içinde bulunamayan yerel dosya: ${trimmedSpecifier}`,
         target: trimmedSpecifier,
       });
-    }
-
-    return match;
-  });
+      const emptyModuleUri = 'data:text/javascript,export%20default%20%7B%7D%3B';
+      return `${prefix}${quote}${emptyModuleUri}${quote}${closingParen || ''}`;
+    },
+  );
 }
 
 /**
  * Locates the optimal entry HTML document in a bundle.
- * Prefers index.html (or case-insensitive index.html), else deterministic first HTML.
  */
 export function findHtmlEntry(
   files: BundleFile[],
@@ -391,7 +511,6 @@ export function findHtmlEntry(
     });
   }
 
-  // 1. Explicit user selection
   if (explicitSelection) {
     const normSelection = normalizePath(explicitSelection);
     const found = htmlFiles.find(
@@ -405,25 +524,24 @@ export function findHtmlEntry(
     }
   }
 
-  // 2. Exact 'index.html' at root level
   const rootIndex = htmlFiles.find((f) => f.path.toLowerCase() === 'index.html');
   if (rootIndex) {
     return ok(rootIndex);
   }
 
-  // 3. Any 'index.html' in nested folders
   const anyIndex = htmlFiles.find((f) => f.name?.toLowerCase() === 'index.html');
   if (anyIndex) {
     return ok(anyIndex);
   }
 
-  // 4. Deterministic first HTML file sorted alphabetically by normalized path
   const sorted = [...htmlFiles].sort((a, b) => a.path.localeCompare(b.path));
   return ok(sorted[0]);
 }
 
 /**
  * Bundles an HTML presentation into a single self-contained document.
+ * Safely partitions comments, script tags, style tags, and general markup,
+ * preventing markup rewriting inside JavaScript string literals or comments.
  */
 export function bundlePresentation(
   files: BundleFile[],
@@ -443,12 +561,12 @@ export function bundlePresentation(
   }
 
   const entryDir = getDirectoryName(entryFile.path);
-  let html = new TextDecoder('utf-8').decode(entryFile.data);
+  const rawHtml = new TextDecoder('utf-8').decode(entryFile.data);
 
-  // Extract or derive presentation title
+  // Extract presentation title
   let title = options?.titleOverride?.trim() || '';
   if (!title) {
-    const titleMatch = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
+    const titleMatch = rawHtml.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
     if (titleMatch && titleMatch[1]) {
       title = decodeHtmlEntities(titleMatch[1]).trim();
     }
@@ -460,284 +578,435 @@ export function bundlePresentation(
     title = title.slice(0, MAX_TITLE_LENGTH);
   }
 
-  // Neutralize <base href="..."> if present to prevent data URI and relative hash hijacking
-  html = html.replace(/<base\b([^>]*)>/gi, (match, attrs) => {
-    warnings.push({
-      code: 'NORMALIZATION_NOTE',
-      message: '<base> etiketi yerel veri URI çözümlemesini korumak için nötralize edildi.',
-      details: match,
-    });
-    return `<!-- Base tag neutralized: ${attrs} -->`;
-  });
+  // Tokenize and transform HTML
+  let pos = 0;
+  const outputChunks: string[] = [];
+  let currentUnpackedBytes = 0;
 
-  // 1. Process <link rel="stylesheet"> tags
-  const LINK_TAG_REGEX = /<link\b([^>]*?)>/gi;
-  html = html.replace(LINK_TAG_REGEX, (match, attrs) => {
-    const relMatch = attrs.match(/\brel\s*=\s*(['"]?)(.*?)\1(?:\s|$)/i);
-    const relValue = relMatch ? relMatch[2].toLowerCase() : '';
+  const appendOutput = (str: string): boolean => {
+    const chunkBytes = new TextEncoder().encode(str).length;
+    currentUnpackedBytes += chunkBytes;
+    if (currentUnpackedBytes > MAX_HTML_UNPACKED_BYTES) {
+      return false;
+    }
+    outputChunks.push(str);
+    return true;
+  };
 
-    if (relValue.split(/\s+/).includes('stylesheet')) {
-      const hrefMatch = attrs.match(/\bhref\s*=\s*(['"]?)(.*?)\1(?:\s|$)/i);
-      const href = hrefMatch ? hrefMatch[2].trim() : '';
-
-      if (!href) {
-        return match;
-      }
-
-      const category = classifyUrl(href);
-      if (category === 'external-https' || category === 'external-protocol-relative') {
-        warnings.push({
-          code: 'EXTERNAL_RESOURCE',
-          message: `Harici HTTPS stil dosyası bağlantısı korundu: ${href}`,
-          target: href,
+  while (pos < rawHtml.length) {
+    // 1. HTML Comments: <!-- ... --> (preserve verbatim)
+    if (rawHtml.startsWith('<!--', pos)) {
+      const end = rawHtml.indexOf('-->', pos + 4);
+      const commentEnd = end === -1 ? rawHtml.length : end + 3;
+      const commentStr = rawHtml.slice(pos, commentEnd);
+      if (!appendOutput(commentStr)) {
+        return err({
+          code: AppErrorCode.FILE_TOO_LARGE,
+          message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
         });
-        return match;
       }
-
-      if (category === 'external-http') {
-        warnings.push({
-          code: 'INSECURE_RESOURCE',
-          message: `Güvensiz harici HTTP stil dosyası bağlantısı: ${href}`,
-          target: href,
-        });
-        return match;
-      }
-
-      // Local stylesheet
-      const { cleanPath } = stripQueryAndHash(href);
-      const resolvedPath = resolveRelativePath(entryDir, cleanPath);
-      const cssFile = fileMap.get(resolvedPath);
-
-      if (cssFile) {
-        const cssDir = getDirectoryName(resolvedPath);
-        const cssText = new TextDecoder('utf-8').decode(cssFile.data);
-        const processedCss = processCssContent(cssText, cssDir, fileMap, warnings);
-        return `<style data-inlined-from="${href}">\n${processedCss}\n</style>`;
-      }
-
-      warnings.push({
-        code: 'MISSING_RESOURCE',
-        message: `Pakette bulunamayan stil dosyası: ${href}`,
-        target: href,
-      });
-      return `<!-- Missing stylesheet: ${href} -->`;
+      pos = commentEnd;
+      continue;
     }
 
-    // Inlined icon links
-    if (relValue.includes('icon') || relValue.includes('apple-touch-icon')) {
-      const hrefMatch = attrs.match(/\bhref\s*=\s*(['"]?)(.*?)\1(?:\s|$)/i);
-      const href = hrefMatch ? hrefMatch[2].trim() : '';
-      if (href && classifyUrl(href) === 'relative') {
-        const resolvedPath = resolveRelativePath(entryDir, href);
-        const iconFile = fileMap.get(resolvedPath);
-        if (iconFile) {
-          const mime = getMimeType(resolvedPath);
-          const dataUri = toDataUri(iconFile.data, mime);
-          return match.replace(href, dataUri);
+    // 2. <script> tags: <script ...>...</script>
+    if (rawHtml.slice(pos, pos + 7).toLowerCase() === '<script') {
+      const openTagEnd = findTagEnd(rawHtml, pos);
+      if (openTagEnd === -1) {
+        // Unterminated tag, append remainder
+        appendOutput(rawHtml.slice(pos));
+        break;
+      }
+      const openTag = rawHtml.slice(pos, openTagEnd + 1);
+      const closeIdx = rawHtml.toLowerCase().indexOf('</script>', openTagEnd + 1);
+      const scriptEnd = closeIdx === -1 ? rawHtml.length : closeIdx + 9;
+      const inlineBody = rawHtml.slice(openTagEnd + 1, closeIdx === -1 ? rawHtml.length : closeIdx);
+
+      pos = scriptEnd;
+
+      const srcVal = getAttributeValue(openTag, 'src');
+      if (srcVal !== null) {
+        const decodedSrc = decodeHtmlEntities(srcVal).trim();
+        const category = classifyUrl(decodedSrc);
+
+        if (category === 'data-uri' || category === 'blob-uri') {
+          // Strictly preserve existing data-URI scripts!
+          if (!appendOutput(`${openTag}${inlineBody}</script>`)) {
+            return err({
+              code: AppErrorCode.FILE_TOO_LARGE,
+              message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
+            });
+          }
+          continue;
         }
-      }
-    }
 
-    return match;
-  });
+        if (category === 'external-https' || category === 'external-protocol-relative') {
+          warnings.push({
+            code: 'EXTERNAL_RESOURCE',
+            message: `Harici HTTPS script bağlantısı korundu: ${decodedSrc}`,
+            target: decodedSrc,
+          });
+          if (!appendOutput(`${openTag}${inlineBody}</script>`)) {
+            return err({
+              code: AppErrorCode.FILE_TOO_LARGE,
+              message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
+            });
+          }
+          continue;
+        }
 
-  // 2. Process inline <style> tags
-  const STYLE_TAG_REGEX = /(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi;
-  html = html.replace(STYLE_TAG_REGEX, (_, openTag, cssContent, closeTag) => {
-    const processed = processCssContent(cssContent, entryDir, fileMap, warnings);
-    return `${openTag}${processed}${closeTag}`;
-  });
+        if (category === 'external-http') {
+          warnings.push({
+            code: 'INSECURE_RESOURCE',
+            message: `Güvensiz harici HTTP script bağlantısı: ${decodedSrc}`,
+            target: decodedSrc,
+          });
+          if (!appendOutput(`${openTag}${inlineBody}</script>`)) {
+            return err({
+              code: AppErrorCode.FILE_TOO_LARGE,
+              message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
+            });
+          }
+          continue;
+        }
 
-  // 3. Process <script ... src="..."> tags
-  const SCRIPT_TAG_REGEX = /<script\b([^>]*?)>([\s\S]*?)<\/script>/gi;
-  html = html.replace(SCRIPT_TAG_REGEX, (match, attrs, inlineBody) => {
-    const srcMatch = attrs.match(/\bsrc\s*=\s*(['"]?)(.*?)\1(?:\s|$)/i);
-    if (!srcMatch || !srcMatch[2]) {
-      // Inline script without src
-      const typeMatch = attrs.match(/\btype\s*=\s*(['"]?)(.*?)\1(?:\s|$)/i);
-      const isModule = typeMatch && typeMatch[2].toLowerCase() === 'module';
-
-      if (isModule && inlineBody) {
-        const processed = processModuleScript(inlineBody, entryDir, fileMap, warnings);
-        return match.replace(inlineBody, processed);
-      }
-      return match;
-    }
-
-    const src = srcMatch[2].trim();
-    const category = classifyUrl(src);
-
-    if (category === 'external-https' || category === 'external-protocol-relative') {
-      warnings.push({
-        code: 'EXTERNAL_RESOURCE',
-        message: `Harici HTTPS script bağlantısı korundu: ${src}`,
-        target: src,
-      });
-      return match;
-    }
-
-    if (category === 'external-http') {
-      warnings.push({
-        code: 'INSECURE_RESOURCE',
-        message: `Güvensiz harici HTTP script bağlantısı: ${src}`,
-        target: src,
-      });
-      return match;
-    }
-
-    // Local script
-    const { cleanPath } = stripQueryAndHash(src);
-    const resolvedPath = resolveRelativePath(entryDir, cleanPath);
-    const scriptFile = fileMap.get(resolvedPath);
-
-    if (!scriptFile) {
-      warnings.push({
-        code: 'MISSING_RESOURCE',
-        message: `Pakette bulunamayan yerel script dosyası: ${src}`,
-        target: src,
-      });
-      return `<!-- Missing script: ${src} -->`;
-    }
-
-    const scriptDir = getDirectoryName(resolvedPath);
-    let scriptCode = new TextDecoder('utf-8').decode(scriptFile.data);
-
-    const typeMatch = attrs.match(/\btype\s*=\s*(['"]?)(.*?)\1(?:\s|$)/i);
-    const isModule = typeMatch && typeMatch[2].toLowerCase() === 'module';
-
-    if (isModule) {
-      scriptCode = processModuleScript(scriptCode, scriptDir, fileMap, warnings);
-    }
-
-    // Strip `src="..."` from attributes and escape any `</script>` in the code
-    const cleanedAttrs = attrs.replace(/\bsrc\s*=\s*(['"]?).*?\1(?:\s|$)/i, ' ').trim();
-    const safeCode = scriptCode.replace(/<\/script>/gi, '<\\/script>');
-    const attrsStr = cleanedAttrs ? ` ${cleanedAttrs}` : '';
-
-    return `<script${attrsStr} data-inlined-from="${src}">\n${safeCode}\n</script>`;
-  });
-
-  // 4. Process <img> and <source> tags (src and srcset)
-  const MEDIA_TAG_REGEX = /<(img|source)\b([^>]*?)>/gi;
-  html = html.replace(MEDIA_TAG_REGEX, (_match, tagName, attrs) => {
-    let modifiedAttrs = attrs;
-
-    // Process srcset first
-    const srcsetMatch = attrs.match(/\bsrcset\s*=\s*(['"])([\s\S]*?)\1/i);
-    if (srcsetMatch) {
-      const quote = srcsetMatch[1];
-      const rawSrcset = srcsetMatch[2];
-      const inlinedSrcset = processSrcset(rawSrcset, entryDir, fileMap, warnings);
-      modifiedAttrs = modifiedAttrs.replace(
-        srcsetMatch[0],
-        `srcset=${quote}${inlinedSrcset}${quote}`,
-      );
-    }
-
-    // Process src attribute
-    const srcMatch = modifiedAttrs.match(/\bsrc\s*=\s*(['"]?)(.*?)\1(?:\s|$|>)/i);
-    if (srcMatch && srcMatch[2]) {
-      const src = srcMatch[2].trim();
-      const category = classifyUrl(src);
-
-      if (category === 'relative') {
-        const { cleanPath, hash } = stripQueryAndHash(src);
+        // Local script
+        const { cleanPath } = stripQueryAndHash(decodedSrc);
         const resolvedPath = resolveRelativePath(entryDir, cleanPath);
-        const imgFile = fileMap.get(resolvedPath);
+        const scriptFile = fileMap.get(resolvedPath);
 
-        if (imgFile) {
-          const mime = getMimeType(resolvedPath);
-          const dataUri = toDataUri(imgFile.data, mime) + (hash || '');
-          const quote = srcMatch[1] || '"';
-          modifiedAttrs = modifiedAttrs.replace(
-            srcMatch[0],
-            `src=${quote}${dataUri}${quote} `,
-          );
-        } else {
+        if (!scriptFile) {
           warnings.push({
             code: 'MISSING_RESOURCE',
-            message: `Pakette bulunamayan görsel kaynağı: ${src}`,
-            target: src,
+            message: `Pakette bulunamayan yerel script dosyası: ${decodedSrc}`,
+            target: decodedSrc,
           });
-          const quote = srcMatch[1] || '"';
-          modifiedAttrs = modifiedAttrs.replace(
-            srcMatch[0],
-            `src=${quote}${TRANSPARENT_1X1_GIF}${quote} `,
-          );
+          if (!appendOutput(`<!-- Missing script: ${decodedSrc} -->`)) {
+            return err({
+              code: AppErrorCode.FILE_TOO_LARGE,
+              message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
+            });
+          }
+          continue;
         }
-      } else if (category === 'external-https' || category === 'external-protocol-relative') {
-        warnings.push({
-          code: 'EXTERNAL_RESOURCE',
-          message: `Harici görsel kaynağı korundu: ${src}`,
-          target: src,
-        });
-      } else if (category === 'external-http') {
-        warnings.push({
-          code: 'INSECURE_RESOURCE',
-          message: `Güvensiz HTTP görsel kaynağı: ${src}`,
-          target: src,
+
+        let scriptCode = new TextDecoder('utf-8').decode(scriptFile.data);
+        const typeVal = getAttributeValue(openTag, 'type') || '';
+        if (typeVal.toLowerCase() === 'module') {
+          const scriptDir = getDirectoryName(resolvedPath);
+          scriptCode = processModuleCode(scriptCode, scriptDir, fileMap, warnings);
+        }
+
+        const safeCode = scriptCode.replace(/<\/script>/gi, '<\\/script>');
+        // Strip src attribute and add data-inlined-from
+        const cleanedOpenTag = openTag
+          .replace(/\bsrc\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/i, '')
+          .replace(/>$/, ` data-inlined-from="${decodedSrc}">`);
+
+        if (!appendOutput(`${cleanedOpenTag}\n${safeCode}\n</script>`)) {
+          return err({
+            code: AppErrorCode.FILE_TOO_LARGE,
+            message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
+          });
+        }
+        continue;
+      }
+
+      // Inline script without src
+      const typeVal = getAttributeValue(openTag, 'type') || '';
+      let processedBody = inlineBody;
+      if (typeVal.toLowerCase() === 'module') {
+        processedBody = processModuleCode(inlineBody, entryDir, fileMap, warnings);
+      }
+
+      // Preserve body verbatim (do NOT modify JavaScript string literals or comments!)
+      if (!appendOutput(`${openTag}${processedBody}</script>`)) {
+        return err({
+          code: AppErrorCode.FILE_TOO_LARGE,
+          message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
         });
       }
+      continue;
     }
 
-    return `<${tagName} ${modifiedAttrs.trim()}>`;
-  });
+    // 3. <style> tags: <style ...>...</style>
+    if (rawHtml.slice(pos, pos + 6).toLowerCase() === '<style') {
+      const openTagEnd = findTagEnd(rawHtml, pos);
+      if (openTagEnd === -1) {
+        appendOutput(rawHtml.slice(pos));
+        break;
+      }
+      const openTag = rawHtml.slice(pos, openTagEnd + 1);
+      const closeIdx = rawHtml.toLowerCase().indexOf('</style>', openTagEnd + 1);
+      const styleEnd = closeIdx === -1 ? rawHtml.length : closeIdx + 8;
+      const cssBody = rawHtml.slice(openTagEnd + 1, closeIdx === -1 ? rawHtml.length : closeIdx);
 
-  // 5. Process SVG <use> and <image> references
-  const SVG_USE_REGEX = /<(use|image)\b([^>]*?)>/gi;
-  html = html.replace(SVG_USE_REGEX, (match, _tagName, attrs) => {
-    const hrefMatch =
-      attrs.match(/\bhref\s*=\s*(['"]?)(.*?)\1(?:\s|$|>)/i) ||
-      attrs.match(/\bxlink:href\s*=\s*(['"]?)(.*?)\1(?:\s|$|>)/i);
+      pos = styleEnd;
 
-    if (!hrefMatch || !hrefMatch[2]) {
-      return match;
-    }
-
-    const href = hrefMatch[2].trim();
-    const category = classifyUrl(href);
-
-    if (category === 'relative') {
-      const { cleanPath, hash } = stripQueryAndHash(href);
-      if (cleanPath) {
-        const resolvedPath = resolveRelativePath(entryDir, cleanPath);
-        const assetFile = fileMap.get(resolvedPath);
-
-        if (assetFile) {
-          const mime = getMimeType(resolvedPath);
-          const dataUri = toDataUri(assetFile.data, mime) + (hash || '');
-          return match.replace(href, dataUri);
-        }
-        warnings.push({
-          code: 'MISSING_RESOURCE',
-          message: `SVG içinde bulunamayan yerel kaynak: ${href}`,
-          target: href,
+      const processedCss = processCssContent(cssBody, entryDir, fileMap, warnings);
+      if (!appendOutput(`${openTag}\n${processedCss}\n</style>`)) {
+        return err({
+          code: AppErrorCode.FILE_TOO_LARGE,
+          message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
         });
       }
-    } else if (category === 'external-https' || category === 'external-protocol-relative') {
-      warnings.push({
-        code: 'EXTERNAL_RESOURCE',
-        message: `SVG içinde harici kaynak bağlantısı: ${href}`,
-        target: href,
+      continue;
+    }
+
+    // 4. Other HTML tags: <tag ...>
+    if (rawHtml[pos] === '<') {
+      const tagEnd = findTagEnd(rawHtml, pos);
+      if (tagEnd === -1) {
+        appendOutput(rawHtml.slice(pos));
+        break;
+      }
+
+      let tagStr = rawHtml.slice(pos, tagEnd + 1);
+      pos = tagEnd + 1;
+
+      const tagMatch = tagStr.match(/^<([a-zA-Z0-9:-]+)/);
+      if (!tagMatch) {
+        appendOutput(tagStr);
+        continue;
+      }
+
+      const tagName = tagMatch[1].toLowerCase();
+
+      if (tagName === 'base') {
+        const hrefVal = getAttributeValue(tagStr, 'href') || '';
+        warnings.push({
+          code: 'NORMALIZATION_NOTE',
+          message: '<base> etiketi yerel veri URI çözümlemesini korumak için nötralize edildi.',
+          details: tagStr,
+        });
+        appendOutput(`<!-- Base tag neutralized: href="${hrefVal}" -->`);
+        continue;
+      }
+
+      // <link ...>: Stylesheets, icons
+      if (tagName === 'link') {
+        const relVal = (getAttributeValue(tagStr, 'rel') || '').toLowerCase();
+        const relTokens = relVal.split(/\s+/);
+
+        if (relTokens.includes('stylesheet')) {
+          const hrefVal = getAttributeValue(tagStr, 'href');
+          if (!hrefVal) {
+            appendOutput(tagStr);
+            continue;
+          }
+
+          const decodedHref = decodeHtmlEntities(hrefVal).trim();
+          const category = classifyUrl(decodedHref);
+
+          if (category === 'data-uri') {
+            appendOutput(tagStr);
+            continue;
+          }
+
+          if (category === 'external-https' || category === 'external-protocol-relative') {
+            warnings.push({
+              code: 'EXTERNAL_RESOURCE',
+              message: `Harici HTTPS stil dosyası bağlantısı korundu: ${decodedHref}`,
+              target: decodedHref,
+            });
+            appendOutput(tagStr);
+            continue;
+          }
+
+          if (category === 'external-http') {
+            warnings.push({
+              code: 'INSECURE_RESOURCE',
+              message: `Güvensiz harici HTTP stil dosyası bağlantısı: ${decodedHref}`,
+              target: decodedHref,
+            });
+            appendOutput(tagStr);
+            continue;
+          }
+
+          // Local stylesheet
+          const { cleanPath } = stripQueryAndHash(decodedHref);
+          const resolvedPath = resolveRelativePath(entryDir, cleanPath);
+          const cssFile = fileMap.get(resolvedPath);
+
+          if (cssFile) {
+            const cssDir = getDirectoryName(resolvedPath);
+            const cssText = new TextDecoder('utf-8').decode(cssFile.data);
+            let processedCss = processCssContent(cssText, cssDir, fileMap, warnings);
+
+            const mediaVal = getAttributeValue(tagStr, 'media');
+            if (mediaVal && mediaVal.trim()) {
+              processedCss = `@media ${mediaVal.trim()} {\n${processedCss}\n}`;
+            }
+
+            appendOutput(
+              `<style data-inlined-from="${decodedHref}">\n${processedCss}\n</style>`,
+            );
+            continue;
+          }
+
+          warnings.push({
+            code: 'MISSING_RESOURCE',
+            message: `Pakette bulunamayan stil dosyası: ${decodedHref}`,
+            target: decodedHref,
+          });
+          appendOutput(`<!-- Missing stylesheet: ${decodedHref} -->`);
+          continue;
+        }
+
+        // Icon links
+        if (relTokens.includes('icon') || relTokens.includes('apple-touch-icon')) {
+          const hrefVal = getAttributeValue(tagStr, 'href');
+          if (hrefVal) {
+            const decodedHref = decodeHtmlEntities(hrefVal).trim();
+            if (classifyUrl(decodedHref) === 'relative') {
+              const { cleanPath } = stripQueryAndHash(decodedHref);
+              const resolvedPath = resolveRelativePath(entryDir, cleanPath);
+              const iconFile = fileMap.get(resolvedPath);
+              if (iconFile) {
+                const mime = getMimeType(resolvedPath);
+                const dataUri = toDataUri(iconFile.data, mime);
+                tagStr = replaceAttribute(tagStr, 'href', dataUri);
+              } else {
+                warnings.push({
+                  code: 'MISSING_RESOURCE',
+                  message: `Pakette bulunamayan ikon dosyası: ${decodedHref}`,
+                  target: decodedHref,
+                });
+                tagStr = replaceAttribute(tagStr, 'href', TRANSPARENT_1X1_GIF);
+              }
+            }
+          }
+        }
+      }
+
+      // <img> and <source> tags: src and srcset
+      if (tagName === 'img' || tagName === 'source') {
+        const srcsetVal = getAttributeValue(tagStr, 'srcset');
+        if (srcsetVal !== null) {
+          const inlinedSrcset = processSrcset(srcsetVal, entryDir, fileMap, warnings);
+          tagStr = replaceAttribute(tagStr, 'srcset', inlinedSrcset);
+        }
+
+        const srcVal = getAttributeValue(tagStr, 'src');
+        if (srcVal !== null) {
+          const decodedSrc = decodeHtmlEntities(srcVal).trim();
+          const category = classifyUrl(decodedSrc);
+
+          if (category === 'relative') {
+            const { cleanPath, hash } = stripQueryAndHash(decodedSrc);
+            const resolvedPath = resolveRelativePath(entryDir, cleanPath);
+            const imgFile = fileMap.get(resolvedPath);
+
+            if (imgFile) {
+              const mime = getMimeType(resolvedPath);
+              const dataUri = toDataUri(imgFile.data, mime) + (hash || '');
+              tagStr = replaceAttribute(tagStr, 'src', dataUri);
+            } else {
+              warnings.push({
+                code: 'MISSING_RESOURCE',
+                message: `Pakette bulunamayan görsel kaynağı: ${decodedSrc}`,
+                target: decodedSrc,
+              });
+              tagStr = replaceAttribute(tagStr, 'src', TRANSPARENT_1X1_GIF);
+            }
+          } else if (category === 'external-https' || category === 'external-protocol-relative') {
+            warnings.push({
+              code: 'EXTERNAL_RESOURCE',
+              message: `Harici görsel kaynağı korundu: ${decodedSrc}`,
+              target: decodedSrc,
+            });
+          } else if (category === 'external-http') {
+            warnings.push({
+              code: 'INSECURE_RESOURCE',
+              message: `Güvensiz HTTP görsel kaynağı: ${decodedSrc}`,
+              target: decodedSrc,
+            });
+          }
+        }
+      }
+
+      // SVG <use> and <image> elements
+      if (tagName === 'use' || tagName === 'image') {
+        const hrefVal = getAttributeValue(tagStr, 'href') || getAttributeValue(tagStr, 'xlink:href');
+        if (hrefVal !== null) {
+          const decodedHref = decodeHtmlEntities(hrefVal).trim();
+          const category = classifyUrl(decodedHref);
+
+          if (category === 'relative') {
+            const { cleanPath, hash } = stripQueryAndHash(decodedHref);
+            if (cleanPath) {
+              const resolvedPath = resolveRelativePath(entryDir, cleanPath);
+              const assetFile = fileMap.get(resolvedPath);
+
+              if (assetFile) {
+                const mime = getMimeType(resolvedPath);
+                const dataUri = toDataUri(assetFile.data, mime) + (hash || '');
+                const attrToReplace = getAttributeValue(tagStr, 'href') !== null ? 'href' : 'xlink:href';
+                tagStr = replaceAttribute(tagStr, attrToReplace, dataUri);
+              } else {
+                warnings.push({
+                  code: 'MISSING_RESOURCE',
+                  message: `SVG içinde bulunamayan yerel kaynak: ${decodedHref}`,
+                  target: decodedHref,
+                });
+                const attrToReplace = getAttributeValue(tagStr, 'href') !== null ? 'href' : 'xlink:href';
+                tagStr = replaceAttribute(tagStr, attrToReplace, TRANSPARENT_1X1_GIF);
+              }
+            }
+          } else if (category === 'external-https' || category === 'external-protocol-relative') {
+            warnings.push({
+              code: 'EXTERNAL_RESOURCE',
+              message: `SVG içinde harici kaynak bağlantısı: ${decodedHref}`,
+              target: decodedHref,
+            });
+          }
+        }
+      }
+
+      // Inline style="..." attribute on any HTML element
+      const styleVal = getAttributeValue(tagStr, 'style');
+      if (styleVal !== null && styleVal.includes('url(')) {
+        const processedStyle = processCssContent(styleVal, entryDir, fileMap, warnings);
+        tagStr = replaceAttribute(tagStr, 'style', processedStyle);
+      }
+
+      if (!appendOutput(tagStr)) {
+        return err({
+          code: AppErrorCode.FILE_TOO_LARGE,
+          message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
+        });
+      }
+      continue;
+    }
+
+    // 5. Plain text chunk
+    let nextTag = rawHtml.indexOf('<', pos);
+    if (nextTag === -1) nextTag = rawHtml.length;
+    const textChunk = rawHtml.slice(pos, nextTag);
+    if (!appendOutput(textChunk)) {
+      return err({
+        code: AppErrorCode.FILE_TOO_LARGE,
+        message: 'Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB).',
       });
     }
+    pos = nextTag;
+  }
 
-    return match;
-  });
+  const finalHtml = outputChunks.join('');
+  const finalBytes = new TextEncoder().encode(finalHtml);
 
-  const bundledBytes = new TextEncoder().encode(html);
-  if (bundledBytes.length > MAX_HTML_UNPACKED_BYTES) {
+  if (finalBytes.length > MAX_HTML_UNPACKED_BYTES) {
     return err({
       code: AppErrorCode.FILE_TOO_LARGE,
-      message: `Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB). Mevcut: ${bundledBytes.length} bayt.`,
+      message: `Paketlenen HTML boyutu açılmış sınırını aşıyor (maksimum 25 MB). Mevcut: ${finalBytes.length} bayt.`,
     });
   }
 
   return ok({
-    html,
+    html: finalHtml,
     entryPath: entryFile.path,
     title,
     warnings,
-    unpackedBytes: bundledBytes.length,
+    unpackedBytes: finalBytes.length,
   });
 }

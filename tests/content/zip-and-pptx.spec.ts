@@ -133,6 +133,54 @@ describe('ZIP Extraction & PPTX Validation Suite', () => {
       expect(res.error.message).toContain('Güvensiz arşiv yolu');
     });
 
+    it('rejects truncated ZIP lacking central directory', async () => {
+      const full = zipSync({ 'index.html': new TextEncoder().encode('<html><body>Test</body></html>') });
+      let p = 0;
+      for (let i = 0; i < full.length - 3; i++) {
+        if (full[i] === 0x50 && full[i + 1] === 0x4b && full[i + 2] === 1 && full[i + 3] === 2) {
+          p = i;
+          break;
+        }
+      }
+      const truncated = full.subarray(0, p);
+      const res = await extractZipArchive(truncated);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+      }
+    });
+
+    it('rejects encrypted-flag ZIP archive', async () => {
+      const data = zipSync({ 'index.html': new TextEncoder().encode('<html><body>Test</body></html>') });
+      data[6] |= 1; // Set encryption bit in local file header
+      const res = await extractZipArchive(data);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('Şifreli');
+      }
+    });
+
+    it('rejects symlink archive entries', async () => {
+      // Craft a zip buffer with Unix symlink external attribute (0o120000 << 16)
+      const data = zipSync({ 'link.txt': new TextEncoder().encode('target.txt') });
+      // Find central directory header
+      for (let i = 0; i < data.length - 4; i++) {
+        if (data[i] === 0x50 && data[i + 1] === 0x4b && data[i + 2] === 1 && data[i + 3] === 2) {
+          // external file attributes at offset 38-41
+          data[i + 40] = 0x20;
+          data[i + 41] = 0xa0; // S_IFLNK (0o120000 = 0xA000)
+          break;
+        }
+      }
+      const res = await extractZipArchive(data);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('Sembolik bağlar');
+      }
+    });
+
     it('rejects empty or corrupt ZIP data', async () => {
       const emptyRes = await extractZipArchive(new Uint8Array(0));
       expect(emptyRes.ok).toBe(false);
@@ -152,7 +200,6 @@ describe('ZIP Extraction & PPTX Validation Suite', () => {
     });
 
     it('rejects non-PPTX renamed ZIP archives', async () => {
-      // Renamed zip containing plain HTML/CSS, missing ppt/presentation.xml
       const fakePptx = zipSync({
         'index.html': new TextEncoder().encode('<h1>Not a PPTX</h1>'),
         'style.css': new TextEncoder().encode('body { margin: 0; }'),
@@ -160,10 +207,56 @@ describe('ZIP Extraction & PPTX Validation Suite', () => {
 
       const res = await validatePptxStructure(fakePptx);
       expect(res.ok).toBe(false);
-      if (res.ok) return;
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('OOXML sunum yapısı bulunamadı');
+      }
+    });
 
-      expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
-      expect(res.error.message).toContain('OOXML sunum yapısı bulunamadı');
+    it('rejects ordinary Word OOXML ZIP renamed .pptx', async () => {
+      const wordZip = zipSync({
+        '[Content_Types].xml': new TextEncoder().encode(
+          '<Types><Override ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
+        ),
+        '_rels/.rels': new TextEncoder().encode('<Relationships/>'),
+      });
+
+      const res = await validatePptxStructure(wordZip);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('PresentationML içerik türü bulunamadı');
+      }
+    });
+
+    it('rejects PPTX with malformed XML in [Content_Types].xml', async () => {
+      const malformedPptx = createMockPptxBytes({
+        customFiles: {
+          '[Content_Types].xml': new TextEncoder().encode('<Types><Override>unclosed</Types>'),
+        },
+      });
+
+      const res = await validatePptxStructure(malformedPptx);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('hatalı XML');
+      }
+    });
+
+    it('rejects PPTX with malformed XML in ppt/presentation.xml', async () => {
+      const malformedPptx = createMockPptxBytes({
+        customFiles: {
+          'ppt/presentation.xml': new TextEncoder().encode('<p:presentation><unmatched></p:presentation>'),
+        },
+      });
+
+      const res = await validatePptxStructure(malformedPptx);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('hatalı XML');
+      }
     });
 
     it(`rejects PPTX exceeding MAX_PPTX_BYTES (${MAX_PPTX_BYTES})`, async () => {
@@ -173,10 +266,10 @@ describe('ZIP Extraction & PPTX Validation Suite', () => {
 
       const res = await validatePptxStructure(oversizedPptx);
       expect(res.ok).toBe(false);
-      if (res.ok) return;
-
-      expect(res.error.code).toBe(AppErrorCode.FILE_TOO_LARGE);
-      expect(res.error.message).toContain('en fazla 8 MB olabilir');
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.FILE_TOO_LARGE);
+        expect(res.error.message).toContain('en fazla 8 MB olabilir');
+      }
     });
 
     it('rejects empty or corrupt PPTX files', async () => {

@@ -98,13 +98,13 @@ export async function preparePresentation(
     }
     const defaultCover = defaultCoverRes.value;
 
-    let finalCover: CoverDescriptor = defaultCover;
+    let overrideCover: CoverDescriptor | undefined;
 
     // User override cover if supplied
     if (options?.coverOverride) {
       const overrideRes = await processCoverOverride(options.coverOverride);
       if (overrideRes.ok) {
-        finalCover = overrideRes.value;
+        overrideCover = overrideRes.value;
       } else {
         accumulatedWarnings.push({
           code: 'COVER_CAPTURE_FAILED',
@@ -113,6 +113,8 @@ export async function preparePresentation(
         });
       }
     }
+
+    const selectedCover: CoverDescriptor = overrideCover ?? defaultCover;
 
     const sizes: DeckSizes = {
       encoded: rawData.length,
@@ -129,7 +131,9 @@ export async function preparePresentation(
       chunks: chunkingRes.value.chunks,
       manifest: chunkingRes.value.manifest,
       defaultCover,
-      autoCover: finalCover.source === 'upload' ? finalCover : undefined,
+      autoCover: undefined,
+      overrideCover,
+      selectedCover,
       manifestVersion: MANIFEST_VERSION,
       warnings: accumulatedWarnings,
     });
@@ -291,13 +295,13 @@ export async function preparePresentation(
   }
   const defaultCover = defaultCoverRes.value;
 
-  let autoCover: CoverDescriptor | undefined;
+  let overrideCover: CoverDescriptor | undefined;
 
-  // Cover selection order: Override wins -> Auto capture -> Default fallback
+  // Process user override cover if provided
   if (options?.coverOverride) {
     const overrideRes = await processCoverOverride(options.coverOverride);
     if (overrideRes.ok) {
-      autoCover = overrideRes.value; // Store override descriptor
+      overrideCover = overrideRes.value;
     } else {
       accumulatedWarnings.push({
         code: 'COVER_CAPTURE_FAILED',
@@ -305,7 +309,10 @@ export async function preparePresentation(
         details: overrideRes.error,
       });
     }
-  } else if (!options?.skipAutoCover) {
+  }
+
+  let autoCover: CoverDescriptor | undefined;
+  if (!options?.skipAutoCover) {
     // Attempt sandboxed first-viewport capture
     const captureRes = await captureHtmlCover(bundledHtml, {
       timeoutMs: options?.captureTimeoutMs ?? 8000,
@@ -320,6 +327,9 @@ export async function preparePresentation(
       });
     }
   }
+
+  // Precedence: User override wins -> Automatic capture -> Branded default cover
+  const selectedCover: CoverDescriptor = overrideCover ?? autoCover ?? defaultCover;
 
   const sizes: DeckSizes = {
     encoded: chunkingRes.value.encodedData.length,
@@ -337,6 +347,8 @@ export async function preparePresentation(
     manifest: chunkingRes.value.manifest,
     defaultCover,
     autoCover,
+    overrideCover,
+    selectedCover,
     manifestVersion: MANIFEST_VERSION,
     warnings: accumulatedWarnings,
   });

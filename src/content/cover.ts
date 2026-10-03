@@ -31,13 +31,70 @@ export function isBrowserEnvironment(): boolean {
 }
 
 /**
+ * Validates raster magic bytes to prevent non-raster (like SVG) or corrupt uploads.
+ * Supports JPEG, PNG, WebP, and GIF headers.
+ */
+export function isRasterImageBytes(
+  bytes: Uint8Array,
+): { ok: boolean; mimeType?: 'image/jpeg' | 'image/png' | 'image/webp' } {
+  if (!bytes || bytes.length < 12) {
+    return { ok: false };
+  }
+
+  // JPEG: FF D8 FF
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return { ok: true, mimeType: 'image/jpeg' };
+  }
+
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47 &&
+    bytes[4] === 0x0d &&
+    bytes[5] === 0x0a &&
+    bytes[6] === 0x1a &&
+    bytes[7] === 0x0a
+  ) {
+    return { ok: true, mimeType: 'image/png' };
+  }
+
+  // WebP: RIFF .... WEBP
+  if (
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return { ok: true, mimeType: 'image/webp' };
+  }
+
+  // GIF: GIF87a or GIF89a
+  if (
+    bytes[0] === 0x47 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x38
+  ) {
+    return { ok: true, mimeType: 'image/png' };
+  }
+
+  return { ok: false };
+}
+
+/**
  * Exports a canvas element to JPEG bytes with progressive quality reduction
  * to strictly guarantee byte size <= MAX_COVER_BYTES (150,000 bytes).
  */
 export async function exportCanvasToBytes(
   canvas: HTMLCanvasElement,
   preferredMime: 'image/jpeg' | 'image/webp' = 'image/jpeg',
-  initialQuality = 0.85,
+  initialQuality = 0.82,
 ): Promise<Result<{ bytes: Uint8Array; mimeType: 'image/jpeg' | 'image/webp' }>> {
   let quality = initialQuality;
   const mimeType = preferredMime;
@@ -77,14 +134,15 @@ export async function exportCanvasToBytes(
 }
 
 /**
- * Generates a branded default cover (solid dark surface, no gradient, title typography).
+ * Generates a branded default cover using approved tokens palette:
+ * Solid dark canvas (#0C0E12), brand blue accent (#3B82F6), light title (#F9FAFB).
+ * Strictly NO gradients. Target byte size <= 100 KB.
  */
 export async function generateDefaultCover(title: string): Promise<Result<CoverDescriptor>> {
   const safeTitle = (title || 'Sunum').trim();
 
   if (!isBrowserEnvironment()) {
-    // Deterministic fallback for browser-less Node unit test environment
-    // Generates a valid minimal 1x1 JPEG placeholder within bounds
+    // Deterministic fallback for browser-less Node test environment
     const placeholderBase64 =
       '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=';
     const fallbackBytes = base64ToBytes(placeholderBase64);
@@ -108,20 +166,20 @@ export async function generateDefaultCover(title: string): Promise<Result<CoverD
       });
     }
 
-    // 1. Solid brand surface background (Strictly NO gradient)
-    ctx.fillStyle = '#090C15'; // Brand dark surface token
+    // 1. Solid dark canvas background (#0C0E12 - tokens.css --bg-canvas)
+    ctx.fillStyle = '#0C0E12';
     ctx.fillRect(0, 0, TARGET_COVER_WIDTH, TARGET_COVER_HEIGHT);
 
-    // 2. Subtle brand header tag
-    ctx.fillStyle = '#6366F1'; // Brand accent indigo
-    ctx.fillRect(50, 48, 6, 24);
+    // 2. Subtle brand tag badge (#3B82F6 - tokens.css --primitive-blue-500)
+    ctx.fillStyle = '#3B82F6';
+    ctx.fillRect(50, 48, 5, 22);
 
     ctx.font = '600 13px system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = '#94A3B8'; // Muted token
-    ctx.fillText('VEKTÖR SUNUM', 66, 65);
+    ctx.fillStyle = '#94A3B8'; // tokens.css --text-secondary
+    ctx.fillText('VEKTÖR SUNUM', 66, 64);
 
-    // 3. Multi-line title text wrapping
-    ctx.fillStyle = '#F8FAFC'; // Light text token
+    // 3. Multi-line title typography (#F9FAFB - tokens.css --primitive-gray-50)
+    ctx.fillStyle = '#F9FAFB';
     ctx.font = '700 28px system-ui, -apple-system, sans-serif';
 
     const maxLineWidth = 530;
@@ -144,7 +202,6 @@ export async function generateDefaultCover(title: string): Promise<Result<CoverD
     }
     lines.push(currentLine);
 
-    // Cap to 4 lines with ellipsis if too long
     if (lines.length > 4) {
       lines.length = 4;
       lines[3] = `${lines[3].slice(0, -3)}...`;
@@ -156,11 +213,11 @@ export async function generateDefaultCover(title: string): Promise<Result<CoverD
       ctx.fillText(line, 50, startY + idx * lineHeight);
     });
 
-    // 4. Subtle footer accent rule
+    // 4. Subtle footer separator rule (tokens.css --border-subtle)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.fillRect(50, 310, TARGET_COVER_WIDTH - 100, 1);
 
-    const exportRes = await exportCanvasToBytes(canvas, 'image/jpeg', 0.85);
+    const exportRes = await exportCanvasToBytes(canvas, 'image/jpeg', 0.82);
     if (!exportRes.ok) {
       return exportRes;
     }
@@ -181,31 +238,54 @@ export async function generateDefaultCover(title: string): Promise<Result<CoverD
 
 /**
  * Resizes and crops a user-provided image to 16:9 (640x360) format <= 150,000 bytes.
+ * Strictly validates raster magic bytes to reject SVG or invalid uploads.
  */
 export async function processCoverOverride(
   input: Blob | Uint8Array,
   mimeTypeHint?: string,
 ): Promise<Result<CoverDescriptor>> {
-  if (!input || (input instanceof Uint8Array && input.length === 0)) {
+  if (!input) {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
       message: 'Geçersiz veya boş kapak görseli.',
     });
   }
 
+  const rawBytes =
+    input instanceof Uint8Array ? input : new Uint8Array(await input.arrayBuffer());
+
+  if (rawBytes.length === 0) {
+    return err({
+      code: AppErrorCode.INVALID_ARGUMENT,
+      message: 'Kapak görseli boş olamaz.',
+    });
+  }
+
+  if (rawBytes.length > MAX_COVER_BYTES) {
+    return err({
+      code: AppErrorCode.FILE_TOO_LARGE,
+      message: `Kapak görseli izin verilen azami boyutu aşıyor (${MAX_COVER_BYTES} bayt). Mevcut: ${rawBytes.length} bayt.`,
+    });
+  }
+
+  // Validate raster magic bytes (reject SVG or arbitrary non-image payload)
+  const rasterCheck = isRasterImageBytes(rawBytes);
+  if (!rasterCheck.ok) {
+    return err({
+      code: AppErrorCode.INVALID_COVER,
+      message:
+        'Geçersiz veya desteklenmeyen kapak formatı: sadece JPEG, PNG ve WebP raster formatları desteklenir (SVG desteklenmez).',
+    });
+  }
+
   if (!isBrowserEnvironment()) {
-    // In Node test environment, ensure byte limit check
-    const rawBytes = input instanceof Uint8Array ? input : new Uint8Array(await input.arrayBuffer());
-    if (rawBytes.length > MAX_COVER_BYTES) {
-      return err({
-        code: AppErrorCode.FILE_TOO_LARGE,
-        message: `Kapak görseli izin verilen azami boyutu aşıyor (${MAX_COVER_BYTES} bayt).`,
-      });
-    }
     return ok({
       bytes: rawBytes,
       source: 'upload',
-      mimeType: (mimeTypeHint as 'image/jpeg' | 'image/webp') || 'image/jpeg',
+      mimeType: (rasterCheck.mimeType || mimeTypeHint || 'image/jpeg') as
+        | 'image/jpeg'
+        | 'image/webp'
+        | 'image/png',
     });
   }
 
@@ -214,7 +294,9 @@ export async function processCoverOverride(
     const blob =
       input instanceof Blob
         ? input
-        : new Blob([input.buffer as ArrayBuffer], { type: mimeTypeHint || 'image/jpeg' });
+        : new Blob([rawBytes.buffer as ArrayBuffer], {
+            type: rasterCheck.mimeType || mimeTypeHint || 'image/jpeg',
+          });
     blobUrl = URL.createObjectURL(blob);
 
     const img = new Image();
@@ -244,7 +326,7 @@ export async function processCoverOverride(
     const offsetX = (TARGET_COVER_WIDTH - scaledW) / 2;
     const offsetY = (TARGET_COVER_HEIGHT - scaledH) / 2;
 
-    ctx.fillStyle = '#090C15';
+    ctx.fillStyle = '#0C0E12';
     ctx.fillRect(0, 0, TARGET_COVER_WIDTH, TARGET_COVER_HEIGHT);
     ctx.drawImage(img, offsetX, offsetY, scaledW, scaledH);
 
@@ -274,7 +356,9 @@ export async function processCoverOverride(
 /**
  * Captures first-viewport 16:9 thumbnail from a transient hidden sandboxed iframe.
  * Uses modern-screenshot inlined into the iframe document.
- * Strictly verifies message source window, nonce, schema, and payload size.
+ * Strictly enforces a single <= 8000ms deadline covering load, font readiness,
+ * screenshot capture, postMessage delivery, parent Image decode, and canvas resize.
+ * Rejects SVG and non-raster formats before parent Image decode.
  */
 export async function captureHtmlCover(
   bundledHtml: string,
@@ -287,7 +371,11 @@ export async function captureHtmlCover(
     });
   }
 
-  const timeoutMs = options?.timeoutMs ?? 8000;
+  const rawTimeout = options?.timeoutMs ?? 8000;
+  const timeoutMs = Math.min(
+    Math.max(100, typeof rawTimeout === 'number' && Number.isFinite(rawTimeout) ? rawTimeout : 8000),
+    8000,
+  );
   const nonce = `vektor-cap-${Math.random().toString(36).slice(2)}-${Date.now()}`;
 
   // Capture runner script injected into the temporary iframe ONLY
@@ -363,100 +451,116 @@ export async function captureHtmlCover(
   let timerId: ReturnType<typeof setTimeout> | null = null;
   let messageListener: ((event: MessageEvent) => void) | null = null;
 
+  // Single deadline covering entire lifecycle (iframe, message, raster decode, resize)
+  const deadlinePromise = new Promise<never>((_, reject) => {
+    timerId = setTimeout(() => {
+      reject(new Error(`Kapak yakalama zaman aşımına uğradı (${timeoutMs}ms).`));
+    }, timeoutMs);
+  });
+
+  const captureLifecycle = new Promise<CoverDescriptor>((resolve, reject) => {
+    messageListener = async (event: MessageEvent) => {
+      // 1. Strict Source Check: Reject any message from another window or frame
+      if (event.source !== iframe.contentWindow) {
+        return;
+      }
+
+      // 2. Schema validation
+      const data = event.data;
+      if (!data || typeof data !== 'object') {
+        return;
+      }
+      if (data.type !== 'VEKTOR_COVER_CAPTURE' || data.nonce !== nonce) {
+        return;
+      }
+
+      if (data.status !== 'success') {
+        reject(new Error(data.error || 'İçerik çerçevesinde kapak yakalama başarısız oldu.'));
+        return;
+      }
+
+      if (typeof data.dataUrl !== 'string') {
+        reject(new Error('Geçersiz görsel verisi alındı.'));
+        return;
+      }
+
+      // Bounded payload length check (max 10MB)
+      if (data.dataUrl.length > 10 * 1024 * 1024) {
+        reject(new Error('Yakalama çıktısı bellek sınırını aşıyor.'));
+        return;
+      }
+
+      // Strict raster MIME and base64 structure validation BEFORE new Image()
+      // Reject SVG (image/svg+xml), invalid MIME, or corrupt base64
+      const RASTER_BASE64_REGEX = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/;
+      const match = RASTER_BASE64_REGEX.exec(data.dataUrl);
+      if (!match) {
+        reject(
+          new Error(
+            'Desteklenmeyen veya geçersiz kapak MIME türü: sadece PNG, JPEG ve WebP desteklenir (SVG reddedildi).',
+          ),
+        );
+        return;
+      }
+
+      // Parent raster decode and canvas resize to 640x360
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+
+        await new Promise<void>((imgResolve, imgReject) => {
+          img.onload = () => imgResolve();
+          img.onerror = () =>
+            imgReject(new Error('Ebeveyn penceresinde raster görsel çözümlenemedi.'));
+          img.src = data.dataUrl;
+        });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = TARGET_COVER_WIDTH;
+        canvas.height = TARGET_COVER_HEIGHT;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Tuval 2D bağlamı başlatılamadı.'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, TARGET_COVER_WIDTH, TARGET_COVER_HEIGHT);
+
+        const exportRes = await exportCanvasToBytes(canvas, 'image/jpeg', 0.82);
+        if (!exportRes.ok) {
+          reject(new Error(exportRes.error.message));
+          return;
+        }
+
+        resolve({
+          bytes: exportRes.value.bytes,
+          source: 'auto',
+          mimeType: exportRes.value.mimeType,
+        });
+      } catch (decodeErr) {
+        reject(decodeErr instanceof Error ? decodeErr : new Error(String(decodeErr)));
+      }
+    };
+
+    window.addEventListener('message', messageListener);
+    iframe.srcdoc = captureHtml;
+    document.body.appendChild(iframe);
+  });
+
   try {
-    const rawDataUrl = await new Promise<string>((resolve, reject) => {
-      timerId = setTimeout(() => {
-        reject(new Error(`Kapak yakalama zaman aşımına uğradı (${timeoutMs}ms).`));
-      }, timeoutMs);
-
-      messageListener = (event: MessageEvent) => {
-        // Strict Source Check: Reject any message from another window or frame
-        if (event.source !== iframe.contentWindow) {
-          return;
-        }
-
-        // Schema validation
-        const data = event.data;
-        if (!data || typeof data !== 'object') {
-          return;
-        }
-        if (data.type !== 'VEKTOR_COVER_CAPTURE' || data.nonce !== nonce) {
-          return;
-        }
-
-        if (data.status !== 'success') {
-          reject(new Error(data.error || 'İçerik çerçevesinde kapak yakalama başarısız oldu.'));
-          return;
-        }
-
-        if (typeof data.dataUrl !== 'string') {
-          reject(new Error('Geçersiz görsel verisi alındı.'));
-          return;
-        }
-
-        // Bounded payload length check (max 15MB base64 dataUrl)
-        if (data.dataUrl.length > 15 * 1024 * 1024) {
-          reject(new Error('Yakalama çıktısı bellek sınırını aşıyor.'));
-          return;
-        }
-
-        // Strict MIME prefix check
-        if (!data.dataUrl.startsWith('data:image/png') && !data.dataUrl.startsWith('data:image/')) {
-          reject(new Error('Görsel MIME türü geçerli değil.'));
-          return;
-        }
-
-        resolve(data.dataUrl);
-      };
-
-      window.addEventListener('message', messageListener);
-
-      // Load via srcdoc
-      iframe.srcdoc = captureHtml;
-      document.body.appendChild(iframe);
-    });
-
-    // Parent decode and resize to 640x360
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error('Ebeveyn penceresinde görsel raster çözümlenemedi.'));
-      img.src = rawDataUrl;
-    });
-
-    const canvas = document.createElement('canvas');
-    canvas.width = TARGET_COVER_WIDTH;
-    canvas.height = TARGET_COVER_HEIGHT;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return err({
-        code: AppErrorCode.UNKNOWN,
-        message: 'Tuval 2D bağlamı başlatılamadı.',
-      });
-    }
-
-    ctx.drawImage(img, 0, 0, TARGET_COVER_WIDTH, TARGET_COVER_HEIGHT);
-
-    const exportRes = await exportCanvasToBytes(canvas, 'image/jpeg', 0.82);
-    if (!exportRes.ok) {
-      return exportRes;
-    }
-
-    return ok({
-      bytes: exportRes.value.bytes,
-      source: 'auto',
-      mimeType: exportRes.value.mimeType,
-    });
+    const result = await Promise.race([captureLifecycle, deadlinePromise]);
+    return ok(result);
   } catch (captureErr) {
     return err({
       code: AppErrorCode.UNKNOWN,
-      message: captureErr instanceof Error ? captureErr.message : 'Otomatik kapak yakalama başarısız oldu.',
+      message:
+        captureErr instanceof Error
+          ? captureErr.message
+          : 'Otomatik kapak yakalama başarısız oldu.',
       details: captureErr,
     });
   } finally {
-    // Guaranteed cleanup of iframe, timer, and message listener in all cases
+    // Guaranteed unconditional cleanup of timer, event listener, and iframe in all cases
     if (timerId !== null) {
       clearTimeout(timerId);
       timerId = null;

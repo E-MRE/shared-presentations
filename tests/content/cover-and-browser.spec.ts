@@ -100,6 +100,8 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
           autoCoverMimeType?: string;
           autoCoverBytesLength?: number;
           autoCoverBase64?: string;
+          decodedWidth?: number;
+          decodedHeight?: number;
           defaultCoverSource?: string;
           defaultCoverBytesLength?: number;
           storedHtmlContainsCaptureHelper?: boolean;
@@ -131,8 +133,20 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
               storedHtml.includes('modernScreenshot');
 
             let autoCoverBase64 = '';
+            let decodedWidth = 0;
+            let decodedHeight = 0;
+
             if (val.autoCover?.bytes) {
               autoCoverBase64 = api.bytesToBase64(val.autoCover.bytes);
+              const img = new Image();
+              await new Promise<void>((r) => {
+                img.onload = () => {
+                  decodedWidth = img.naturalWidth;
+                  decodedHeight = img.naturalHeight;
+                  r();
+                };
+                img.src = `data:image/jpeg;base64,${autoCoverBase64}`;
+              });
             }
 
             return {
@@ -146,6 +160,8 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
               autoCoverMimeType: val.autoCover?.mimeType,
               autoCoverBytesLength: val.autoCover?.bytes.length,
               autoCoverBase64,
+              decodedWidth,
+              decodedHeight,
               defaultCoverSource: val.defaultCover?.source,
               defaultCoverBytesLength: val.defaultCover?.bytes.length,
               storedHtmlContainsCaptureHelper: containsHelper,
@@ -166,6 +182,10 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
         expect(summary.autoCoverBytesLength).toBeGreaterThan(1000);
         expect(summary.autoCoverBytesLength).toBeLessThanOrEqual(150000);
 
+        // Verify decoded aspect ratio dimensions (640x360)
+        expect(summary.decodedWidth).toBe(640);
+        expect(summary.decodedHeight).toBe(360);
+
         // Crucial invariant: stored HTML does NOT contain capture helper
         expect(summary.storedHtmlContainsCaptureHelper).toBe(false);
 
@@ -181,43 +201,62 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
   });
 
   describe('Owned Multi-File ZIP Package Capture', () => {
-    it('bundles multi-file ZIP and captures 16:9 auto cover', async () => {
+    it('bundles multi-file ZIP (HTML, CSS, JS, PNG) and captures 16:9 auto cover', async () => {
+      // 1x1 valid red PNG image
+      const pngBytes = new Uint8Array([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89, 0x00, 0x00, 0x00,
+        0x0d, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
+        0x00, 0x03, 0x01, 0x01, 0x00, 0x18, 0xdd, 0x8d, 0xb0, 0x00, 0x00, 0x00,
+        0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+      ]);
+
       const zipHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>Vektör ZIP Sunumu</title>
-  <style>
-    body {
-      background: #0F172A;
-      color: #F8FAFC;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .card {
-      background: #1E293B;
-      padding: 3rem;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
-      text-align: center;
-    }
-  </style>
+  <link rel="stylesheet" href="styles/theme.css">
 </head>
 <body>
   <div class="card">
+    <img src="assets/badge.png" class="badge" alt="Badge">
     <h1>ZIP Sunum Testi</h1>
-    <p>İç içe geçmiş CSS ve bileşenler</p>
+    <p id="desc">İç içe geçmiş CSS, JS ve PNG varlıkları</p>
   </div>
+  <script src="scripts/app.js"></script>
 </body>
 </html>`;
 
+      const cssContent = `body {
+  background: #0F172A;
+  color: #F8FAFC;
+  font-family: system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
+.card {
+  background: #1E293B;
+  padding: 3rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+}
+.badge { width: 48px; height: 48px; }`;
+
+      const jsContent = `window.deckInitialized = true;
+document.getElementById('desc').textContent += ' (aktifleştirildi)';`;
+
       const zipBytes = zipSync({
         'index.html': new TextEncoder().encode(zipHtml),
+        'styles/theme.css': new TextEncoder().encode(cssContent),
+        'scripts/app.js': new TextEncoder().encode(jsContent),
+        'assets/badge.png': pngBytes,
       });
 
       const base64Zip = Buffer.from(zipBytes).toString('base64');
@@ -233,21 +272,42 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
           data: bytes,
         });
 
-        if (!res.ok) return { ok: false };
+        if (!res.ok) return { ok: false, error: res.error.message };
         const val = res.value;
+
+        let decodedWidth = 0;
+        let decodedHeight = 0;
+        if (val.autoCover?.bytes) {
+          const b64 = api.bytesToBase64(val.autoCover.bytes);
+          const img = new Image();
+          await new Promise<void>((r) => {
+            img.onload = () => {
+              decodedWidth = img.naturalWidth;
+              decodedHeight = img.naturalHeight;
+              r();
+            };
+            img.src = `data:image/jpeg;base64,${b64}`;
+          });
+        }
 
         return {
           ok: true,
           title: val.title,
+          fileCount: val.sizes.fileCount,
           autoCoverSource: val.autoCover?.source,
           autoCoverBytesLength: val.autoCover?.bytes.length,
           autoCoverBase64: val.autoCover ? api.bytesToBase64(val.autoCover.bytes) : '',
+          decodedWidth,
+          decodedHeight,
         };
       }, base64Zip);
 
       expect(result.ok).toBe(true);
+      expect(result.fileCount).toBe(4);
       expect(result.autoCoverSource).toBe('auto');
       expect(result.autoCoverBytesLength).toBeLessThanOrEqual(150000);
+      expect(result.decodedWidth).toBe(640);
+      expect(result.decodedHeight).toBe(360);
 
       if (result.autoCoverBase64) {
         const imageBuffer = Buffer.from(result.autoCoverBase64, 'base64');
@@ -299,12 +359,14 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
           defaultCoverSource: val.defaultCover.source,
           defaultCoverBytesLength: val.defaultCover.bytes.length,
           hasAutoCover: !!val.autoCover,
+          selectedCoverSource: val.selectedCover.source,
         };
       }, b64Pptx);
 
       expect(result.ok).toBe(true);
       expect(result.kind).toBe('pptx');
       expect(result.defaultCoverSource).toBe('default');
+      expect(result.selectedCoverSource).toBe('default');
       expect(result.defaultCoverBytesLength).toBeLessThanOrEqual(150000);
       // PPTX never runs auto capture
       expect(result.hasAutoCover).toBe(false);
@@ -312,7 +374,7 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
   });
 
   describe('Default and Upload Override Covers', () => {
-    it('generates branded default cover (solid surface, no gradient)', async () => {
+    it('generates branded default cover with tokens palette (640x360, no gradient)', async () => {
       const res = await page.evaluate(async () => {
         const api = (window as unknown as { vektorContent: typeof import('../../src/content/index') })
           .vektorContent;
@@ -320,18 +382,35 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
         const coverRes = await api.generateDefaultCover('Vektör Mimari Planı 2026');
         if (!coverRes.ok) return { ok: false };
 
+        const b64 = api.bytesToBase64(coverRes.value.bytes);
+        const img = new Image();
+        let decodedWidth = 0;
+        let decodedHeight = 0;
+        await new Promise<void>((r) => {
+          img.onload = () => {
+            decodedWidth = img.naturalWidth;
+            decodedHeight = img.naturalHeight;
+            r();
+          };
+          img.src = `data:image/jpeg;base64,${b64}`;
+        });
+
         return {
           ok: true,
           source: coverRes.value.source,
           mimeType: coverRes.value.mimeType,
           bytesLength: coverRes.value.bytes.length,
-          base64: api.bytesToBase64(coverRes.value.bytes),
+          base64: b64,
+          decodedWidth,
+          decodedHeight,
         };
       });
 
       expect(res.ok).toBe(true);
       expect(res.source).toBe('default');
       expect(res.bytesLength).toBeLessThanOrEqual(150000);
+      expect(res.decodedWidth).toBe(640);
+      expect(res.decodedHeight).toBe(360);
 
       if (res.base64) {
         const imgBuffer = Buffer.from(res.base64, 'base64');
@@ -339,8 +418,7 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
       }
     });
 
-    it('processes user-uploaded cover override and gives it precedence', async () => {
-      // Create a dummy red test image canvas in browser and export to blob
+    it('processes user-uploaded cover override and gives it precedence in selectedCover', async () => {
       const res = await page.evaluate(async () => {
         const api = (window as unknown as { vektorContent: typeof import('../../src/content/index') })
           .vektorContent;
@@ -372,14 +450,16 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
 
         return {
           ok: true,
-          coverSource: val.autoCover?.source,
-          bytesLength: val.autoCover?.bytes.length,
-          base64: val.autoCover ? api.bytesToBase64(val.autoCover.bytes) : '',
+          overrideCoverSource: val.overrideCover?.source,
+          selectedCoverSource: val.selectedCover?.source,
+          bytesLength: val.selectedCover?.bytes.length,
+          base64: val.overrideCover ? api.bytesToBase64(val.overrideCover.bytes) : '',
         };
       });
 
       expect(res.ok).toBe(true);
-      expect(res.coverSource).toBe('upload');
+      expect(res.overrideCoverSource).toBe('upload');
+      expect(res.selectedCoverSource).toBe('upload');
       expect(res.bytesLength).toBeLessThanOrEqual(150000);
 
       if (res.base64) {
@@ -390,10 +470,23 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
   });
 
   describe('Security & Sandbox Invariants', () => {
-    it('enforces strict sandbox="allow-scripts" and rejects parent DOM access', async () => {
+    it('enforces strict sandbox="allow-scripts" and asserts child BREACH_BLOCKED when accessing parent DOM/cookies', async () => {
       const res = await page.evaluate(async () => {
         const api = (window as unknown as { vektorContent: typeof import('../../src/content/index') })
           .vektorContent;
+
+        let breachBlocked = false;
+        let breachMessageReceived = false;
+        let breachError = '';
+
+        const listener = (event: MessageEvent) => {
+          if (event.data && typeof event.data === 'object' && event.data.type === 'BREACH_BLOCKED') {
+            breachBlocked = true;
+            breachMessageReceived = true;
+            breachError = event.data.error;
+          }
+        };
+        window.addEventListener('message', listener);
 
         // HTML attempting to breach sandbox
         const breachHtml = `<!DOCTYPE html>
@@ -402,24 +495,140 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
   <h1>Security Probe</h1>
   <script>
     try {
-      var parentDoc = window.parent.document;
+      var pDoc = window.parent.document;
+      var c = window.parent.document.cookie;
       window.parent.postMessage({ type: 'BREACH_SUCCESS' }, '*');
     } catch (e) {
-      window.parent.postMessage({ type: 'BREACH_BLOCKED', error: e.name }, '*');
+      window.parent.postMessage({ type: 'BREACH_BLOCKED', error: e.name || String(e) }, '*');
     }
   </script>
 </body>
 </html>`;
 
         const captured = await api.captureHtmlCover(breachHtml, { timeoutMs: 3000 });
+        window.removeEventListener('message', listener);
+
         return {
           ok: captured.ok,
           source: captured.ok ? captured.value.source : null,
+          breachBlocked,
+          breachMessageReceived,
+          breachError,
         };
       });
 
+      expect(res.breachMessageReceived).toBe(true);
+      expect(res.breachBlocked).toBe(true);
+      expect(res.breachError).toBe('SecurityError');
       expect(res.ok).toBe(true);
       expect(res.source).toBe('auto');
+    });
+
+    it('rejects SVG data URLs before raster Image decoding', async () => {
+      const res = await page.evaluate(async () => {
+        const api = (window as unknown as { vektorContent: typeof import('../../src/content/index') })
+          .vektorContent;
+
+        const NativeImage = window.Image;
+        let imageConstructed = 0;
+        window.Image = class extends NativeImage {
+          constructor() {
+            super();
+            imageConstructed++;
+          }
+        };
+
+        const capture = api.captureHtmlCover('<html><body>SVG probe</body></html>', {
+          timeoutMs: 500,
+        });
+
+        await new Promise((r) => setTimeout(r, 30));
+        const frame = document.querySelector('iframe');
+        if (frame && frame.srcdoc) {
+          const match = frame.srcdoc.match(/var NONCE = "([^"]+)"/);
+          const nonce = match ? match[1] : '';
+
+          window.dispatchEvent(
+            new MessageEvent('message', {
+              source: frame.contentWindow,
+              data: {
+                type: 'VEKTOR_COVER_CAPTURE',
+                nonce,
+                status: 'success',
+                dataUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>',
+              },
+            }),
+          );
+        }
+
+        const captureResult = await capture;
+        window.Image = NativeImage;
+
+        return {
+          ok: captureResult.ok,
+          imageConstructed,
+          framesRemaining: document.querySelectorAll('iframe').length,
+        };
+      });
+
+      expect(res.ok).toBe(false);
+      expect(res.imageConstructed).toBe(0);
+      expect(res.framesRemaining).toBe(0);
+    });
+
+    it('settles within timeout and cleans up iframe when parent Image decode stalls', async () => {
+      const res = await page.evaluate(async () => {
+        const api = (window as unknown as { vektorContent: typeof import('../../src/content/index') })
+          .vektorContent;
+
+        const NativeImage = window.Image;
+        // Mock Image whose onload never fires (stalled parent decode)
+        window.Image = class {
+          set src(_val: string) {
+            // Intentionally stall: do not call onload or onerror
+          }
+        } as unknown as typeof Image;
+
+        const start = performance.now();
+        const capture = api.captureHtmlCover('<html><body>Stall probe</body></html>', {
+          timeoutMs: 400,
+        });
+
+        await new Promise((r) => setTimeout(r, 30));
+        const frame = document.querySelector('iframe');
+        if (frame && frame.srcdoc) {
+          const match = frame.srcdoc.match(/var NONCE = "([^"]+)"/);
+          const nonce = match ? match[1] : '';
+
+          // Send valid base64 PNG data URL
+          window.dispatchEvent(
+            new MessageEvent('message', {
+              source: frame.contentWindow,
+              data: {
+                type: 'VEKTOR_COVER_CAPTURE',
+                nonce,
+                status: 'success',
+                dataUrl:
+                  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+              },
+            }),
+          );
+        }
+
+        const captureResult = await capture;
+        const elapsed = performance.now() - start;
+        window.Image = NativeImage;
+
+        return {
+          ok: captureResult.ok,
+          elapsed: Math.round(elapsed),
+          framesRemaining: document.querySelectorAll('iframe').length,
+        };
+      });
+
+      expect(res.ok).toBe(false);
+      expect(res.elapsed).toBeLessThan(1200);
+      expect(res.framesRemaining).toBe(0);
     });
 
     it('rejects spoofed postMessage payloads from untrusted sources', async () => {

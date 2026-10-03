@@ -92,20 +92,30 @@ export function isPathTraversal(rawPath: string): boolean {
   if (WINDOWS_DRIVE_REGEX.test(backslashConverted)) {
     return true;
   }
+  if (backslashConverted.startsWith('/')) {
+    return true;
+  }
 
-  let decoded = backslashConverted;
+  let decoded = rawPath.trim();
   try {
-    decoded = decodeURIComponent(backslashConverted);
+    decoded = decodeURIComponent(rawPath).trim();
   } catch {
     return true;
   }
 
-  // Leading slash indicates absolute path in archive
-  if (decoded.startsWith('/')) {
+  if (decoded.includes('\0')) {
     return true;
   }
 
-  const parts = decoded.split('/');
+  const normalizedDecoded = decoded.replace(/\\/g, '/').trim();
+  if (WINDOWS_DRIVE_REGEX.test(normalizedDecoded)) {
+    return true;
+  }
+  if (normalizedDecoded.startsWith('/')) {
+    return true;
+  }
+
+  const parts = normalizedDecoded.split('/');
   let depth = 0;
   for (const part of parts) {
     const p = part.trim();

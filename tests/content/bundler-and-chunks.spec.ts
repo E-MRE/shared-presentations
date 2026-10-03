@@ -364,5 +364,91 @@ console.log("Deck active");
       expect(res3.ok).toBe(false);
       expect(res3.error?.code).toBe(AppErrorCode.MALFORMED_MANIFEST);
     });
+
+    it('enforces uncompressed bound in prepareChunks before compression', () => {
+      const oversized = new Uint8Array(26214400 + 10);
+      const res = prepareChunks(oversized, 'html');
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.FILE_TOO_LARGE);
+        expect(res.error.message).toContain('Açılmış HTML boyutu sınırını aşıyor');
+      }
+    });
+
+    it('enforces aggregate encoded bound in reconstructPresentation before stitching', () => {
+      // 6 valid chunks of 900,000 bytes = 5,400,000 bytes > MAX_HTML_ENCODED_BYTES (5,242,880)
+      const chunkSize = 900000;
+      const count = 6;
+      const fakeChunks = Array.from({ length: count }, (_, i) => ({
+        index: i,
+        data: new Uint8Array(chunkSize),
+        size: chunkSize,
+      }));
+      const fakeManifest = Array.from({ length: count }, (_, i) => ({
+        index: i,
+        size: chunkSize,
+      }));
+      const res = reconstructPresentation(fakeChunks, fakeManifest, 'html');
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.FILE_TOO_LARGE);
+        expect(res.error.message).toContain('Manifest toplam kodlanmış boyutu');
+      }
+    });
+  });
+
+  describe('Edge Case Markup & JavaScript Tokenization', () => {
+    it('preserves markup inside inline JavaScript strings without rewriting', () => {
+      const html = '<html><body><script>const markup = `<img src="local.png">`; window.literal = markup;</script></body></html>';
+      const bytes = new TextEncoder().encode(html);
+      const res = bundlePresentation([{ path: 'index.html', data: bytes, size: bytes.length }]);
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.value.html).toContain('const markup = `<img src="local.png">`');
+      }
+    });
+
+    it('preserves existing data-URI JavaScript verbatim', () => {
+      const html = '<html><body><script src="data:text/javascript,window.deckWorks%3Dtrue"></script></body></html>';
+      const bytes = new TextEncoder().encode(html);
+      const res = bundlePresentation([{ path: 'index.html', data: bytes, size: bytes.length }]);
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.value.html).toContain('<script src="data:text/javascript');
+      }
+    });
+
+    it('handles quoted > character in attributes safely', () => {
+      const html = '<html><body><div title="a > b" class="main"><p>text</p></div></body></html>';
+      const bytes = new TextEncoder().encode(html);
+      const res = bundlePresentation([{ path: 'index.html', data: bytes, size: bytes.length }]);
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.value.html).toContain('title="a > b"');
+      }
+    });
+
+    it('handles data URI srcset candidates containing commas safely', () => {
+      const html = '<html><body><img srcset="data:image/png;base64,iVBORw0KGgo= 2x, other.png 1x"></body></html>';
+      const bytes = new TextEncoder().encode(html);
+      const res = bundlePresentation([{ path: 'index.html', data: bytes, size: bytes.length }]);
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.value.html).toContain('data:image/png;base64,iVBORw0KGgo= 2x');
+      }
+    });
+
+    it('inlines local asset inside style="..." attribute url() expression', () => {
+      const bgPng = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+      const html = '<html><body><div style="background-image: url(\'bg.png\'); color: white;">Card</div></body></html>';
+      const res = bundlePresentation([
+        { path: 'index.html', data: new TextEncoder().encode(html), size: html.length },
+        { path: 'bg.png', data: bgPng, size: bgPng.length },
+      ]);
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.value.html).toContain('url("data:image/png;base64,');
+      }
+    });
   });
 });
