@@ -18,12 +18,16 @@ import { join } from 'node:path';
 import { createServer as createViteServer, type ViteDevServer } from 'vite';
 import { chromium, type Browser, type Page } from '@playwright/test';
 import { zipSync } from 'fflate';
+import { processCoverOverride } from '../../src/content/cover';
+import { AppErrorCode } from '../../src/contracts/errors';
 
 process.env.PLAYWRIGHT_BROWSERS_PATH =
   process.env.PLAYWRIGHT_BROWSERS_PATH || '/opt/data/ms-playwright';
 
 const FIXTURES_DIR = join(process.cwd(), 'design/presentations');
-const EVIDENCE_DIR = '/opt/projects/shared-presentations/.orchestra/evidence/L04/worker';
+const EVIDENCE_DIR =
+  process.env.EVIDENCE_DIR ||
+  '/opt/projects/shared-presentations/.orchestra/evidence/L04/resume3/worker';
 
 const FIXTURE_FILES = [
   'flutter-fluid-rendering.html',
@@ -466,6 +470,75 @@ document.getElementById('desc').textContent += ' (aktifleştirildi)';`;
         const imgBuffer = Buffer.from(res.base64, 'base64');
         writeFileSync(join(EVIDENCE_DIR, 'cover-override.jpg'), imgBuffer);
       }
+    });
+
+    it('returns honest error when processCoverOverride is called in browser-less Node environment', async () => {
+      const png1x1 = new Uint8Array([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48,
+        0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00,
+        0x00, 0x1f, 0x15, 0xc4, 0x89,
+      ]);
+      const res = await processCoverOverride(png1x1);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.UNKNOWN);
+        expect(res.error.message).toContain('Tarayıcı ortamı bulunamadı');
+      }
+    });
+
+    it('rejects cover override exceeding MAX_SOURCE_COVER_BYTES (10 MB)', async () => {
+      const oversized = new Uint8Array(10 * 1024 * 1024 + 1);
+      oversized[0] = 0xff;
+      oversized[1] = 0xd8;
+      oversized[2] = 0xff;
+      const res = await processCoverOverride(oversized);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.FILE_TOO_LARGE);
+        expect(res.error.message).toContain('azami kaynak boyutunu aşıyor');
+      }
+    });
+
+    it('rejects cover override exceeding 16MP or 8192 dimension limits before Image allocation', async () => {
+      const res = await page.evaluate(async () => {
+        const api = (window as unknown as { vektorContent: typeof import('../../src/content/index') })
+          .vektorContent;
+
+        // Construct 10000x10000 PNG header (IHDR width=10000 0x2710, height=10000 0x2710)
+        const hugePng = new Uint8Array([
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // PNG signature
+          0x00, 0x00, 0x00, 0x0d, // IHDR chunk length 13
+          0x49, 0x48, 0x44, 0x52, // IHDR
+          0x00, 0x00, 0x27, 0x10, // width = 10000
+          0x00, 0x00, 0x27, 0x10, // height = 10000
+          0x08, 0x06, 0x00, 0x00, 0x00, // bit depth, color type, compression, filter, interlace
+          0x00, 0x00, 0x00, 0x00, // mock CRC
+        ]);
+
+        const NativeImage = window.Image;
+        let imageConstructed = 0;
+        window.Image = class extends NativeImage {
+          constructor() {
+            super();
+            imageConstructed++;
+          }
+        };
+
+        const result = await api.processCoverOverride(hugePng);
+        window.Image = NativeImage;
+
+        return {
+          ok: result.ok,
+          errorCode: !result.ok ? result.error.code : null,
+          errorMessage: !result.ok ? result.error.message : '',
+          imageConstructed,
+        };
+      });
+
+      expect(res.ok).toBe(false);
+      expect(res.errorCode).toBe(AppErrorCode.INVALID_COVER);
+      expect(res.errorMessage).toContain('piksel veya boyut sınırını aşıyor');
+      expect(res.imageConstructed).toBe(0);
     });
   });
 

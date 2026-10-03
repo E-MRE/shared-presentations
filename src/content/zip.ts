@@ -63,59 +63,164 @@ function findEocdOffset(bytes: Uint8Array): number {
   return -1;
 }
 
+const CRC_TABLE = new Uint32Array(256);
+for (let i = 0; i < 256; i++) {
+  let c = i;
+  for (let k = 0; k < 8; k++) {
+    c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+  }
+  CRC_TABLE[i] = c >>> 0;
+}
+
+/** Computes the standard IEEE 802.3 32-bit CRC checksum */
+export function computeCrc32(bytes: Uint8Array): number {
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) {
+    crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ bytes[i]) & 0xff];
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+export interface ParsedXmlElement {
+  rawTag: string;
+  prefix: string;
+  localName: string;
+  attrs: Record<string, string>;
+  nsUri: string;
+  children: ParsedXmlElement[];
+}
+
+function parseAttributes(attrStr: string): Record<string, string> {
+  const attrs: Record<string, string> = {};
+  const ATTR_REGEX = /([a-zA-Z0-9_.:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g;
+  let m: RegExpExecArray | null;
+  while ((m = ATTR_REGEX.exec(attrStr)) !== null) {
+    const key = m[1];
+    const val = m[2] !== undefined ? m[2] : (m[3] !== undefined ? m[3] : m[4]);
+    attrs[key] = val;
+  }
+  return attrs;
+}
+
 /**
- * Validates XML well-formedness and ensures a single root element.
- * Works uniformly across both Node and browser environments without DOMParser dependency.
+ * Parses XML into a lightweight AST with full XML namespace resolution.
+ * Works uniformly across Node and browser without DOMParser dependency.
  */
-export function validateXml(rawXml: string): { ok: boolean; error?: string } {
-  // Strip XML declaration, comments, processing instructions, and CDATA
+export function parseXmlDoc(
+  rawXml: string,
+): { ok: boolean; root?: ParsedXmlElement; error?: string } {
   let stripped = rawXml.replace(/^<\?xml[\s\S]*?\?>/i, '');
   stripped = stripped.replace(/<!--[\s\S]*?-->/g, '');
   stripped = stripped.replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '');
-  stripped = stripped.replace(/<\?[\s\S]*?\?>/g, '');
-  stripped = stripped.trim();
+  stripped = stripped.replace(/<\?[\s\S]*?\?>/g, '').trim();
 
   if (!stripped) {
     return { ok: false, error: 'Boş XML içeriği.' };
   }
 
-  const tagStack: string[] = [];
-  let rootCount = 0;
-  const TAG_REGEX = /<(\/?)([\w:-]+)((?:\s+[^>]*)?)(\/?)>/g;
+  const TAG_REGEX =
+    /<(\/?)(?:([a-zA-Z0-9_.-]+):)?([a-zA-Z0-9_.-]+)((?:\s+[a-zA-Z0-9_.:-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+))?)*)\s*(\/?)>/g;
   let match: RegExpExecArray | null;
 
+  interface StackEntry {
+    rawTag: string;
+    scope: Record<string, string>;
+    children: ParsedXmlElement[];
+  }
+
+  const stack: StackEntry[] = [];
+  let root: ParsedXmlElement | null = null;
+  let rootCount = 0;
+
   while ((match = TAG_REGEX.exec(stripped)) !== null) {
-    const [, isClose, tagName, , isSelfClosing] = match;
+    const [, isClose, prefix = '', localName, attrStr, isSelfClosing] = match;
+    const rawTag = prefix ? `${prefix}:${localName}` : localName;
+
     if (isClose) {
-      if (tagStack.length === 0) {
-        return { ok: false, error: `Beklenmeyen kapanış etiketi: </${tagName}>` };
+      if (stack.length === 0) {
+        return { ok: false, error: `Beklenmeyen kapanış etiketi: </${rawTag}>` };
       }
-      const expected = tagStack.pop();
-      if (expected !== tagName) {
+      const top = stack.pop()!;
+      if (top.rawTag !== rawTag) {
         return {
           ok: false,
-          error: `Uyuşmayan etiket: </${expected}> yerine </${tagName}> bulundu.`,
+          error: `Uyuşmayan etiket: </${top.rawTag}> yerine </${rawTag}> bulundu.`,
         };
       }
-    } else if (isSelfClosing || match[0].endsWith('/>')) {
-      if (tagStack.length === 0) rootCount++;
     } else {
-      if (tagStack.length === 0) rootCount++;
-      tagStack.push(tagName);
+      const attrs = parseAttributes(attrStr || '');
+      const parentScope = stack.length > 0 ? stack[stack.length - 1].scope : {};
+      const currentScope: Record<string, string> = { ...parentScope };
+
+      for (const [k, v] of Object.entries(attrs)) {
+        if (k === 'xmlns') {
+          currentScope[''] = v;
+        } else if (k.startsWith('xmlns:')) {
+          currentScope[k.slice(6)] = v;
+        }
+      }
+
+      const nsUri = currentScope[prefix] || '';
+      const element: ParsedXmlElement = {
+        rawTag,
+        prefix,
+        localName,
+        attrs,
+        nsUri,
+        children: [],
+      };
+
+      if (stack.length === 0) {
+        rootCount++;
+        if (rootCount > 1) {
+          return { ok: false, error: 'Birden fazla kök eleman bulundu.' };
+        }
+        root = element;
+      } else {
+        stack[stack.length - 1].children.push(element);
+      }
+
+      const selfClose = isSelfClosing === '/' || match[0].endsWith('/>');
+      if (!selfClose) {
+        stack.push({ rawTag, scope: currentScope, children: element.children });
+      }
     }
   }
 
-  if (tagStack.length > 0) {
-    return { ok: false, error: `Kapatılmamış XML etiketleri: ${tagStack.join(', ')}` };
+  if (stack.length > 0) {
+    return {
+      ok: false,
+      error: `Kapatılmamış XML etiketleri: ${stack.map((s) => s.rawTag).join(', ')}`,
+    };
   }
-  if (rootCount !== 1) {
+  if (!root || rootCount !== 1) {
     return {
       ok: false,
       error: `XML tam olarak bir kök elemana sahip olmalıdır (bulunan: ${rootCount}).`,
     };
   }
 
+  return { ok: true, root };
+}
+
+/**
+ * Validates XML well-formedness and ensures a single root element.
+ * Works uniformly across both Node and browser environments without DOMParser dependency.
+ */
+export function validateXml(rawXml: string): { ok: boolean; error?: string } {
+  const parsed = parseXmlDoc(rawXml);
+  if (!parsed.ok) {
+    return { ok: false, error: parsed.error };
+  }
   return { ok: true };
+}
+
+export interface ZipMemberMeta {
+  crc32: number;
+  uncompressedSize: number;
+  compressedSize: number;
+  method: number;
+  localHeaderOffset: number;
 }
 
 /**
@@ -127,7 +232,11 @@ function validateZipCentralDirectory(
   zipBytes: Uint8Array,
   maxFiles: number,
   maxBytes: number,
-): Result<{ declaredBytes: number; fileCount: number }> {
+): Result<{
+  declaredBytes: number;
+  fileCount: number;
+  memberMetaMap: Map<string, ZipMemberMeta>;
+}> {
   const eocdOffset = findEocdOffset(zipBytes);
   if (eocdOffset === -1) {
     return err({
@@ -160,6 +269,7 @@ function validateZipCentralDirectory(
   let fileCount = 0;
   let declaredBytes = 0;
   const seenOriginalNames = new Set<string>();
+  const memberMetaMap = new Map<string, ZipMemberMeta>();
 
   for (let i = 0; i < totalEntries; i++) {
     if (pos + 46 > cdOffset + cdSize) {
@@ -179,6 +289,8 @@ function validateZipCentralDirectory(
 
     const flags = readUInt16LE(zipBytes, pos + 8);
     const method = readUInt16LE(zipBytes, pos + 10);
+    const crc32 = readUInt32LE(zipBytes, pos + 16);
+    const compressedSize = readUInt32LE(zipBytes, pos + 20);
     const uncompressedSize = readUInt32LE(zipBytes, pos + 24);
     const nameLen = readUInt16LE(zipBytes, pos + 28);
     const extraLen = readUInt16LE(zipBytes, pos + 30);
@@ -272,6 +384,32 @@ function validateZipCentralDirectory(
       });
     }
 
+    // Coherence between local header and central directory when bit 3 (data descriptor) is not set
+    if ((localFlags & 8) === 0) {
+      const localCrc = readUInt32LE(zipBytes, localHeaderOffset + 14);
+      const localComp = readUInt32LE(zipBytes, localHeaderOffset + 18);
+      const localUncomp = readUInt32LE(zipBytes, localHeaderOffset + 22);
+
+      if (localCrc !== 0 && localCrc !== crc32) {
+        return err({
+          code: AppErrorCode.INVALID_ARGUMENT,
+          message: `Bozuk arşiv: Yerel ve merkezi dizin CRC değerleri uyuşmuyor (${rawName}).`,
+        });
+      }
+      if (localComp !== 0 && localComp !== compressedSize) {
+        return err({
+          code: AppErrorCode.INVALID_ARGUMENT,
+          message: `Bozuk arşiv: Yerel ve merkezi dizin sıkıştırılmış boyutları uyuşmuyor (${rawName}).`,
+        });
+      }
+      if (localUncomp !== 0 && localUncomp !== uncompressedSize) {
+        return err({
+          code: AppErrorCode.INVALID_ARGUMENT,
+          message: `Bozuk arşiv: Yerel ve merkezi dizin açılmış boyutları uyuşmuyor (${rawName}).`,
+        });
+      }
+    }
+
     const isDirectory = rawName.endsWith('/') || (externalAttrs & 0x10) !== 0;
     if (!isDirectory) {
       const lowerName = rawName.toLowerCase();
@@ -282,6 +420,18 @@ function validateZipCentralDirectory(
         });
       }
       seenOriginalNames.add(lowerName);
+
+      const meta: ZipMemberMeta = {
+        crc32,
+        uncompressedSize,
+        compressedSize,
+        method,
+        localHeaderOffset,
+      };
+      memberMetaMap.set(rawName, meta);
+      memberMetaMap.set(lowerName, meta);
+      memberMetaMap.set(rawName.replace(/^\/+/, ''), meta);
+      memberMetaMap.set(rawName.replace(/^\/+/, '').toLowerCase(), meta);
 
       fileCount++;
       if (fileCount > maxFiles) {
@@ -303,7 +453,7 @@ function validateZipCentralDirectory(
     pos += 46 + nameLen + extraLen + commentLen;
   }
 
-  return ok({ declaredBytes, fileCount });
+  return ok({ declaredBytes, fileCount, memberMetaMap });
 }
 
 /**
@@ -338,6 +488,8 @@ export async function extractZipArchive(
   if (!cdValidation.ok) {
     return cdValidation;
   }
+
+  const { memberMetaMap } = cdValidation.value;
 
   return new Promise<Result<ZipArchiveResult>>((resolve) => {
     const rawFiles: Array<{ originalPath: string; data: Uint8Array; size: number }> = [];
@@ -444,6 +596,34 @@ export async function extractZipArchive(
             for (const c of chunks) {
               combined.set(c, offset);
               offset += c.length;
+            }
+
+            const meta =
+              memberMetaMap.get(rawName) ??
+              memberMetaMap.get(rawName.toLowerCase()) ??
+              memberMetaMap.get(rawName.replace(/^\/+/, '')) ??
+              memberMetaMap.get(rawName.replace(/^\/+/, '').toLowerCase());
+
+            if (meta) {
+              if (fileExtractedBytes !== meta.uncompressedSize) {
+                abortWithError(
+                  err({
+                    code: AppErrorCode.INVALID_ARGUMENT,
+                    message: `Bozuk arşiv: Açılan dosya boyutu (${fileExtractedBytes}) merkezi dizinde belirtilen boyutla (${meta.uncompressedSize}) uyuşmuyor: ${rawName}`,
+                  }),
+                );
+                return;
+              }
+              const calculatedCrc = computeCrc32(combined);
+              if (calculatedCrc !== meta.crc32) {
+                abortWithError(
+                  err({
+                    code: AppErrorCode.INVALID_ARGUMENT,
+                    message: `Bozuk arşiv: Dosya CRC-32 sağlama toplamı uyuşmuyor (beklenen: 0x${meta.crc32.toString(16)}, hesaplanan: 0x${calculatedCrc.toString(16)}): ${rawName}`,
+                  }),
+                );
+                return;
+              }
             }
 
             rawFiles.push({
@@ -594,42 +774,37 @@ export async function validatePptxStructure(pptxBytes: Uint8Array): Promise<Resu
     fileMap.set(f.path.toLowerCase(), f);
   }
 
-  // 1. [Content_Types].xml check
+  // 1. [Content_Types].xml check: OOXML package entry point
   const contentTypesFile = fileMap.get('[content_types].xml');
   if (!contentTypesFile) {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
-      message: 'Geçersiz PPTX dosyası: OOXML sunum yapısı bulunamadı ([Content_Types].xml bulunamadı).',
+      message:
+        'Geçersiz PPTX dosyası: OOXML sunum yapısı bulunamadı ([Content_Types].xml bulunamadı).',
     });
   }
 
   const contentTypesXml = new TextDecoder('utf-8').decode(contentTypesFile.data);
-  const ctXmlCheck = validateXml(contentTypesXml);
-  if (!ctXmlCheck.ok) {
+  const ctDoc = parseXmlDoc(contentTypesXml);
+  if (!ctDoc.ok || !ctDoc.root) {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
-      message: `Geçersiz PPTX dosyası: [Content_Types].xml hatalı XML içeriyor: ${ctXmlCheck.error}`,
+      message: `Geçersiz PPTX dosyası: [Content_Types].xml hatalı XML içeriyor: ${ctDoc.error || 'Ayrıştırma hatası'}`,
     });
   }
 
-  // Must declare PresentationML main part (reject Word wordprocessingml or Excel spreadsheetml)
-  const isPresentationML =
-    /application\/vnd\.openxmlformats-officedocument\.presentationml\.(presentation|slideshow)\.main\+xml/i.test(
-      contentTypesXml,
-    ) ||
-    /application\/vnd\.ms-powerpoint\.presentation\.macroEnabled\.main\+xml/i.test(
-      contentTypesXml,
-    );
-
-  if (!isPresentationML) {
+  if (
+    ctDoc.root.localName.toLowerCase() !== 'types' ||
+    ctDoc.root.nsUri !== 'http://schemas.openxmlformats.org/package/2006/content-types'
+  ) {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
       message:
-        'Geçersiz PPTX dosyası: PresentationML içerik türü bulunamadı (Word veya farklı bir OOXML belgesi).',
+        'Geçersiz PPTX dosyası: [Content_Types].xml kök elemanı geçerli bir <Types> elemanı değil.',
     });
   }
 
-  // 2. _rels/.rels check
+  // 2. _rels/.rels check: Must have Relationships root and valid officeDocument relationship
   const relsFile = fileMap.get('_rels/.rels');
   if (!relsFile) {
     return err({
@@ -639,42 +814,128 @@ export async function validatePptxStructure(pptxBytes: Uint8Array): Promise<Resu
   }
 
   const relsXml = new TextDecoder('utf-8').decode(relsFile.data);
-  const relsXmlCheck = validateXml(relsXml);
-  if (!relsXmlCheck.ok) {
+  const relsDoc = parseXmlDoc(relsXml);
+  if (!relsDoc.ok || !relsDoc.root) {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
-      message: `Geçersiz PPTX dosyası: _rels/.rels hatalı XML içeriyor: ${relsXmlCheck.error}`,
+      message: `Geçersiz PPTX dosyası: _rels/.rels hatalı XML içeriyor: ${relsDoc.error || 'Ayrıştırma hatası'}`,
     });
   }
 
-  // 3. ppt/presentation.xml check
-  const presentationFile = fileMap.get('ppt/presentation.xml');
+  if (
+    relsDoc.root.localName.toLowerCase() !== 'relationships' ||
+    relsDoc.root.nsUri !== 'http://schemas.openxmlformats.org/package/2006/relationships'
+  ) {
+    return err({
+      code: AppErrorCode.INVALID_ARGUMENT,
+      message:
+        'Geçersiz PPTX dosyası: _rels/.rels kök elemanı geçerli bir <Relationships> elemanı değil.',
+    });
+  }
+
+  const OFFICE_DOC_REL_TYPES = new Set([
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument',
+    'http://purl.oclc.org/ooxml/officeDocument/relationships/officeDocument',
+  ]);
+
+  let presentationPartTarget: string | null = null;
+  for (const child of relsDoc.root.children) {
+    if (child.localName.toLowerCase() === 'relationship') {
+      const type = child.attrs.Type || child.attrs.type || '';
+      const targetMode = child.attrs.TargetMode || child.attrs.targetMode || '';
+      const target = child.attrs.Target || child.attrs.target || '';
+
+      if (OFFICE_DOC_REL_TYPES.has(type)) {
+        if (targetMode.toLowerCase() === 'external') {
+          continue; // External target cannot be the presentation main part
+        }
+        if (target) {
+          presentationPartTarget = target;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!presentationPartTarget) {
+    return err({
+      code: AppErrorCode.INVALID_ARGUMENT,
+      message:
+        'Geçersiz PPTX dosyası: OOXML _rels/.rels dosyasında geçerli bir officeDocument ilişkisi bulunamadı.',
+    });
+  }
+
+  // Normalize target: e.g. "ppt/presentation.xml" or "/ppt/presentation.xml" -> normalize to without leading slash
+  let normalizedTargetPath = presentationPartTarget.replace(/^\/+/, '');
+  if (normalizedTargetPath.startsWith('./')) {
+    normalizedTargetPath = normalizedTargetPath.slice(2);
+  }
+  const partNameForContentType = `/${normalizedTargetPath}`.toLowerCase();
+
+  // 3. Match [Content_Types].xml Override for the resolved presentationPartTarget
+
+  const PRESENTATION_CONTENT_TYPES = new Set([
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml',
+    'application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml',
+    'application/vnd.openxmlformats-officedocument.presentationml.template.main+xml',
+    'application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml',
+    'application/vnd.ms-powerpoint.slideshow.macroEnabled.main+xml',
+  ]);
+
+  let matchedContentType: string | null = null;
+  for (const child of ctDoc.root.children) {
+    if (child.localName.toLowerCase() === 'override') {
+      const partName = (child.attrs.PartName || child.attrs.partname || '').toLowerCase();
+      const contentType = (child.attrs.ContentType || child.attrs.contenttype || '').toLowerCase();
+
+      const normPart = partName.startsWith('/') ? partName : `/${partName}`;
+      if (normPart === partNameForContentType) {
+        if (PRESENTATION_CONTENT_TYPES.has(contentType)) {
+          matchedContentType = contentType;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!matchedContentType) {
+    return err({
+      code: AppErrorCode.INVALID_ARGUMENT,
+      message:
+        'Geçersiz PPTX dosyası: Ana sunum bölümü için geçerli PresentationML içerik türü ([Content_Types].xml Override) bulunamadı.',
+    });
+  }
+
+  // 3. Presentation main part check (e.g. ppt/presentation.xml)
+  const presentationFile = fileMap.get(normalizedTargetPath.toLowerCase());
   if (!presentationFile) {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
-      message: 'Geçersiz PPTX dosyası: Ana sunum bölümü (ppt/presentation.xml) bulunamadı.',
+      message: `Geçersiz PPTX dosyası: Ana sunum bölümü (${normalizedTargetPath}) arşiv içinde bulunamadı.`,
     });
   }
 
   const presentationXml = new TextDecoder('utf-8').decode(presentationFile.data);
-  const presXmlCheck = validateXml(presentationXml);
-  if (!presXmlCheck.ok) {
+  const presDoc = parseXmlDoc(presentationXml);
+  if (!presDoc.ok || !presDoc.root) {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
-      message: `Geçersiz PPTX dosyası: ppt/presentation.xml hatalı XML içeriyor: ${presXmlCheck.error}`,
+      message: `Geçersiz PPTX dosyası: ${normalizedTargetPath} hatalı XML içeriyor: ${presDoc.error || 'Ayrıştırma hatası'}`,
     });
   }
 
-  // Verify presentation root element and presentationml namespace
-  const hasPresentationRoot =
-    /<(?:[a-zA-Z0-9_-]+:)?presentation\b[^>]*>/i.test(presentationXml) &&
-    /http:\/\/schemas\.openxmlformats\.org\/presentationml\/2006\/main/i.test(presentationXml);
+  const PRESENTATIONML_NAMESPACES = new Set([
+    'http://schemas.openxmlformats.org/presentationml/2006/main',
+    'http://purl.oclc.org/ooxml/presentationml/main',
+  ]);
 
-  if (!hasPresentationRoot) {
+  if (
+    presDoc.root.localName.toLowerCase() !== 'presentation' ||
+    !PRESENTATIONML_NAMESPACES.has(presDoc.root.nsUri)
+  ) {
     return err({
       code: AppErrorCode.INVALID_ARGUMENT,
-      message:
-        'Geçersiz PPTX dosyası: ppt/presentation.xml geçerli bir PresentationML kök elemanı içermiyor.',
+      message: `Geçersiz PPTX dosyası: ${normalizedTargetPath} dosyasının kök elemanı geçerli bir PresentationML <presentation> elemanı değil (bulunan: <${presDoc.root.rawTag}>, ad alanı: ${presDoc.root.nsUri || 'yok'}).`,
     });
   }
 

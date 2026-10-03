@@ -221,7 +221,18 @@ export function processCssContent(
   fileMap: Map<string, BundleFile>,
   warnings: PipelineWarning[],
   visitedCssFiles: Set<string> = new Set(),
+  memoizedCss: Map<string, string> = new Map(),
+  depth = 0,
 ): string {
+  if (depth > 15) {
+    warnings.push({
+      code: 'UNSUPPORTED_CONSTRUCT',
+      message: 'CSS @import derinlik sınırı aşıldı (azami 15 düzey).',
+      target: containingDir,
+    });
+    return cssText;
+  }
+
   const CSS_TOKEN_REGEX =
     /\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|@import\s+(?:url\s*\(\s*(['"]?)(.*?)\1\s*\)|(['"])(.*?)\3|([^;\s]+))\s*([^;]*?);|url\s*\(\s*(['"]?)(.*?)\7\s*\)/gi;
 
@@ -307,15 +318,21 @@ export function processCssContent(
         const nextVisited = new Set(visitedCssFiles);
         nextVisited.add(cleanPath);
 
-        const nestedDir = getDirectoryName(cleanPath);
-        const nestedText = new TextDecoder('utf-8').decode(nestedFile.data);
-        const processedNested = processCssContent(
-          nestedText,
-          nestedDir,
-          fileMap,
-          warnings,
-          nextVisited,
-        );
+        let processedNested = memoizedCss.get(cleanPath);
+        if (processedNested === undefined) {
+          const nestedDir = getDirectoryName(cleanPath);
+          const nestedText = new TextDecoder('utf-8').decode(nestedFile.data);
+          processedNested = processCssContent(
+            nestedText,
+            nestedDir,
+            fileMap,
+            warnings,
+            nextVisited,
+            memoizedCss,
+            depth + 1,
+          );
+          memoizedCss.set(cleanPath, processedNested);
+        }
 
         if (media) {
           return `@media ${media} {\n${processedNested}\n}`;
@@ -388,14 +405,95 @@ export function processCssContent(
   return result;
 }
 
+interface JsToken {
+  type: 'code' | 'comment' | 'string';
+  text: string;
+}
+
 /**
- * Inlines local ES module specifiers recursively with cycle detection.
+ * Tokenizes JavaScript code into code chunks, comments, and string literals.
+ * This prevents rewriting pseudo-imports inside strings or comments.
+ */
+function tokenizeJs(code: string): JsToken[] {
+  const tokens: JsToken[] = [];
+  let pos = 0;
+  let codeStart = 0;
+
+  while (pos < code.length) {
+    const ch = code[pos];
+    const next = code[pos + 1];
+
+    // Single-line comment: // ... \n
+    if (ch === '/' && next === '/') {
+      if (pos > codeStart) {
+        tokens.push({ type: 'code', text: code.slice(codeStart, pos) });
+      }
+      const end = code.indexOf('\n', pos + 2);
+      const commentEnd = end === -1 ? code.length : end + 1;
+      tokens.push({ type: 'comment', text: code.slice(pos, commentEnd) });
+      pos = commentEnd;
+      codeStart = pos;
+      continue;
+    }
+
+    // Multi-line comment: /* ... */
+    if (ch === '/' && next === '*') {
+      if (pos > codeStart) {
+        tokens.push({ type: 'code', text: code.slice(codeStart, pos) });
+      }
+      const end = code.indexOf('*/', pos + 2);
+      const commentEnd = end === -1 ? code.length : end + 2;
+      tokens.push({ type: 'comment', text: code.slice(pos, commentEnd) });
+      pos = commentEnd;
+      codeStart = pos;
+      continue;
+    }
+
+    // String literals: ', ", `
+    if (ch === "'" || ch === '"' || ch === '`') {
+      if (pos > codeStart) {
+        tokens.push({ type: 'code', text: code.slice(codeStart, pos) });
+      }
+      const quote = ch;
+      let strPos = pos + 1;
+      while (strPos < code.length) {
+        if (code[strPos] === '\\') {
+          strPos += 2;
+          continue;
+        }
+        if (code[strPos] === quote) {
+          strPos++;
+          break;
+        }
+        strPos++;
+      }
+      tokens.push({ type: 'string', text: code.slice(pos, strPos) });
+      pos = strPos;
+      codeStart = pos;
+      continue;
+    }
+
+    pos++;
+  }
+
+  if (pos > codeStart) {
+    tokens.push({ type: 'code', text: code.slice(codeStart, pos) });
+  }
+
+  return tokens;
+}
+
+/**
+ * Inlines local ES module specifiers recursively with cycle detection,
+ * memoization, and bounded depth.
  */
 function processModuleFile(
   modulePath: string,
   fileMap: Map<string, BundleFile>,
   warnings: PipelineWarning[],
   visitedModules: Set<string> = new Set(),
+  memoizedModules: Map<string, string> = new Map(),
+  depth = 0,
 ): string {
   if (visitedModules.has(modulePath)) {
     warnings.push({
@@ -404,6 +502,10 @@ function processModuleFile(
       target: modulePath,
     });
     return `/* Cycle detected: ${modulePath} */\nexport {};\n`;
+  }
+
+  if (memoizedModules.has(modulePath)) {
+    return memoizedModules.get(modulePath)!;
   }
 
   const file = fileMap.get(modulePath);
@@ -421,11 +523,22 @@ function processModuleFile(
 
   const rawCode = new TextDecoder('utf-8').decode(file.data);
   const dir = getDirectoryName(modulePath);
-  return processModuleCode(rawCode, dir, fileMap, warnings, nextVisited);
+  const processed = processModuleCode(
+    rawCode,
+    dir,
+    fileMap,
+    warnings,
+    nextVisited,
+    memoizedModules,
+    depth,
+  );
+  memoizedModules.set(modulePath, processed);
+  return processed;
 }
 
 /**
  * Processes module code, converting relative import specifiers into data URIs.
+ * Uses lexical tokenization to protect string literals and comments from being rewritten.
  */
 function processModuleCode(
   code: string,
@@ -433,64 +546,114 @@ function processModuleCode(
   fileMap: Map<string, BundleFile>,
   warnings: PipelineWarning[],
   visitedModules: Set<string> = new Set(),
+  memoizedModules: Map<string, string> = new Map(),
+  depth = 0,
 ): string {
-  const MODULE_SPECIFIER_REGEX =
-    /((?:import|export)\s+(?:[\w*\s{},]*\s+from\s+)?|import\s*\(\s*)(['"])(.*?)\2(\s*\))?/g;
+  if (depth > 15) {
+    warnings.push({
+      code: 'UNSUPPORTED_CONSTRUCT',
+      message: 'Modül içe aktarma derinlik sınırı aşıldı (azami 15 düzey).',
+      target: containingDir,
+    });
+    return code;
+  }
 
-  return code.replace(
-    MODULE_SPECIFIER_REGEX,
-    (match, prefix, quote, specifier, closingParen) => {
-      const trimmedSpecifier = decodeHtmlEntities(specifier).trim();
-      const category = classifyUrl(trimmedSpecifier);
+  const tokens = tokenizeJs(code);
+  let out = '';
 
-      if (category === 'data-uri' || category === 'blob-uri') {
-        return match;
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.type === 'comment') {
+      out += token.text;
+      continue;
+    }
+
+    if (token.type === 'string') {
+      let prevCode = '';
+      for (let j = i - 1; j >= 0; j--) {
+        if (tokens[j].type === 'code') {
+          prevCode = tokens[j].text;
+          break;
+        }
       }
 
-      if (category === 'external-https' || category === 'external-protocol-relative') {
+      // Check if prevCode ends with import / from / import(
+      const isImportSpecifier =
+        /(?:(?:import|export)\s+(?:[\w*\s{},]*\s+from\s*|)|import\s*\(\s*)$/.test(prevCode);
+
+      if (isImportSpecifier) {
+        const quote = token.text[0];
+        const rawSpecifier = token.text.slice(1, -1);
+        const trimmedSpecifier = decodeHtmlEntities(rawSpecifier).trim();
+        const category = classifyUrl(trimmedSpecifier);
+
+        if (category === 'data-uri' || category === 'blob-uri') {
+          out += token.text;
+          continue;
+        }
+
+        if (category === 'external-https' || category === 'external-protocol-relative') {
+          warnings.push({
+            code: 'EXTERNAL_RESOURCE',
+            message: `Modül scripti içinde harici import: ${trimmedSpecifier}`,
+            target: trimmedSpecifier,
+          });
+          out += token.text;
+          continue;
+        }
+
+        if (category === 'external-http') {
+          warnings.push({
+            code: 'INSECURE_RESOURCE',
+            message: `Modül scripti içinde güvensiz HTTP import: ${trimmedSpecifier}`,
+            target: trimmedSpecifier,
+          });
+          out += token.text;
+          continue;
+        }
+
+        const { cleanPath } = stripQueryAndHash(trimmedSpecifier);
+        const resolvedPath = resolveRelativePath(containingDir, cleanPath);
+
+        if (resolvedPath && fileMap.has(resolvedPath)) {
+          let inlinedNested = memoizedModules.get(resolvedPath);
+          if (inlinedNested === undefined) {
+            inlinedNested = processModuleFile(
+              resolvedPath,
+              fileMap,
+              warnings,
+              visitedModules,
+              memoizedModules,
+              depth + 1,
+            );
+            memoizedModules.set(resolvedPath, inlinedNested);
+          }
+          const dataUri = toDataUri(
+            new TextEncoder().encode(inlinedNested),
+            'text/javascript',
+          );
+          out += `${quote}${dataUri}${quote}`;
+          continue;
+        }
+
         warnings.push({
-          code: 'EXTERNAL_RESOURCE',
-          message: `Modül scripti içinde harici import: ${trimmedSpecifier}`,
+          code: 'MISSING_RESOURCE',
+          message: `Modül scripti içinde bulunamayan yerel dosya: ${trimmedSpecifier}`,
           target: trimmedSpecifier,
         });
-        return match;
+        const emptyModuleUri = 'data:text/javascript,export%20default%20%7B%7D%3B';
+        out += `${quote}${emptyModuleUri}${quote}`;
+        continue;
       }
 
-      if (category === 'external-http') {
-        warnings.push({
-          code: 'INSECURE_RESOURCE',
-          message: `Modül scripti içinde güvensiz HTTP import: ${trimmedSpecifier}`,
-          target: trimmedSpecifier,
-        });
-        return match;
-      }
+      out += token.text;
+      continue;
+    }
 
-      const { cleanPath } = stripQueryAndHash(trimmedSpecifier);
-      const resolvedPath = resolveRelativePath(containingDir, cleanPath);
+    out += token.text;
+  }
 
-      if (resolvedPath && fileMap.has(resolvedPath)) {
-        const inlinedNested = processModuleFile(
-          resolvedPath,
-          fileMap,
-          warnings,
-          visitedModules,
-        );
-        const dataUri = toDataUri(
-          new TextEncoder().encode(inlinedNested),
-          'text/javascript',
-        );
-        return `${prefix}${quote}${dataUri}${quote}${closingParen || ''}`;
-      }
-
-      warnings.push({
-        code: 'MISSING_RESOURCE',
-        message: `Modül scripti içinde bulunamayan yerel dosya: ${trimmedSpecifier}`,
-        target: trimmedSpecifier,
-      });
-      const emptyModuleUri = 'data:text/javascript,export%20default%20%7B%7D%3B';
-      return `${prefix}${quote}${emptyModuleUri}${quote}${closingParen || ''}`;
-    },
-  );
+  return out;
 }
 
 /**

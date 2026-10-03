@@ -190,6 +190,41 @@ describe('ZIP Extraction & PPTX Validation Suite', () => {
       expect(corruptRes.ok).toBe(false);
       expect(corruptRes.error?.code).toBe(AppErrorCode.INVALID_ARGUMENT);
     });
+
+    it('rejects stored ZIP member with corrupted payload (CRC-32 mismatch)', async () => {
+      const bytes = zipSync(
+        {
+          'index.html': [
+            new TextEncoder().encode('<html><body>Stored Integrity Payload</body></html>'),
+            { level: 0 },
+          ],
+        },
+        { level: 0 },
+      );
+      const localDataOffset = 30 + (bytes[26] | (bytes[27] << 8)) + (bytes[28] | (bytes[29] << 8));
+      bytes[localDataOffset + 12] ^= 1; // Flip a bit in the uncompressed stored payload
+
+      const res = await extractZipArchive(bytes);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('CRC-32');
+      }
+    });
+
+    it('rejects deflated ZIP member with corrupted payload', async () => {
+      const bytes = zipSync({
+        'index.html': new TextEncoder().encode('<html><body>Compressed Deflate Payload Integrity Test</body></html>'),
+      });
+      const localDataOffset = 30 + (bytes[26] | (bytes[27] << 8)) + (bytes[28] | (bytes[29] << 8));
+      bytes[localDataOffset + 5] ^= 1;
+
+      const res = await extractZipArchive(bytes);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+      }
+    });
   });
 
   describe('validatePptxStructure', () => {
@@ -216,16 +251,104 @@ describe('ZIP Extraction & PPTX Validation Suite', () => {
     it('rejects ordinary Word OOXML ZIP renamed .pptx', async () => {
       const wordZip = zipSync({
         '[Content_Types].xml': new TextEncoder().encode(
-          '<Types><Override ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
+          '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
         ),
-        '_rels/.rels': new TextEncoder().encode('<Relationships/>'),
+        '_rels/.rels': new TextEncoder().encode(
+          '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
+        ),
+        'word/document.xml': new TextEncoder().encode('<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body/></w:document>'),
       });
 
       const res = await validatePptxStructure(wordZip);
       expect(res.ok).toBe(false);
       if (!res.ok) {
         expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
-        expect(res.error.message).toContain('PresentationML içerik türü bulunamadı');
+        expect(res.error.message).toContain('PresentationML içerik türü');
+      }
+    });
+
+    it('rejects PPTX when _rels/.rels is missing officeDocument relationship', async () => {
+      const badPptx = createMockPptxBytes({
+        customFiles: {
+          '_rels/.rels': new TextEncoder().encode(
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>',
+          ),
+        },
+      });
+
+      const res = await validatePptxStructure(badPptx);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('officeDocument ilişkisi bulunamadı');
+      }
+    });
+
+    it('rejects PPTX when officeDocument relationship has TargetMode="External"', async () => {
+      const badPptx = createMockPptxBytes({
+        customFiles: {
+          '_rels/.rels': new TextEncoder().encode(
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="http://external.com/pres.xml" TargetMode="External"/></Relationships>',
+          ),
+        },
+      });
+
+      const res = await validatePptxStructure(badPptx);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('officeDocument ilişkisi bulunamadı');
+      }
+    });
+
+    it('rejects PPTX when [Content_Types].xml has unrelated PartName override', async () => {
+      const badPptx = createMockPptxBytes({
+        customFiles: {
+          '[Content_Types].xml': new TextEncoder().encode(
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/unrelated.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/></Types>',
+          ),
+        },
+      });
+
+      const res = await validatePptxStructure(badPptx);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('PresentationML içerik türü');
+      }
+    });
+
+    it('rejects PPTX when main part root element is not <presentation> (e.g. nested in <wrong>)', async () => {
+      const badPptx = createMockPptxBytes({
+        customFiles: {
+          'ppt/presentation.xml': new TextEncoder().encode(
+            '<wrong xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:presentation/></wrong>',
+          ),
+        },
+      });
+
+      const res = await validatePptxStructure(badPptx);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('PresentationML <presentation> elemanı değil');
+      }
+    });
+
+    it('rejects PPTX when main part root has wrong namespace URI', async () => {
+      const badPptx = createMockPptxBytes({
+        customFiles: {
+          'ppt/presentation.xml': new TextEncoder().encode(
+            '<presentation xmlns="http://wrong.schema/presentation"><sldIdLst/></presentation>',
+          ),
+        },
+      });
+
+      const res = await validatePptxStructure(badPptx);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.code).toBe(AppErrorCode.INVALID_ARGUMENT);
+        expect(res.error.message).toContain('PresentationML <presentation> elemanı değil');
       }
     });
 
