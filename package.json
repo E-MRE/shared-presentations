@@ -12,6 +12,8 @@
     "preview": "vite preview",
     "lint": "eslint src vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js --max-warnings=0",
     "test:unit": "vitest run",
+    "test:auth": "vitest run tests/auth",
+    "test:data": "vitest run tests/data",
     "test:upload": "vitest run tests/content tests/editor",
     "test:rules:unit": "vitest run tests/rules",
     "test:rules": "npx -y --engine-strict=false firebase-tools emulators:exec --project shared-presentations --only firestore \"npm run test:rules:unit\"",
