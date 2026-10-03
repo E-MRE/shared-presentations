@@ -1,0 +1,412 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Path Helpers ---
+
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function adminPath(uid) {
+      return /databases/$(database)/documents/admins/$(uid);
+    }
+
+    function presentationPath(id) {
+      return /databases/$(database)/documents/presentations/$(id);
+    }
+
+    // --- Authentication Helpers ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // A member is signed in AND (Google OAuth provider OR verified email)
+    function isMember() {
+      return isSignedIn() && (
+        request.auth.token.firebase.sign_in_provider == 'google.com' ||
+        request.auth.token.email_verified == true
+      );
+    }
+
+    // Admin role marker doc exists in admins/{uid} (Console-only, client-write denied)
+    function isAdmin() {
+      return isSignedIn() && exists(adminPath(request.auth.uid));
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // --- Field and Manifest Validations ---
+
+    function isHttpsUrl(url) {
+      return url is string && url.size() <= 1000 && url.matches('^https://.+');
+    }
+
+    function isValidLink(link) {
+      return link.keys().hasOnly(['label', 'url']) &&
+        link.label is string && link.label.size() >= 1 && link.label.size() <= 100 &&
+        isHttpsUrl(link.url);
+    }
+
+    function areValidLinks(links) {
+      let count = links.size();
+      return links is list && links.size() <= 10 &&
+        (count < 1 || isValidLink(links[0])) &&
+        (count < 2 || isValidLink(links[1])) &&
+        (count < 3 || isValidLink(links[2])) &&
+        (count < 4 || isValidLink(links[3])) &&
+        (count < 5 || isValidLink(links[4])) &&
+        (count < 6 || isValidLink(links[5])) &&
+        (count < 7 || isValidLink(links[6])) &&
+        (count < 8 || isValidLink(links[7])) &&
+        (count < 9 || isValidLink(links[8])) &&
+        (count < 10 || isValidLink(links[9]));
+    }
+
+    function isValidChunkEntry(entry, idx) {
+      return entry.keys().hasOnly(['index', 'size']) &&
+        entry.index is int && entry.index == idx &&
+        entry.size is int && entry.size > 0 && entry.size <= 900000;
+    }
+
+    function areValidManifestEntries(chunks, count) {
+      return (count < 1 || isValidChunkEntry(chunks[0], 0)) &&
+             (count < 2 || isValidChunkEntry(chunks[1], 1)) &&
+             (count < 3 || isValidChunkEntry(chunks[2], 2)) &&
+             (count < 4 || isValidChunkEntry(chunks[3], 3)) &&
+             (count < 5 || isValidChunkEntry(chunks[4], 4)) &&
+             (count < 6 || isValidChunkEntry(chunks[5], 5)) &&
+             (count < 7 || isValidChunkEntry(chunks[6], 6)) &&
+             (count < 8 || isValidChunkEntry(chunks[7], 7)) &&
+             (count < 9 || isValidChunkEntry(chunks[8], 8)) &&
+             (count < 10 || isValidChunkEntry(chunks[9], 9)) &&
+             (count < 11 || isValidChunkEntry(chunks[10], 10)) &&
+             (count < 12 || isValidChunkEntry(chunks[11], 11));
+    }
+
+    function sumChunkSizes(chunks, count) {
+      return count == 1 ? chunks[0].size :
+             count == 2 ? chunks[0].size + chunks[1].size :
+             count == 3 ? chunks[0].size + chunks[1].size + chunks[2].size :
+             count == 4 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size :
+             count == 5 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size :
+             count == 6 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size :
+             count == 7 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size :
+             count == 8 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size :
+             count == 9 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size :
+             count == 10 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size :
+             count == 11 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size + chunks[10].size :
+             count == 12 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size + chunks[10].size + chunks[11].size : 0;
+    }
+
+    function validateSizes(sizes, kind) {
+      return sizes.keys().hasOnly(['encoded', 'unpacked', 'fileCount']) &&
+        sizes.encoded is int && sizes.encoded > 0 &&
+        (kind == 'html' ? sizes.encoded <= 5242880 : sizes.encoded <= 8388608) &&
+        sizes.unpacked is int && sizes.unpacked >= 0 &&
+        sizes.fileCount is int && sizes.fileCount >= 1;
+    }
+
+    function validateManifest(data) {
+      return data.chunks is list &&
+        data.chunks.size() == data.chunkCount &&
+        data.chunkCount >= 1 && data.chunkCount <= 12 &&
+        areValidManifestEntries(data.chunks, data.chunkCount) &&
+        sumChunkSizes(data.chunks, data.chunkCount) == data.sizes.encoded;
+    }
+
+    function validateDeckFields(data) {
+      let allowedKeys = [
+        'ownerUid', 'ownerName', 'ownerPhotoURL', 'title', 'description',
+        'links', 'kind', 'fileName', 'status', 'rejectNote', 'cover',
+        'coverSource', 'sizes', 'chunkCount', 'chunks', 'createdAt',
+        'updatedAt', 'publishedAt', 'reviewedBy', 'reviewedAt',
+        'manifestVersion', 'quotaMarker'
+      ];
+      let requiredKeys = [
+        'ownerUid', 'title', 'description', 'links', 'kind', 'fileName',
+        'status', 'rejectNote', 'cover', 'coverSource', 'sizes',
+        'chunkCount', 'chunks', 'createdAt', 'updatedAt',
+        'manifestVersion', 'quotaMarker'
+      ];
+
+      return data.keys().hasOnly(allowedKeys) &&
+        data.keys().hasAll(requiredKeys) &&
+        data.ownerUid is string &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+        data.description is string && data.description.size() <= 2000 &&
+        areValidLinks(data.links) &&
+        (data.kind == 'html' || data.kind == 'pptx') &&
+        data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 255 &&
+        data.status in ['pending', 'published', 'rejected', 'unpublished'] &&
+        data.rejectNote is string && data.rejectNote.size() <= 1000 &&
+        data.cover is bytes && data.cover.size() <= 150000 &&
+        data.coverSource in ['auto', 'upload', 'default'] &&
+        validateSizes(data.sizes, data.kind) &&
+        data.chunkCount is int && data.chunkCount >= 1 && data.chunkCount <= 12 &&
+        data.manifestVersion is int && data.manifestVersion == 1 &&
+        data.quotaMarker is string &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // --- Quota & Transaction Binding Helpers ---
+
+    function checkUserCreateWithDeck(uid) {
+      let deckPath = presentationPath(request.resource.data.pendingDeckId);
+      let deckAfter = getAfter(deckPath).data;
+      return request.resource.data.pendingCount == 1 &&
+        request.resource.data.pendingDeckId != null &&
+        deckAfter.ownerUid == uid &&
+        deckAfter.status == 'pending' &&
+        deckAfter.quotaMarker == request.resource.data.pendingDeckId;
+    }
+
+    function checkUserIncrement(uid) {
+      let deckPath = presentationPath(request.resource.data.pendingDeckId);
+      let deckAfter = getAfter(deckPath).data;
+      return request.resource.data.pendingCount == resource.data.pendingCount + 1 &&
+        request.resource.data.pendingCount <= 5 &&
+        request.resource.data.pendingDeckId != null &&
+        deckAfter.ownerUid == uid &&
+        deckAfter.status == 'pending' &&
+        deckAfter.quotaMarker == request.resource.data.pendingDeckId;
+    }
+
+    function checkUserDecrement() {
+      let deckPath = presentationPath(request.resource.data.pendingDeckId);
+      return request.resource.data.pendingCount == resource.data.pendingCount - 1 &&
+        request.resource.data.pendingCount >= 0 &&
+        request.resource.data.pendingDeckId != null &&
+        (
+          !existsAfter(deckPath) ||
+          getAfter(deckPath).data.status != 'pending'
+        );
+    }
+
+    function checkUserQuotaOnDeckCreate(deckId) {
+      let uPath = userPath(request.auth.uid);
+      let userAfter = getAfter(uPath).data;
+      let countBefore = exists(uPath) ? get(uPath).data.pendingCount : 0;
+      return userAfter.pendingDeckId == deckId &&
+        userAfter.pendingCount <= 5 &&
+        userAfter.pendingCount == countBefore + 1;
+    }
+
+    function checkOwnerQuotaOnDeckUpdate(deckId) {
+      let uPath = userPath(request.auth.uid);
+      let userAfter = getAfter(uPath).data;
+      let userBefore = get(uPath).data;
+      return resource.data.status == 'pending' ?
+        userAfter.pendingCount == userBefore.pendingCount :
+        (
+          userAfter.pendingDeckId == deckId &&
+          userAfter.pendingCount == userBefore.pendingCount + 1 &&
+          userAfter.pendingCount <= 5
+        );
+    }
+
+    function checkAdminQuotaOnDeckUpdate(deckId, ownerUid) {
+      let uPath = userPath(ownerUid);
+      let userAfter = getAfter(uPath).data;
+      let userBefore = get(uPath).data;
+      return userAfter.pendingDeckId == deckId &&
+        userAfter.pendingCount == userBefore.pendingCount - 1;
+    }
+
+    function checkQuotaOnDeckDelete(deckId, ownerUid) {
+      let uPath = userPath(ownerUid);
+      let userAfter = getAfter(uPath).data;
+      let userBefore = get(uPath).data;
+      return userAfter.pendingDeckId == deckId &&
+        userAfter.pendingCount == userBefore.pendingCount - 1;
+    }
+
+    // --- Chunk Helpers ---
+
+    function canReadChunk(deckId) {
+      let deckPath = presentationPath(deckId);
+      let deck = get(deckPath).data;
+      return deck.status == 'published' ||
+        (isMember() && (deck.ownerUid == request.auth.uid || isAdmin()));
+    }
+
+    function canWriteChunk(deckId, chunkIdx) {
+      let deckPath = presentationPath(deckId);
+      let deckAfter = getAfter(deckPath).data;
+      return (isMember() && (deckAfter.ownerUid == request.auth.uid || isAdmin())) &&
+        deckAfter.status == 'pending' &&
+        request.resource.data.keys().hasOnly(['index', 'data']) &&
+        request.resource.data.index is int &&
+        request.resource.data.index == int(chunkIdx) &&
+        request.resource.data.index >= 0 &&
+        request.resource.data.index < deckAfter.chunkCount &&
+        request.resource.data.data is bytes &&
+        request.resource.data.data.size() == deckAfter.chunks[request.resource.data.index].size &&
+        request.resource.data.data.size() <= 900000;
+    }
+
+    function canDeleteChunkTail(deckId, chunkIdx) {
+      let deckAfter = getAfter(presentationPath(deckId)).data;
+      return (isMember() && (deckAfter.ownerUid == request.auth.uid || isAdmin())) &&
+        int(chunkIdx) >= deckAfter.chunkCount;
+    }
+
+    function canDeleteChunkParentDeleted(deckId) {
+      let deckBefore = get(presentationPath(deckId)).data;
+      return isMember() && (deckBefore.ownerUid == request.auth.uid || isAdmin());
+    }
+
+    function canDeleteChunk(deckId, chunkIdx) {
+      let deckPath = presentationPath(deckId);
+      return !existsAfter(deckPath) ?
+        canDeleteChunkParentDeleted(deckId) :
+        canDeleteChunkTail(deckId, chunkIdx);
+    }
+
+    // --- Users Collection ---
+    match /users/{uid} {
+      allow list: if false;
+      allow get: if isOwner(uid) || isAdmin();
+
+      // Create user doc
+      allow create: if isOwner(uid) &&
+        request.resource.data.keys().hasOnly(['displayName', 'email', 'createdAt', 'pendingCount', 'pendingDeckId']) &&
+        request.resource.data.displayName is string && request.resource.data.displayName.size() <= 100 &&
+        request.resource.data.email is string &&
+        request.resource.data.createdAt is timestamp &&
+        request.resource.data.pendingCount is int &&
+        (
+          // Case A: initial sign up without pending deck
+          (request.resource.data.pendingCount == 0 && request.resource.data.pendingDeckId == null) ||
+          // Case B: initial sign up with first pending deck in same atomic batch
+          checkUserCreateWithDeck(uid)
+        );
+
+      // Update user doc
+      allow update: if (
+        isOwner(uid) &&
+        request.resource.data.keys().hasOnly(['displayName', 'email', 'createdAt', 'pendingCount', 'pendingDeckId']) &&
+        request.resource.data.displayName is string && request.resource.data.displayName.size() <= 100 &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.pendingCount is int &&
+        (
+          // Slot increment (+1): bound to presentation moving/entering pending
+          checkUserIncrement(uid) ||
+          // Slot decrement (-1): bound to presentation leaving pending or deleted
+          checkUserDecrement() ||
+          // No slot change: profile edit or pending->pending deck update
+          (request.resource.data.pendingCount == resource.data.pendingCount)
+        )
+      ) || (
+        // Admin decrement when approving/rejecting/deleting pending deck
+        isAdmin() && checkUserDecrement()
+      );
+
+      allow delete: if false;
+    }
+
+    // --- Admins Collection (Console-only marker documents) ---
+    match /admins/{uid} {
+      allow get: if isMember() && isOwner(uid) && isAdmin();
+      allow list, write: if false;
+    }
+
+    // --- Presentations Collection ---
+    match /presentations/{id} {
+      // Read access:
+      // Published decks readable by anyone (even anonymous).
+      // Non-published decks readable ONLY by their member owner or admins.
+      allow read: if resource.data.status == 'published' ||
+        (isMember() && (resource.data.ownerUid == request.auth.uid || isAdmin()));
+
+      // Create deck:
+      // Must be member, ownerUid matches caller, status must start as pending.
+      // Must increment user pendingCount via two-way getAfter binding.
+      allow create: if isMember() &&
+        request.resource.data.ownerUid == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.rejectNote == "" &&
+        (!('publishedAt' in request.resource.data) || request.resource.data.publishedAt == null) &&
+        (!('reviewedBy' in request.resource.data) || request.resource.data.reviewedBy == null) &&
+        (!('reviewedAt' in request.resource.data) || request.resource.data.reviewedAt == null) &&
+        request.resource.data.quotaMarker == id &&
+        validateDeckFields(request.resource.data) &&
+        validateManifest(request.resource.data) &&
+        checkUserQuotaOnDeckCreate(id);
+
+      // Update deck:
+      // 1. Member owner update:
+      //    ownerUid immutable, createdAt immutable.
+      //    status forces to 'pending' (re-review required).
+      //    If deck was pending, counter does NOT change.
+      //    If deck was published/rejected/unpublished, new pending slot consumed.
+      // 2. Admin update:
+      //    Only admin sets status and review fields.
+      //    If status moves away from pending, decrements owner's pendingCount.
+      allow update: if (
+        isMember() &&
+        request.auth.uid == resource.data.ownerUid &&
+        request.resource.data.ownerUid == resource.data.ownerUid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.rejectNote == "" &&
+        (!('publishedAt' in request.resource.data) || request.resource.data.publishedAt == null) &&
+        (!('reviewedBy' in request.resource.data) || request.resource.data.reviewedBy == null) &&
+        (!('reviewedAt' in request.resource.data) || request.resource.data.reviewedAt == null) &&
+        request.resource.data.quotaMarker == id &&
+        validateDeckFields(request.resource.data) &&
+        validateManifest(request.resource.data) &&
+        checkOwnerQuotaOnDeckUpdate(id)
+      ) || (
+        isAdmin() &&
+        request.resource.data.ownerUid == resource.data.ownerUid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        validateDeckFields(request.resource.data) &&
+        validateManifest(request.resource.data) &&
+        (
+          request.resource.data.status == 'published' ?
+            (request.resource.data.publishedAt != null && request.resource.data.reviewedBy == request.auth.uid && request.resource.data.reviewedAt != null) :
+          request.resource.data.status == 'rejected' ?
+            (request.resource.data.rejectNote.size() > 0 && request.resource.data.reviewedBy == request.auth.uid && request.resource.data.reviewedAt != null) :
+            true
+        ) &&
+        (
+          (resource.data.status == 'pending' && request.resource.data.status != 'pending') ?
+            checkAdminQuotaOnDeckUpdate(id, resource.data.ownerUid) :
+            true
+        )
+      );
+
+      // Delete deck:
+      // Published decks: Admin only.
+      // Non-published decks: Owner or Admin.
+      // If deleted deck was pending, must decrement user pendingCount.
+      allow delete: if (
+        (resource.data.status == 'published' && isAdmin()) ||
+        (resource.data.status in ['pending', 'rejected', 'unpublished'] && (isMember() && (request.auth.uid == resource.data.ownerUid || isAdmin())))
+      ) && (
+        resource.data.status == 'pending' ?
+          checkQuotaOnDeckDelete(id, resource.data.ownerUid) :
+          true
+      );
+
+      // --- Chunks Subcollection ---
+      match /chunks/{chunkIndex} {
+        allow read: if canReadChunk(id);
+        allow create, update: if canWriteChunk(id, chunkIndex);
+        allow delete: if canDeleteChunk(id, chunkIndex);
+      }
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
