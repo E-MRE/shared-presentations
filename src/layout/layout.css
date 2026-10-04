@@ -1,0 +1,20 @@
+.vektor-layout { min-height: 100dvh; display: flex; flex-direction: column; }
+.vektor-main { flex: 1; width: 100%; max-width: var(--max-width-site); margin-inline: auto; padding: var(--space-6); min-width: 0; scroll-margin-top: calc(var(--header-height) + var(--space-4)); }
+.site-header.vektor-header { height: auto; min-height: var(--header-height); }
+.vektor-header .header-container { flex-wrap: wrap; padding-block: var(--space-2); }
+.vektor-header .header-actions { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.vektor-navigation { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.vektor-header .btn { min-height: 44px; text-decoration: none; white-space: normal; }
+.vektor-navigation a[aria-current="page"] { background: var(--bg-surface-active); color: var(--text-primary); }
+.vektor-user { min-width: 0; max-width: 14rem; overflow-wrap: anywhere; font-size: var(--text-sm); color: var(--text-secondary); }
+.vektor-skip-link { position: fixed; top: var(--space-2); left: var(--space-2); z-index: 1000; transform: translateY(-200%); padding: var(--space-3); background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-focus); }
+.vektor-skip-link:focus { transform: translateY(0); }
+.vektor-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 767px) {
+  .site-header.vektor-header { position: static; }
+  .vektor-header .header-container, .vektor-main { padding-inline: var(--space-4); }
+  .vektor-navigation { order: 3; width: 100%; }
+  .vektor-header .header-actions { width: 100%; }
+}
+
+.vektor-header .card-status-badge { color: var(--text-primary); }
