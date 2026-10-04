@@ -1,0 +1,3 @@
+<!doctype html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Shared UI harness</title><script>
+(()=>{let stored=null;try{stored=localStorage.getItem('vektor-theme')}catch{}const theme=stored==='light'||stored==='dark'?stored:matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=theme;window.prepaintTheme=theme})();
+</script></head><body><div id="root"></div><script type="module" src="/tests/ui/harness.tsx"></script></body></html>
