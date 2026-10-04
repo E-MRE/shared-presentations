@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Vektör Content Pipeline Test Harness</title>
+</head>
+<body>
+  <div id="harness-root">
+    <h1>Content Pipeline Test Harness</h1>
+    <div id="status">initializing</div>
+  </div>
+
+  <script type="module">
+    import * as contentApi from '/src/content/index.ts';
+
+    window.vektorContent = contentApi;
+    window.vektorReady = true;
+    document.getElementById('status').textContent = 'ready';
+  </script>
+</body>
+</html>
