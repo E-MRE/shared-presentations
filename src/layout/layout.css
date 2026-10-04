@@ -6,7 +6,7 @@
 .vektor-navigation { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .vektor-header .btn { min-height: 44px; text-decoration: none; white-space: normal; }
 .vektor-navigation a[aria-current="page"] { background: var(--bg-surface-active); color: var(--text-primary); }
-.vektor-user { min-width: 0; max-width: 14rem; overflow-wrap: anywhere; font-size: var(--text-sm); color: var(--text-secondary); }
+.vektor-user { min-width: 0; max-width: 14rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--text-sm); color: var(--text-secondary); }
 .vektor-skip-link { position: fixed; top: var(--space-2); left: var(--space-2); z-index: 1000; transform: translateY(-200%); padding: var(--space-3); background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-focus); }
 .vektor-skip-link:focus { transform: translateY(0); }
 .vektor-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

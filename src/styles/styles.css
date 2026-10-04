@@ -20,6 +20,7 @@ body {
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   font-family: var(--font-sans);
+  word-spacing: var(--word-spacing-base);
   line-height: 1.5;
   min-height: 100vh;
   display: flex;

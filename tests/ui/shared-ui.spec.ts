@@ -158,11 +158,15 @@ describe('shared UI in real Chromium',{timeout:20_000},()=>{
       await page.setViewportSize({width,height:900});await theme(mode);await syncTheme(mode);
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
       const bannerBounds=await page.getByRole('banner').evaluate(node=>{const parent=node.getBoundingClientRect();return Array.from(node.querySelectorAll('a,button,.vektor-user')).every(child=>{const box=child.getBoundingClientRect();return box.top>=parent.top && box.bottom<=parent.bottom;});});expect(bannerBounds).toBe(true);
+      await browserExpect(page.locator('.vektor-user')).toHaveAttribute('title','UzunKullanıcıAdı'.repeat(12));
+      const userGeometry=await page.locator('.vektor-user').evaluate(node=>({height:node.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(node).lineHeight),clipped:node.scrollWidth>node.clientWidth,headerHeight:document.querySelector('header')!.getBoundingClientRect().height,singleRowHeaderHeight:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height'))}));
+      expect(userGeometry.height).toBeLessThanOrEqual(userGeometry.lineHeight);expect(userGeometry.clipped).toBe(true);
+      if(width===1280)expect(userGeometry.headerHeight).toBeLessThanOrEqual(userGeometry.singleRowHeaderHeight);
       expect(await page.evaluate(()=>document.querySelector('main')!.getBoundingClientRect().top>=document.querySelector('header')!.getBoundingClientRect().bottom)).toBe(true);
       for(const control of await page.getByRole('banner').getByRole('button').all())expect(await control.evaluate(node=>node.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
       const contrast=await page.locator('.card-status-badge, .vektor-cover-fallback').evaluateAll(nodes=>nodes.map(node=>{
         const c=getComputedStyle(node);const rgba=(value:string)=>value.match(/[\d.]+/g)!.map(Number);const fg=rgba(c.color);let alpha=0;const rgb=[0,0,0];for(let ancestor:Element|null=node;ancestor&&alpha<1;ancestor=ancestor.parentElement){const bg=rgba(getComputedStyle(ancestor).backgroundColor),a=bg[3]??1;for(let i=0;i<3;i++)rgb[i]+=bg[i]*a*(1-alpha);alpha+=a*(1-alpha);}const lum=(values:number[])=>values.slice(0,3).map(v=>{const x=v/255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);const a=lum(fg),b=lum(rgb);return{label:node.textContent,ratio:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
-      }));for(const item of contrast)expect(item.ratio).toBeGreaterThanOrEqual(4.5);contrastResults.push({width,mode,contrast});
+      }));for(const item of contrast)expect(item.ratio).toBeGreaterThanOrEqual(4.5);contrastResults.push({width,mode,contrast,userGeometry});
       await page.screenshot({path:join(evidence,`ui-${width}-${mode}.png`),fullPage:true});
     }
     await page.setViewportSize({width:375,height:667});await page.locator('#modal-trigger').click();await browserExpect(page.getByRole('dialog')).toBeVisible();

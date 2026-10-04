@@ -80,6 +80,7 @@
   --tracking-snug: -0.012em;
   --tracking-normal: 0em;
   --tracking-wide: 0.03em;
+  --word-spacing-base: 0.06em;
 
   /* Radii - Contextual & Grounded */
   --radius-xs: 4px;
