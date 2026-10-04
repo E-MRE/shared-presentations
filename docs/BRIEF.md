@@ -48,7 +48,7 @@ Pending quota: max **5** pending decks per user.
 - Upload preview iframe uses the same sandbox as the theater.
 
 ### Theater (`/s/:id`, HTML)
-- `<iframe sandbox="allow-scripts allow-fullscreen" srcdoc=...>` (or blob URL). Never `allow-same-origin`, never `allow-popups`.
+- `<iframe sandbox="allow-scripts" allow="fullscreen" srcdoc=...>` (or blob URL). `allow-fullscreen` is NOT a valid sandbox token (Chromium rejects it, verified 2026-10-02); fullscreen permission comes from `allow="fullscreen"`. Never `allow-same-origin`, never `allow-popups`.
 - Our chrome: back/close, title + author, "Bilgi" panel toggle, fullscreen button (`F`), `Esc` closes. **No slide counter, no prev/next, no postMessage slide bridge** — if the deck has its own navigation it works inside the iframe; focus the iframe so its keys work.
 - Theater is always dark, also in light theme.
 - Cards and feed never contain live iframes — cover image only.
@@ -116,7 +116,7 @@ Add the Hosting domain to Auth authorized domains if not automatic.
 4. Upload each fixture from `design/presentations/` + one zip folder + one `.pptx` → each is `pending`, auto thumbnail visible for HTML, 6th pending upload rejected.
 5. Non-admin cannot read others' pending decks or change status (verify with rules tests and a manual console attempt).
 6. Admin approves → deck in feed; reject with note → owner sees note in `/benim`; unpublish / re-approve / delete work.
-7. Theater: deck's own keyboard nav works, `F` fullscreen, `Esc` closes; iframe has exactly `allow-scripts allow-fullscreen`; deck script cannot read parent / `document.cookie` of app.
+7. Theater: deck's own keyboard nav works, `F` fullscreen, `Esc` closes; iframe has exactly `sandbox="allow-scripts"` + `allow="fullscreen"`; deck script cannot read parent / `document.cookie` of app.
 8. Light/dark toggle, no theme flash on reload, theater stays dark. Screenshots of each route compared with `design/index.html`.
 9. Owner edit of a published deck returns it to `pending`.
 
