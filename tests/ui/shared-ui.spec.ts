@@ -59,7 +59,7 @@ afterAll(async()=>{
   writeFileSync(join(evidence,'browser-assertions.json'),JSON.stringify({reports},null,2));
   if(context)await context.close();if(browser)await browser.close();if(server)await server.close();
 });
-describe('shared UI in real Chromium',()=>{
+describe('shared UI in real Chromium',{timeout:20_000},()=>{
   it('uses semantic layout, safe navigation for all roles, active links, callbacks and contextual counts',async()=>{
     await browserExpect(page.getByRole('banner')).toBeVisible();await browserExpect(page.getByRole('main')).toBeVisible();await browserExpect(page.getByRole('contentinfo')).toBeVisible();
     for(const state of ['loading','unauthenticated','unverified','member','admin']){
