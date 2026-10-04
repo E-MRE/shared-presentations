@@ -78,7 +78,16 @@ describe('shared UI in real Chromium',()=>{
     await browserExpect(page.getByRole('status').filter({hasText:'Onay bekleyen 7 sunum var.'})).toHaveCount(1);
     await browserExpect(page.getByRole('button',{name:'Çıkış Yap'})).toBeFocused();await page.keyboard.press('Enter');await browserExpect(page.locator('#calls')).toHaveText('signout');
     await role('unauthenticated');await page.getByRole('button',{name:'Giriş Yap'}).click();await browserExpect(page.locator('#calls')).toHaveText('signin');
-    await page.getByRole('link',{name:'Ana içeriğe geç'}).focus();await page.keyboard.press('Enter');await browserExpect(page.getByRole('main')).toBeFocused();
+    const skipGeometry=[];
+    await role('admin');
+    for(const width of [1280,375]){
+      await page.setViewportSize({width,height:900});
+      await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+      await page.getByRole('link',{name:'Ana içeriğe geç'}).focus();await page.keyboard.press('Enter');await browserExpect(page.getByRole('main')).toBeFocused();
+      await browserExpect.poll(()=>page.evaluate(()=>{const banner=document.querySelector('header')!.getBoundingClientRect(),heading=document.querySelector('main h1')!.getBoundingClientRect();return heading.top>=Math.max(0,banner.bottom) && heading.bottom<=innerHeight;})).toBe(true);
+      skipGeometry.push(await page.evaluate(()=>({width:innerWidth,headerBottom:document.querySelector('header')!.getBoundingClientRect().bottom,headingTop:document.querySelector('main h1')!.getBoundingClientRect().top,headingBottom:document.querySelector('main h1')!.getBoundingClientRect().bottom,scrollY})));
+    }
+    reports.push({check:'keyboard skip keeps main heading unobscured with measured banner offset',skipGeometry,passed:true});
     reports.push({check:'layout/auth roles, route active state, callbacks, pending announcements, skip link',passed:true});expect(errors).toEqual([]);
   });
   it('renders safe card metadata and keyboard actions, recovers failed binary covers and revokes URLs',async()=>{
