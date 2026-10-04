@@ -513,7 +513,7 @@ export async function processCoverOverride(
   } catch (overrideErr) {
     return err({
       code: AppErrorCode.INVALID_COVER,
-      message: 'Kapak görseli işlenirken hata oluştu.',
+      message: overrideErr instanceof Error ? overrideErr.message : 'Kapak görseli işlenirken hata oluştu.',
       details: overrideErr,
     });
   } finally {
@@ -621,7 +621,7 @@ export async function captureHtmlCover(
   let timerId: ReturnType<typeof setTimeout> | null = null;
   let messageListener: ((event: MessageEvent) => void) | null = null;
   let captureMessageHandled = false;
-  let parentDecodeImage: HTMLImageElement | null = null;
+  let parentDecodeImage = null as HTMLImageElement | null;
 
   // Single deadline covering entire lifecycle (iframe, message, raster decode, resize)
   const deadlinePromise = new Promise<never>((_, reject) => {
