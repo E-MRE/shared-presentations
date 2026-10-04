@@ -152,10 +152,10 @@ export function parseRasterDimensions(
     bytes[11] === 0x50
   ) {
     const fourCC = String.fromCharCode(bytes[12], bytes[13], bytes[14], bytes[15]);
-    if (fourCC === 'VP8 ' && bytes.length >= 26) {
-      if (bytes[20] === 0x9d && bytes[21] === 0x01 && bytes[22] === 0x2a) {
-        const width = (bytes[23] | (bytes[24] << 8)) & 0x3fff;
-        const height = (bytes[25] | (bytes[26] << 8)) & 0x3fff;
+    if (fourCC === 'VP8 ' && bytes.length >= 30) {
+      if (bytes[23] === 0x9d && bytes[24] === 0x01 && bytes[25] === 0x2a) {
+        const width = (bytes[26] | (bytes[27] << 8)) & 0x3fff;
+        const height = (bytes[28] | (bytes[29] << 8)) & 0x3fff;
         return { width, height };
       }
     } else if (fourCC === 'VP8L' && bytes.length >= 25) {
@@ -451,6 +451,8 @@ export async function processCoverOverride(
 
     await new Promise<void>((resolve, reject) => {
       const timeoutId = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
         img.src = '';
         reject(new Error('Kapak görseli yükleme zaman aşımına uğradı.'));
       }, 8000);
@@ -618,6 +620,8 @@ export async function captureHtmlCover(
 
   let timerId: ReturnType<typeof setTimeout> | null = null;
   let messageListener: ((event: MessageEvent) => void) | null = null;
+  let captureMessageHandled = false;
+  let parentDecodeImage: HTMLImageElement | null = null;
 
   // Single deadline covering entire lifecycle (iframe, message, raster decode, resize)
   const deadlinePromise = new Promise<never>((_, reject) => {
@@ -640,6 +644,15 @@ export async function captureHtmlCover(
       }
       if (data.type !== 'VEKTOR_COVER_CAPTURE' || data.nonce !== nonce) {
         return;
+      }
+
+      if (captureMessageHandled) {
+        return;
+      }
+      captureMessageHandled = true;
+      if (messageListener !== null) {
+        window.removeEventListener('message', messageListener);
+        messageListener = null;
       }
 
       if (data.status !== 'success') {
@@ -687,7 +700,7 @@ export async function captureHtmlCover(
 
       // Parent raster decode and canvas resize to 640x360
       try {
-        const img = new Image();
+        const img = (parentDecodeImage = new Image());
         img.crossOrigin = 'anonymous';
 
         await new Promise<void>((imgResolve, imgReject) => {
@@ -750,6 +763,12 @@ export async function captureHtmlCover(
     if (messageListener !== null) {
       window.removeEventListener('message', messageListener);
       messageListener = null;
+    }
+    if (parentDecodeImage !== null) {
+      parentDecodeImage.onload = null;
+      parentDecodeImage.onerror = null;
+      parentDecodeImage.src = '';
+      parentDecodeImage = null;
     }
     if (iframe.parentNode) {
       iframe.parentNode.removeChild(iframe);

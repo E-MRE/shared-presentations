@@ -36,6 +36,23 @@ const FIXTURE_FILES = [
   'zero-dependency-design-tokens.html',
 ];
 
+function createMockPptxBytes(customFiles: Record<string, Uint8Array> = {}): Uint8Array {
+  const files: Record<string, Uint8Array> = {
+    '[Content_Types].xml': new TextEncoder().encode(
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/></Types>',
+    ),
+    '_rels/.rels': new TextEncoder().encode(
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>',
+    ),
+    'ppt/presentation.xml': new TextEncoder().encode(
+      '<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:sldIdLst><p:sldId id="256" r:id="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/></p:sldIdLst></p:presentation>',
+    ),
+    ...customFiles,
+  };
+
+  return zipSync(files);
+}
+
 describe('Real-Browser Cover Capture and Pipeline Suite', () => {
   let viteServer: ViteDevServer;
   let serverUrl: string;
@@ -83,6 +100,200 @@ describe('Real-Browser Cover Capture and Pipeline Suite', () => {
     if (viteServer) {
       await viteServer.close().catch(() => {});
     }
+  });
+
+  describe('Chromium PPTX XML validation', () => {
+    it('accepts valid PPTX and rejects malformed XML and invalid OOXML structures', async () => {
+      const packageRelationship =
+        'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument';
+      const presentationNamespace =
+        'http://schemas.openxmlformats.org/presentationml/2006/main';
+      const cases = [
+        {
+          name: 'valid PPTX',
+          bytes: createMockPptxBytes(),
+          accepted: true,
+        },
+        {
+          name: 'non-PPTX ZIP',
+          bytes: zipSync({ 'index.html': new TextEncoder().encode('<h1>Not a PPTX</h1>') }),
+          accepted: false,
+          message: 'OOXML sunum yapısı bulunamadı',
+        },
+        {
+          name: 'Word OOXML ZIP',
+          bytes: zipSync({
+            '[Content_Types].xml': new TextEncoder().encode(
+              '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
+            ),
+            '_rels/.rels': new TextEncoder().encode(
+              `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${packageRelationship}" Target="word/document.xml"/></Relationships>`,
+            ),
+            'word/document.xml': new TextEncoder().encode(
+              '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body/></w:document>',
+            ),
+          }),
+          accepted: false,
+          message: 'PresentationML içerik türü',
+        },
+        {
+          name: 'missing officeDocument relationship',
+          bytes: createMockPptxBytes({
+            '_rels/.rels': new TextEncoder().encode(
+              '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>',
+            ),
+          }),
+          accepted: false,
+          message: 'officeDocument ilişkisi bulunamadı',
+        },
+        {
+          name: 'external officeDocument relationship',
+          bytes: createMockPptxBytes({
+            '_rels/.rels': new TextEncoder().encode(
+              `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${packageRelationship}" Target="https://example.invalid/pres.xml" TargetMode="External"/></Relationships>`,
+            ),
+          }),
+          accepted: false,
+          message: 'officeDocument ilişkisi bulunamadı',
+        },
+        {
+          name: 'unrelated content type PartName',
+          bytes: createMockPptxBytes({
+            '[Content_Types].xml': new TextEncoder().encode(
+              '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/unrelated.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/></Types>',
+            ),
+          }),
+          accepted: false,
+          message: 'PresentationML içerik türü',
+        },
+        {
+          name: 'presentation nested under wrong root',
+          bytes: createMockPptxBytes({
+            'ppt/presentation.xml': new TextEncoder().encode(
+              `<wrong xmlns:p="${presentationNamespace}"><p:presentation/></wrong>`,
+            ),
+          }),
+          accepted: false,
+          message: 'PresentationML <presentation> elemanı değil',
+        },
+        {
+          name: 'wrong presentation namespace',
+          bytes: createMockPptxBytes({
+            'ppt/presentation.xml': new TextEncoder().encode(
+              '<presentation xmlns="http://wrong.schema/presentation"><sldIdLst/></presentation>',
+            ),
+          }),
+          accepted: false,
+          message: 'PresentationML <presentation> elemanı değil',
+        },
+        {
+          name: 'malformed Content_Types XML',
+          bytes: createMockPptxBytes({
+            '[Content_Types].xml': new TextEncoder().encode('<Types><Override>unclosed</Types>'),
+          }),
+          accepted: false,
+          message: 'hatalı XML',
+        },
+        {
+          name: 'malformed presentation XML',
+          bytes: createMockPptxBytes({
+            'ppt/presentation.xml': new TextEncoder().encode(
+              '<p:presentation><unmatched></p:presentation>',
+            ),
+          }),
+          accepted: false,
+          message: 'hatalı XML',
+        },
+        {
+          name: 'bare XML attribute',
+          bytes: createMockPptxBytes({
+            'ppt/presentation.xml': new TextEncoder().encode(
+              `<p:presentation xmlns:p="${presentationNamespace}" invalidAttribute/>`,
+            ),
+          }),
+          accepted: false,
+          message: 'hatalı XML',
+        },
+        {
+          name: 'non-whitespace XML text outside root',
+          bytes: createMockPptxBytes({
+            'ppt/presentation.xml': new TextEncoder().encode(
+              `<p:presentation xmlns:p="${presentationNamespace}"/>stray text`,
+            ),
+          }),
+          accepted: false,
+          message: 'hatalı XML',
+        },
+      ];
+
+      const outcomes = await page.evaluate(
+        async (testCases) => {
+          const api = (window as unknown as {
+            vektorContent: typeof import('../../src/content/index');
+          }).vektorContent;
+          const results = [];
+          for (const testCase of testCases) {
+            const result = await api.validatePptxStructure(new Uint8Array(testCase.bytes));
+            results.push({
+              name: testCase.name,
+              accepted: result.ok,
+              errorCode: result.ok ? undefined : result.error.code,
+              errorMessage: result.ok ? undefined : result.error.message,
+            });
+          }
+
+          const tooLarge = await api.validatePptxStructure(new Uint8Array(8 * 1024 * 1024 + 10));
+          const empty = await api.validatePptxStructure(new Uint8Array());
+          const corrupt = await api.validatePptxStructure(new Uint8Array([10, 20, 30, 40]));
+          return {
+            results,
+            tooLargeCode: tooLarge.ok ? undefined : tooLarge.error.code,
+            emptyCode: empty.ok ? undefined : empty.error.code,
+            corruptCode: corrupt.ok ? undefined : corrupt.error.code,
+          };
+        },
+        cases.map((testCase) => ({
+          name: testCase.name,
+          bytes: Array.from(testCase.bytes),
+        })),
+      );
+
+      expect(outcomes.results).toHaveLength(cases.length);
+      for (const [index, testCase] of cases.entries()) {
+        const actual = outcomes.results[index];
+        expect(actual.name).toBe(testCase.name);
+        expect(actual.accepted).toBe(testCase.accepted);
+        if (!testCase.accepted) {
+          expect(actual.errorCode).toBe(AppErrorCode.INVALID_ARGUMENT);
+          if (testCase.message) expect(actual.errorMessage).toContain(testCase.message);
+        }
+      }
+      expect(outcomes.tooLargeCode).toBe(AppErrorCode.FILE_TOO_LARGE);
+      expect(outcomes.emptyCode).toBe(AppErrorCode.INVALID_ARGUMENT);
+      expect(outcomes.corruptCode).toBe(AppErrorCode.INVALID_ARGUMENT);
+    });
+  });
+
+  describe('Simple VP8 WebP dimensions', () => {
+    it('reads the frame start code and dimensions at VP8 payload offsets', async () => {
+      const dimensions = await page.evaluate(() => {
+        const api = (window as unknown as {
+          vektorContent: typeof import('../../src/content/index');
+        }).vektorContent;
+        const bytes = new Uint8Array(30);
+        bytes.set(new TextEncoder().encode('RIFF'), 0);
+        bytes.set(new TextEncoder().encode('WEBP'), 8);
+        bytes.set(new TextEncoder().encode('VP8 '), 12);
+        bytes.set([0x9d, 0x01, 0x2a], 23);
+        bytes[26] = 0x00;
+        bytes[27] = 0x02;
+        bytes[28] = 0x80;
+        bytes[29] = 0x01;
+        return api.parseRasterDimensions(bytes);
+      });
+
+      expect(dimensions).toEqual({ width: 512, height: 384 });
+    });
   });
 
   describe('Four Design Presentation Fixtures Auto Cover Capture', () => {
@@ -540,6 +751,53 @@ document.getElementById('desc').textContent += ' (aktifleştirildi)';`;
       expect(res.errorMessage).toContain('piksel veya boyut sınırını aşıyor');
       expect(res.imageConstructed).toBe(0);
     });
+
+    it('clears Image callbacks and source when cover override decoding times out', async () => {
+      const res = await page.evaluate(async () => {
+        const api = (window as unknown as {
+          vektorContent: typeof import('../../src/content/index');
+        }).vektorContent;
+        const originalImage = window.Image;
+        const originalSetTimeout = window.setTimeout;
+        let mockImage: { onload: unknown; onerror: unknown; src: string } | null = null;
+
+        window.Image = class {
+          onload: unknown = null;
+          onerror: unknown = null;
+          src = '';
+          crossOrigin = '';
+
+          constructor() {
+            mockImage = this;
+          }
+        } as unknown as typeof Image;
+        window.setTimeout = ((callback: TimerHandler, delay?: number, ...args: unknown[]) =>
+          originalSetTimeout(callback, delay === 8000 ? 0 : delay, ...args)) as typeof window.setTimeout;
+
+        const png1x1 = new Uint8Array([
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48,
+          0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00,
+          0x00, 0x1f, 0x15, 0xc4, 0x89,
+        ]);
+        try {
+          const result = await api.processCoverOverride(png1x1);
+          return {
+            ok: result.ok,
+            timedOut: !result.ok && result.error.message.includes('zaman aşımına uğradı'),
+            callbacksCleared: mockImage?.onload === null && mockImage?.onerror === null,
+            sourceCleared: mockImage?.src === '',
+          };
+        } finally {
+          window.Image = originalImage;
+          window.setTimeout = originalSetTimeout;
+        }
+      });
+
+      expect(res.ok).toBe(false);
+      expect(res.timedOut).toBe(true);
+      expect(res.callbacksCleared).toBe(true);
+      expect(res.sourceCleared).toBe(true);
+    });
   });
 
   describe('Security & Sandbox Invariants', () => {
@@ -649,16 +907,24 @@ document.getElementById('desc').textContent += ' (aktifleştirildi)';`;
       expect(res.framesRemaining).toBe(0);
     });
 
-    it('settles within timeout and cleans up iframe when parent Image decode stalls', async () => {
+    it('handles one valid capture message and clears stalled Image state on timeout', async () => {
       const res = await page.evaluate(async () => {
         const api = (window as unknown as { vektorContent: typeof import('../../src/content/index') })
           .vektorContent;
 
         const NativeImage = window.Image;
-        // Mock Image whose onload never fires (stalled parent decode)
+        let imageConstructed = 0;
+        let decodeImage: { onload: unknown; onerror: unknown; src: string } | null = null;
+        // Mock Image whose onload never fires (stalled parent decode).
         window.Image = class {
-          set src(_val: string) {
-            // Intentionally stall: do not call onload or onerror
+          onload: unknown = null;
+          onerror: unknown = null;
+          src = '';
+          crossOrigin = '';
+
+          constructor() {
+            imageConstructed++;
+            decodeImage = this;
           }
         } as unknown as typeof Image;
 
@@ -667,23 +933,26 @@ document.getElementById('desc').textContent += ' (aktifleştirildi)';`;
           timeoutMs: 400,
         });
 
-        await new Promise((r) => setTimeout(r, 30));
         const frame = document.querySelector('iframe');
         if (frame && frame.srcdoc) {
           const match = frame.srcdoc.match(/var NONCE = "([^"]+)"/);
           const nonce = match ? match[1] : '';
 
-          // Send valid base64 PNG data URL
+          const message = new MessageEvent('message', {
+            source: frame.contentWindow,
+            data: {
+              type: 'VEKTOR_COVER_CAPTURE',
+              nonce,
+              status: 'success',
+              dataUrl:
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            },
+          });
+          window.dispatchEvent(message);
           window.dispatchEvent(
             new MessageEvent('message', {
               source: frame.contentWindow,
-              data: {
-                type: 'VEKTOR_COVER_CAPTURE',
-                nonce,
-                status: 'success',
-                dataUrl:
-                  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
-              },
+              data: { ...message.data },
             }),
           );
         }
@@ -695,12 +964,18 @@ document.getElementById('desc').textContent += ' (aktifleştirildi)';`;
         return {
           ok: captureResult.ok,
           elapsed: Math.round(elapsed),
+          imageConstructed,
+          callbacksCleared: decodeImage?.onload === null && decodeImage?.onerror === null,
+          sourceCleared: decodeImage?.src === '',
           framesRemaining: document.querySelectorAll('iframe').length,
         };
       });
 
       expect(res.ok).toBe(false);
       expect(res.elapsed).toBeLessThan(1200);
+      expect(res.imageConstructed).toBe(1);
+      expect(res.callbacksCleared).toBe(true);
+      expect(res.sourceCleared).toBe(true);
       expect(res.framesRemaining).toBe(0);
     });
 

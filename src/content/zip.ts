@@ -90,122 +90,68 @@ export interface ParsedXmlElement {
   children: ParsedXmlElement[];
 }
 
-function parseAttributes(attrStr: string): Record<string, string> {
+/** Maps a DOM element to the stable lightweight shape used by PPTX validation. */
+function domElementToParsed(element: Element): ParsedXmlElement {
+  const prefix = element.prefix || '';
+  const localName = element.localName;
   const attrs: Record<string, string> = {};
-  const ATTR_REGEX = /([a-zA-Z0-9_.:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g;
-  let m: RegExpExecArray | null;
-  while ((m = ATTR_REGEX.exec(attrStr)) !== null) {
-    const key = m[1];
-    const val = m[2] !== undefined ? m[2] : (m[3] !== undefined ? m[3] : m[4]);
-    attrs[key] = val;
+
+  for (let index = 0; index < element.attributes.length; index++) {
+    const attribute = element.attributes[index];
+    attrs[attribute.name] = attribute.value;
   }
-  return attrs;
+
+  const children: ParsedXmlElement[] = [];
+  for (let index = 0; index < element.children.length; index++) {
+    children.push(domElementToParsed(element.children[index]));
+  }
+
+  return {
+    rawTag: prefix ? `${prefix}:${localName}` : localName,
+    prefix,
+    localName,
+    attrs,
+    nsUri: element.namespaceURI || '',
+    children,
+  };
 }
 
-/**
- * Parses XML into a lightweight AST with full XML namespace resolution.
- * Works uniformly across Node and browser without DOMParser dependency.
- */
+/** Parses XML with the platform parser; XML validation requires a browser DOM. */
 export function parseXmlDoc(
   rawXml: string,
 ): { ok: boolean; root?: ParsedXmlElement; error?: string } {
-  let stripped = rawXml.replace(/^<\?xml[\s\S]*?\?>/i, '');
-  stripped = stripped.replace(/<!--[\s\S]*?-->/g, '');
-  stripped = stripped.replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '');
-  stripped = stripped.replace(/<\?[\s\S]*?\?>/g, '').trim();
-
-  if (!stripped) {
-    return { ok: false, error: 'Boş XML içeriği.' };
-  }
-
-  const TAG_REGEX =
-    /<(\/?)(?:([a-zA-Z0-9_.-]+):)?([a-zA-Z0-9_.-]+)((?:\s+[a-zA-Z0-9_.:-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+))?)*)\s*(\/?)>/g;
-  let match: RegExpExecArray | null;
-
-  interface StackEntry {
-    rawTag: string;
-    scope: Record<string, string>;
-    children: ParsedXmlElement[];
-  }
-
-  const stack: StackEntry[] = [];
-  let root: ParsedXmlElement | null = null;
-  let rootCount = 0;
-
-  while ((match = TAG_REGEX.exec(stripped)) !== null) {
-    const [, isClose, prefix = '', localName, attrStr, isSelfClosing] = match;
-    const rawTag = prefix ? `${prefix}:${localName}` : localName;
-
-    if (isClose) {
-      if (stack.length === 0) {
-        return { ok: false, error: `Beklenmeyen kapanış etiketi: </${rawTag}>` };
-      }
-      const top = stack.pop()!;
-      if (top.rawTag !== rawTag) {
-        return {
-          ok: false,
-          error: `Uyuşmayan etiket: </${top.rawTag}> yerine </${rawTag}> bulundu.`,
-        };
-      }
-    } else {
-      const attrs = parseAttributes(attrStr || '');
-      const parentScope = stack.length > 0 ? stack[stack.length - 1].scope : {};
-      const currentScope: Record<string, string> = { ...parentScope };
-
-      for (const [k, v] of Object.entries(attrs)) {
-        if (k === 'xmlns') {
-          currentScope[''] = v;
-        } else if (k.startsWith('xmlns:')) {
-          currentScope[k.slice(6)] = v;
-        }
-      }
-
-      const nsUri = currentScope[prefix] || '';
-      const element: ParsedXmlElement = {
-        rawTag,
-        prefix,
-        localName,
-        attrs,
-        nsUri,
-        children: [],
-      };
-
-      if (stack.length === 0) {
-        rootCount++;
-        if (rootCount > 1) {
-          return { ok: false, error: 'Birden fazla kök eleman bulundu.' };
-        }
-        root = element;
-      } else {
-        stack[stack.length - 1].children.push(element);
-      }
-
-      const selfClose = isSelfClosing === '/' || match[0].endsWith('/>');
-      if (!selfClose) {
-        stack.push({ rawTag, scope: currentScope, children: element.children });
-      }
-    }
-  }
-
-  if (stack.length > 0) {
+  if (typeof DOMParser === 'undefined') {
     return {
       ok: false,
-      error: `Kapatılmamış XML etiketleri: ${stack.map((s) => s.rawTag).join(', ')}`,
-    };
-  }
-  if (!root || rootCount !== 1) {
-    return {
-      ok: false,
-      error: `XML tam olarak bir kök elemana sahip olmalıdır (bulunan: ${rootCount}).`,
+      error: 'DOMParser is unavailable; XML validation requires a browser DOM.',
     };
   }
 
-  return { ok: true, root };
+  const document = new DOMParser().parseFromString(rawXml, 'application/xml');
+  const parserErrors = document.getElementsByTagNameNS('*', 'parsererror');
+  const mozillaParserErrors = document.getElementsByTagNameNS(
+    'http://www.mozilla.org/newlayout/xml/parsererror.xml',
+    'parsererror',
+  );
+  if (parserErrors.length > 0 || mozillaParserErrors.length > 0) {
+    const parserError = mozillaParserErrors[0] || parserErrors[0];
+    return {
+      ok: false,
+      error: parserError.textContent || 'XML parser reported malformed input.',
+    };
+  }
+
+  const root = document.documentElement;
+  if (!root) {
+    return { ok: false, error: 'XML document has no root element.' };
+  }
+
+  return { ok: true, root: domElementToParsed(root) };
 }
 
 /**
  * Validates XML well-formedness and ensures a single root element.
- * Works uniformly across both Node and browser environments without DOMParser dependency.
+ * Uses the platform XML parser and therefore requires a browser DOM.
  */
 export function validateXml(rawXml: string): { ok: boolean; error?: string } {
   const parsed = parseXmlDoc(rawXml);

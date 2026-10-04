@@ -224,17 +224,22 @@ export function processCssContent(
   memoizedCss: Map<string, string> = new Map(),
   depth = 0,
 ): string {
+  const CSS_TOKEN_REGEX =
+    /\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|@import\s+(?:url\s*\(\s*(['"]?)(.*?)\1\s*\)|(['"])(.*?)\3|([^;\s]+))\s*([^;]*?);|url\s*\(\s*(['"]?)(.*?)\7\s*\)/gi;
+
   if (depth > 15) {
     warnings.push({
       code: 'UNSUPPORTED_CONSTRUCT',
       message: 'CSS @import derinlik sınırı aşıldı (azami 15 düzey).',
       target: containingDir,
     });
-    return cssText;
+    return cssText.replace(CSS_TOKEN_REGEX, (match) => {
+      if (match.startsWith('/*') || match.startsWith('"') || match.startsWith("'")) {
+        return match;
+      }
+      return match.toLowerCase().startsWith('@import') ? '' : match;
+    });
   }
-
-  const CSS_TOKEN_REGEX =
-    /\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|@import\s+(?:url\s*\(\s*(['"]?)(.*?)\1\s*\)|(['"])(.*?)\3|([^;\s]+))\s*([^;]*?);|url\s*\(\s*(['"]?)(.*?)\7\s*\)/gi;
 
   const result = cssText.replace(
     CSS_TOKEN_REGEX,

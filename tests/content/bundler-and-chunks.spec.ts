@@ -15,7 +15,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { bundlePresentation, findHtmlEntry } from '../../src/content/bundler';
+import { bundlePresentation, findHtmlEntry, processCssContent } from '../../src/content/bundler';
 import { prepareChunks, reconstructPresentation } from '../../src/content/chunks';
 import {
   MAX_CHUNK_BYTES,
@@ -160,6 +160,18 @@ h1 {
 
       expect(res.value.warnings.some((w) => w.code === 'CYCLE_DETECTED')).toBe(true);
       expect(res.value.html).toContain('/* @import cycle skipped:');
+    });
+
+    it('removes local @import statements when the recursion depth limit is reached', () => {
+      const warnings: import('../../src/content/types').PipelineWarning[] = [];
+      const cssText =
+        '@import "./parent.css" screen;\n@import url(../other.css);\nbody { color: red; }';
+
+      const processed = processCssContent(cssText, 'css', new Map(), warnings, new Set(), new Map(), 16);
+
+      expect(processed).not.toContain('@import');
+      expect(processed).toContain('body { color: red; }');
+      expect(warnings.some((warning) => warning.code === 'UNSUPPORTED_CONSTRUCT')).toBe(true);
     });
 
     it('inlines linked scripts and safely escapes </script> inside script bodies', () => {
