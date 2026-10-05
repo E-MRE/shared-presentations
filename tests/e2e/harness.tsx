@@ -11,12 +11,13 @@ import type { Deck, DeckChunk } from '../../src/contracts/models';
 import { ok, err, type PresentationDataService, type CreateDeckInput, type UpdateDeckInput, type ReviewDeckInput } from '../../src/contracts/services';
 import { AppErrorCode } from '../../src/contracts/errors';
 import { mapFirebaseUserToAuthUser } from '../../src/auth/service';
-import { registerListener } from '../../src/auth/listenerManager';
+import { registerListener, getActiveListenerCount } from '../../src/auth/listenerManager';
 import { validateCreateDeckInput, validateUpdateDeckInput } from '../../src/data/validation';
 import '../../src/styles/index.css';
 const metrics = { calls: [] as string[], creates: [] as CreateDeckInput[], updates: [] as UpdateDeckInput[], reviews: [] as ReviewDeckInput[], deletes: [] as { id: string }[], subscriptions: 0, disposals: 0, active: 0, roleSubscriptions: 0, roleDisposals: 0, unauthorized: 0, authCalls: [] as string[] };
 const flags = { error: '', hold: '', mailFail: false, tokenFail: false, reloadFail: false, countFail: false };
 const held: Array<() => void> = [];
+async function hold(name: string) { if (flags.hold === name) await new Promise<void>(resolve => held.push(resolve)); }
 let observer: (user: User | null) => void = () => {}, current: User | null = null, role = 'member';
 function setAuth(value: string) {
   role = value;
@@ -27,13 +28,13 @@ function setAuth(value: string) {
 const failure = <T,>(message = 'İşlem tamamlanamadı. Yeniden deneyin.') => err<T>({ code: AppErrorCode.NETWORK_ERROR, message });
 const authDependencies: ApplicationAuthDependencies = {
   currentUser: () => current, observe: callback => { observer = callback; setAuth(new URLSearchParams(location.search).get('role') ?? 'member'); return () => { observer = () => {}; }; },
-  resolveAdmin: async () => role === 'admin', watchAdmin: (_, callback) => { metrics.roleSubscriptions++; callback(role === 'admin'); return () => { metrics.roleDisposals++; }; },
+  resolveAdmin: async () => { await hold('admin'); return role === 'admin'; }, watchAdmin: (_, callback) => { metrics.roleSubscriptions++; callback(role === 'admin'); let active = true; return () => { if (active) { active = false; metrics.roleDisposals++; } }; },
   service: {
-    async signInWithGoogle() { metrics.authCalls.push('google'); if (flags.error === 'auth') return failure(); setAuth('google'); return ok(mapFirebaseUserToAuthUser(current!)); },
+    async signInWithGoogle() { metrics.authCalls.push('google'); await hold('login'); if (flags.error === 'auth') return failure(); setAuth('google'); return ok(mapFirebaseUserToAuthUser(current!)); },
     async signInWithEmail() { metrics.authCalls.push('email'); if (flags.error === 'auth') return failure('E-posta adresi veya şifre hatalı.'); setAuth('member'); return ok(mapFirebaseUserToAuthUser(current!)); },
     async signUpWithEmail() { metrics.authCalls.push('signup'); setAuth('unverified'); return ok(mapFirebaseUserToAuthUser(current!)); },
     async sendVerificationEmail() { metrics.authCalls.push('resend'); return flags.mailFail ? failure('Doğrulama e-postası gönderilemedi.') : ok(undefined); },
-    async reloadUser() { metrics.authCalls.push('reload'); if (flags.reloadFail) return failure('Doğrulama kontrol edilemedi. Yeniden deneyin.'); role = 'member'; return ok(mapFirebaseUserToAuthUser(current!)); },
+    async reloadUser(target = current) { metrics.authCalls.push('reload'); await hold('reload'); if (flags.reloadFail) return failure('Doğrulama kontrol edilemedi. Yeniden deneyin.'); if (current === target) role = 'member'; return ok(mapFirebaseUserToAuthUser(target!)); },
     async sendPasswordReset() { metrics.authCalls.push('reset'); return flags.mailFail ? failure('Sıfırlama e-postası gönderilemedi.') : ok(undefined); },
     async signOut() { metrics.authCalls.push('signout'); setAuth('visitor'); return ok(undefined); },
   },
@@ -87,7 +88,7 @@ const adapter = {
     return registerListener(() => { if (active) { active = false; metrics.disposals++; metrics.active--; listeners.delete(listener); } }, true);
   },
 };
-const api = { auth: setAuth, navigate: (_: string) => {}, flags: (value: Partial<typeof flags>) => Object.assign(flags, value), metrics, store, release: () => held.splice(0).forEach(resolve => resolve()), countError: () => listeners.forEach(listener => listener.error()), long: () => decks.forEach(deck => { deck.title = 'UzunBaşlık'.repeat(12); deck.description = 'UzunAçıklama'.repeat(150); deck.ownerName = 'UzunYazar'.repeat(15); }), summaries: () => [...decks.values()].map(deck => ({ id: deck.id, status: deck.status, title: deck.title, rejectNote: deck.rejectNote })) };
+const api = { registryCount: getActiveListenerCount, auth: setAuth, navigate: (_: string) => {}, flags: (value: Partial<typeof flags>) => Object.assign(flags, value), metrics, store, release: () => held.splice(0).forEach(resolve => resolve()), countError: () => listeners.forEach(listener => listener.error()), long: () => decks.forEach(deck => { deck.title = 'UzunBaşlık'.repeat(12); deck.description = 'UzunAçıklama'.repeat(150); deck.ownerName = 'UzunYazar'.repeat(15); }), summaries: () => [...decks.values()].map(deck => ({ id: deck.id, status: deck.status, title: deck.title, rejectNote: deck.rejectNote })) };
 declare global { interface Window { e2e: typeof api; prepaintTheme: string; } }
 window.e2e = api;
 function Harness() { const navigate = useNavigate(); useEffect(() => { api.navigate = path => navigate(path); }, [navigate]); return <App dependencies={{ auth: store, service, adapter }}/>; }
