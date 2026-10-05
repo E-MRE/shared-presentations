@@ -7,6 +7,14 @@ export const test = base.extend<{ transport: string[] }>({
     const events: string[] = [];
     const runtimeErrors: string[] = [];
     context.on('page', page => page.on('pageerror', error => runtimeErrors.push(error.message)));
+    await context.addInitScript(() => {
+      // Runner-wide SW blocking touches an opaque frame's forbidden getter.
+      // Block registration only in trusted top-level app pages; frames keep native isolation.
+      if (window.top !== window || !('serviceWorker' in navigator)) return;
+      Object.defineProperty(navigator.serviceWorker, 'register', {
+        value: () => Promise.reject(new DOMException('Service-worker registration disabled for local acceptance.', 'NotAllowedError')),
+      });
+    });
     context.on('request', request => events.push(`ATTEMPT ${request.resourceType()} ${request.url()}`));
     await context.route('**/*', route => {
       const host = new URL(route.request().url()).hostname;
