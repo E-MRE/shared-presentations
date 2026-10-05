@@ -1,0 +1,23 @@
+.vektor-library { min-width: 0; width: 100%; }
+.vektor-library-intro { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-5); }
+.vektor-library .intro-heading-group { min-width: 0; }
+.vektor-library h1, .vektor-library h2, .vektor-library p { overflow-wrap: anywhere; }
+.vektor-library-search { max-width: 640px; margin-bottom: var(--space-5); }
+.vektor-library-search label { display: block; color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-2); }
+.vektor-search-row { display: flex; align-items: center; gap: var(--space-3); }
+.vektor-search-row svg { flex-shrink: 0; color: var(--text-secondary); }
+.vektor-search-row input { min-width: 0; width: 100%; font-size: var(--text-base); }
+.vektor-list-summary { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-6); }
+.vektor-list-message { padding: var(--space-5); border: 1px solid var(--border-medium); border-radius: var(--radius-md); margin-bottom: var(--space-6); color: var(--text-secondary); }
+.vektor-list-message p { margin-bottom: var(--space-3); }
+.vektor-load-more { display: flex; margin: var(--space-8) auto 0; }
+.vektor-library .vektor-danger { color: var(--text-primary); }
+.vektor-library button, .vektor-library input, .vektor-library a.btn { min-height: 44px; }
+.vektor-library button:disabled { opacity: .6; cursor: wait; }
+.vektor-library .card-status-badge { white-space: normal; }
+.vektor-library .deck-grid { align-items: stretch; }
+.vektor-library .vektor-card-title { margin-bottom: var(--space-3); }
+.vektor-library .vektor-reject-note { margin-top: var(--space-3); font-size: var(--text-sm); color: var(--text-secondary); }
+.vektor-library .vektor-card-actions { margin-top: auto; }
+@media (max-width: 480px) { .vektor-library .main-content, .vektor-library .page-intro { padding-left: var(--space-4); padding-right: var(--space-4); } .vektor-search-row { flex-wrap: wrap; } .vektor-search-row input { flex: 1; } }
+@media (prefers-reduced-motion: reduce) { .vektor-library .deck-card { transition: none; } }
