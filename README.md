@@ -1,0 +1,9 @@
+# Vektör
+
+A Turkish team presentation library built with React, Vite and modular Firebase Auth/Firestore. Members upload HTML bundles or PPTX files; administrators review submissions. HTML runs inside an opaque sandbox, and PPTX is downloaded without conversion. Firestore holds metadata and bounded binary chunks; Firebase Storage is not used.
+
+Use Node >=20.19 (the current container uses Node 26), the committed lockfile and `npm ci` when setting up a new machine. Dependencies are already provided in this worker environment; no installation was performed. Run `npm run dev` for local development. The existing Firebase configuration automatically connects localhost development to Auth 9099 and Firestore 8080. Start the emulators explicitly with `npx -y --engine-strict=false firebase-tools emulators:start --project shared-presentations --only auth,firestore`. Never use development mode as a live acceptance environment.
+
+`npm run build` emits the production app in `dist`; `npm run preview -- --host 127.0.0.1 --port 4173` previews it. `npm run lint` and `node scripts/check-release.mjs` are local gates. The checker is read-only: it performs no deploy, push or network mutation.
+
+Automated composition browser tests use explicit deterministic dependency injection, real feature components and the real content pipeline. Production `main.tsx` always selects real Firebase dependencies. Test fixtures are never selected from a production query string or global login switch. `PLAYWRIGHT_BROWSERS_PATH=/opt/data/ms-playwright npm run test:e2e -- --workers=1` runs Chromium with a single worker. See [acceptance](docs/ACCEPTANCE.md) for the exact scope and manual limitations and [operations](docs/OPERATIONS.md) for project-pinned emulator and release commands.
