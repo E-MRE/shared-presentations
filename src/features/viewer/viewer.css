@@ -1,0 +1,91 @@
+/* Scoped dark semantics keep the route dark even inside the light application theme. */
+.vektor-viewer {
+  --bg-canvas: var(--primitive-gray-950);
+  --bg-surface: var(--primitive-gray-900);
+  --bg-surface-raised: var(--primitive-gray-850);
+  --text-primary: var(--primitive-gray-100);
+  --text-secondary: var(--primitive-gray-400);
+  --border-subtle: rgba(255, 255, 255, .08);
+  --border-focus: var(--primitive-blue-400);
+  color-scheme: dark;
+  color: var(--text-primary);
+  background: var(--bg-canvas);
+  font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  min-height: 320px;
+  min-width: 0;
+  overflow: hidden;
+}
+.vektor-viewer * { box-sizing: border-box; }
+.vektor-viewer h1, .vektor-viewer h2, .vektor-viewer h3, .vektor-viewer p { margin: 0; }
+.vektor-viewer button, .vektor-viewer a { touch-action: manipulation; }
+.vektor-viewer button:focus-visible, .vektor-viewer a:focus-visible, .vektor-viewer iframe:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; }
+.vektor-viewer .viewer-topbar { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-6); border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface); flex-shrink: 0; }
+.vektor-viewer .viewer-heading { min-width: 0; flex: 1; }
+.vektor-viewer .viewer-heading h1 { font-size: var(--text-sm); font-weight: 600; overflow-wrap: anywhere; }
+.vektor-viewer .viewer-heading p { font-size: var(--text-xs); color: var(--text-secondary); overflow-wrap: anywhere; margin-top: 4px; }
+.vektor-viewer .viewer-actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
+.vektor-viewer .viewer-button { min-height: 44px; min-width: 44px; padding: 10px 14px; display: inline-flex; justify-content: center; align-items: center; gap: 8px; background: var(--bg-surface-raised); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font: inherit; font-size: var(--text-sm); cursor: pointer; transition: background-color var(--duration-fast) var(--ease-out); }
+.vektor-viewer .viewer-button:hover { background: var(--primitive-gray-800); }
+.vektor-viewer .viewer-button[aria-expanded="true"] { border-color: var(--border-focus); }
+.vektor-viewer .viewer-button:disabled { opacity: .65; cursor: wait; }
+.vektor-viewer .viewer-primary { color: var(--primitive-gray-950); background: var(--primitive-gray-100); font-weight: 600; }
+.vektor-viewer .viewer-primary:hover { background: var(--primitive-white); }
+.vektor-viewer svg { flex-shrink: 0; }
+.vektor-viewer .viewer-stage { flex: 1; min-height: 0; display: flex; min-width: 0; }
+.vektor-viewer .viewer-frame-area { padding: var(--space-4); display: flex; align-items: center; justify-content: center; flex: 1; min-width: 0; min-height: 0; }
+.vektor-viewer iframe { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); width: 100%; height: 100%; background: var(--primitive-black); }
+.vektor-viewer .viewer-panel { width: min(360px, 36%); overflow: auto; border-left: 1px solid var(--border-subtle); background: var(--bg-surface); padding: var(--space-6); }
+.vektor-viewer .viewer-panel[hidden] { display: none; }
+.vektor-viewer .viewer-metadata { min-width: 0; overflow-wrap: anywhere; }
+.vektor-viewer .viewer-eyebrow { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: .08em; color: var(--text-secondary); }
+.vektor-viewer .viewer-metadata h2 { font-size: var(--text-2xl); line-height: 1.3; letter-spacing: var(--tracking-tight); margin-top: var(--space-3); }
+.vektor-viewer .viewer-author { color: var(--text-secondary); margin-top: 10px; font-size: var(--text-sm); }
+.vektor-viewer .viewer-description { font-size: var(--text-base); line-height: 1.65; white-space: pre-wrap; margin-top: var(--space-6); }
+.vektor-viewer .viewer-metadata h3 { font-size: var(--text-sm); margin-top: var(--space-6); }
+.vektor-viewer .viewer-metadata ul { padding: 0; list-style: none; display: grid; gap: 12px; margin: 12px 0 0; }
+.vektor-viewer .viewer-metadata a { color: var(--primitive-blue-400); text-decoration: underline; text-underline-offset: 4px; }
+.vektor-viewer .viewer-metadata dl { margin: var(--space-6) 0 0; border-top: 1px solid var(--border-subtle); }
+.vektor-viewer .viewer-metadata dl div { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-subtle); font-size: var(--text-xs); }
+.vektor-viewer .viewer-metadata dt { color: var(--text-secondary); }
+.vektor-viewer .viewer-metadata dd { margin: 0; }
+.vektor-viewer .viewer-pptx { flex: 1; overflow: auto; padding: clamp(16px, 4vw, 64px); }
+.vektor-viewer .viewer-pptx-grid { max-width: 1120px; margin: auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: var(--space-12); }
+.vektor-viewer .viewer-cover { aspect-ratio: 16 / 10; border-radius: var(--radius-lg); background: var(--bg-surface-raised); overflow: hidden; border: 1px solid var(--border-subtle); }
+.vektor-viewer .viewer-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.vektor-viewer .viewer-cover img[hidden] { display: none; }
+.vektor-viewer .viewer-cover > div { height: 100%; padding: clamp(16px, 4vw, 40px); display: flex; flex-direction: column; justify-content: center; gap: 16px; overflow-wrap: anywhere; }
+.vektor-viewer .viewer-cover p { font-size: clamp(18px, 2vw, 28px); line-height: 1.3; font-weight: 600; }
+.vektor-viewer .viewer-cover-brand, .vektor-viewer .viewer-cover span:last-child { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-secondary); }
+.vektor-viewer .viewer-download { margin-top: var(--space-6); }
+.vektor-viewer .viewer-warning { font-size: var(--text-sm); line-height: 1.6; color: var(--primitive-amber-400); margin-top: 16px; }
+.vektor-viewer .viewer-download [role="alert"], .vektor-viewer .viewer-inline-error { color: var(--primitive-rose-400); padding: 12px 16px; font-size: var(--text-sm); }
+.vektor-viewer .viewer-download [role="status"] { font-size: var(--text-sm); margin-top: 8px; }
+.vektor-viewer .viewer-footer { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 24px; border-top: 1px solid var(--border-subtle); color: var(--text-secondary); font: var(--text-2xs)/1.5 var(--font-mono); }
+.vektor-viewer .viewer-footer p { text-align: right; }
+.vektor-viewer .viewer-notice { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 20px; padding: 24px; }
+.vektor-viewer .viewer-notice h1, .vektor-viewer .viewer-notice h2 { font-size: var(--text-xl); }
+.vektor-viewer.viewer-gate > button { align-self: flex-start; margin: 16px; }
+.vektor-viewer .viewer-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 767px) {
+  .vektor-viewer .viewer-topbar { flex-wrap: wrap; padding: 8px 12px; gap: 8px; }
+  .vektor-viewer .viewer-heading { order: 3; flex-basis: 100%; }
+  .vektor-viewer .viewer-heading h1 { max-height: 3em; overflow: auto; }
+  .vektor-viewer .viewer-heading p { max-height: 2.8em; overflow: auto; }
+  .vektor-viewer .viewer-actions { margin-left: auto; }
+  .vektor-viewer .viewer-fullscreen-label { display: none; }
+  .vektor-viewer .viewer-stage-info { flex-direction: column; }
+  .vektor-viewer .viewer-stage-info .viewer-frame-area { flex: 0 0 40%; }
+  .vektor-viewer .viewer-panel { width: 100%; flex: 1; min-height: 0; padding: 20px; border-left: 0; border-top: 1px solid var(--border-subtle); }
+  .vektor-viewer .viewer-frame-area { padding: 8px; }
+  .vektor-viewer .viewer-pptx-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .vektor-viewer .viewer-footer { padding: 8px 12px; }
+  .vektor-viewer .viewer-footer > span { display: none; }
+  .vektor-viewer .viewer-footer p { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vektor-viewer *, .vektor-viewer *::before, .vektor-viewer *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
