@@ -19,7 +19,7 @@ const builtHtml = read('dist/index.html');
 const modulePaths = [...builtHtml.matchAll(/<script\b[^>]*src="([^\"]+)"[^>]*>/g)].map(match => match[1]);
 check('Built HTML references emitted JavaScript', modulePaths.some(path => /\/assets\/.*\.js$/.test(path) && existsSync(resolve(root, 'dist', path.slice(1)))));
 const assets = existsSync(resolve(root, 'dist/assets')) ? readdirSync(resolve(root, 'dist/assets')).filter(path => path.endsWith('.js')).map(path => read(`dist/assets/${path}`)).join('\n') : '';
-check('Built application contains six frozen route paths', ['/', '/benim', '/yeni', '/duzenle/:id', '/admin', '/s/:id'].every(path => assets.includes(JSON.stringify(path))));
+check('Built application contains six frozen route paths', ['/', '/benim', '/yeni', '/duzenle/:id', '/admin', '/s/:id'].every(path => ['"', "'", '`'].some(quote => assets.includes(quote + path + quote))));
 check('Built output includes application gates, not foundation placeholder', assets.includes('Ekibin sunumları burada') && !assets.includes('foundation-placeholder') && !assets.includes('Uygulama temeli hazır.'));
 check('Production main uses real App without fixture switches', read('src/main.tsx').includes('<App />') && !/harness|fixture|window\./i.test(read('src/main.tsx')));
 for (const path of ['README.md', 'docs/OPERATIONS.md', 'docs/ACCEPTANCE.md']) check(`Release documentation exists: ${path}`, read(path).length > 100);
