@@ -10,6 +10,7 @@
 
 import type { DocumentData } from 'firebase/firestore';
 import type { Deck, DeckChunk, UserProfile } from '../contracts/models';
+import { balancedManifest } from '../content/manifest';
 
 /** Converts Firestore timestamp or date to native Date */
 function toDate(val: unknown): Date | null {
@@ -54,7 +55,9 @@ export function deckFromDoc(id: string, data: DocumentData): Deck {
       fileCount: data.sizes?.fileCount || 1,
     },
     chunkCount: data.chunkCount || 0,
-    chunks: Array.isArray(data.chunks) ? data.chunks : [],
+    chunks: data.manifestVersion === 2
+      ? balancedManifest(data.sizes?.encoded, data.chunkCount)
+      : Array.isArray(data.chunks) ? data.chunks : [],
     createdAt: toDate(data.createdAt) || new Date(),
     updatedAt: toDate(data.updatedAt) || new Date(),
     publishedAt: toDate(data.publishedAt),
@@ -70,6 +73,7 @@ export function deckChunkFromDoc(index: number, data: DocumentData): DeckChunk {
   return {
     index: typeof data.index === 'number' ? data.index : index,
     data: toUint8Array(data.data),
+    ...(data.size !== undefined ? { size: data.size } : {}),
   };
 }
 

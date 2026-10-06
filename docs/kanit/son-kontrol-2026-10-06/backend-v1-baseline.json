@@ -1,9 +1,69 @@
 {
-  "passed": 160,
-  "failed": 0,
+  "passed": 131,
+  "failed": 8,
   "skipped": 0,
-  "total": 160,
+  "total": 139,
   "cases": [
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants unverified email user is NOT a member (isMember === false)",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants verified email user IS a member (isMember === true)",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants Google signed-in user IS a member regardless of emailVerified flag",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants throws error when non-member attempts to open a Firestore listener",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants registers listener when user is a confirmed member",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants sign-out closes all active listeners",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) a raw Firestore call from a non-admin client attempting a client-side admin grant is DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) resolves isAdmin: true when Console admin doc exists in admins/{uid}",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) resolves isAdmin: false cleanly without throwing when user is not an admin",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) caches admin verification to minimize read calls",
+      "status": "passed"
+    },
+    {
+      "name": "Real Auth tokens with Firestore emulator blocks a live SDK hostname before opening a socket",
+      "status": "passed"
+    },
+    {
+      "name": "Real Auth tokens with Firestore emulator signup, resend, verification/token refresh, membership, reset and signout use only local SDK endpoints",
+      "status": "passed"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation reports a dispatch failure while retaining the newly created unverified account",
+      "status": "passed"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation reports an accepted dispatch without promising inbox delivery",
+      "status": "passed"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation preserves resend failures and supports retry using the same account",
+      "status": "passed"
+    },
     {
       "name": "Backward compatible category and tags reads legacy documents as uncategorized without changing stored data",
       "status": "passed"
@@ -34,39 +94,31 @@
     },
     {
       "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 2 chunks with 8 tags",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 6 chunks with 8 tags",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 10 chunks with 8 tags",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 8 tags",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 0 tags",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves html at encoded, cover and catalog limits",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves pptx at encoded, cover and catalog limits",
-      "status": "passed"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) v2 keeps 12 chunks + 8 tags + 10 links, preserves bytes, reviews, replaces and removes all tails",
-      "status": "passed"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) reads and reviews maximum-catalog v1 records, preserves legacy binary fields on edit and upgrades on replacement",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "name": "Presentation Data Service Integration Suite (Real Emulator) 1. unverified e-mail user is NOT a member: no listener, upload denied",
@@ -213,66 +265,6 @@
       "status": "passed"
     },
     {
-      "name": "Authentication & Membership Invariants Membership Logic Invariants unverified email user is NOT a member (isMember === false)",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Membership Logic Invariants verified email user IS a member (isMember === true)",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Membership Logic Invariants Google signed-in user IS a member regardless of emailVerified flag",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants throws error when non-member attempts to open a Firestore listener",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants registers listener when user is a confirmed member",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants sign-out closes all active listeners",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) a raw Firestore call from a non-admin client attempting a client-side admin grant is DENIED",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) resolves isAdmin: true when Console admin doc exists in admins/{uid}",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) resolves isAdmin: false cleanly without throwing when user is not an admin",
-      "status": "passed"
-    },
-    {
-      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) caches admin verification to minimize read calls",
-      "status": "passed"
-    },
-    {
-      "name": "Real Auth tokens with Firestore emulator blocks a live SDK hostname before opening a socket",
-      "status": "passed"
-    },
-    {
-      "name": "Real Auth tokens with Firestore emulator signup, resend, verification/token refresh, membership, reset and signout use only local SDK endpoints",
-      "status": "passed"
-    },
-    {
-      "name": "Verification dispatch is independent from account creation reports a dispatch failure while retaining the newly created unverified account",
-      "status": "passed"
-    },
-    {
-      "name": "Verification dispatch is independent from account creation reports an accepted dispatch without promising inbox delivery",
-      "status": "passed"
-    },
-    {
-      "name": "Verification dispatch is independent from account creation preserves resend failures and supports retry using the same account",
-      "status": "passed"
-    },
-    {
       "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 1. Sandboxed srcdoc iframe executes inline JS and applies CSS under real app CSP",
       "status": "passed"
     },
@@ -322,82 +314,6 @@
     },
     {
       "name": "Firestore Security Rules Suite 1. Read Permissions user profile documents are not listable by members → DENIED",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link valid Unicode and multiline label",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link maximum label",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link long label",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link empty label",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link numeric label",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link list label",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link map label",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link null label",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link http URL",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link bare https prefix",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link numeric URL",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link list URL",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link null URL",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link maximum URL",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link long URL",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link extra field",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link outside count",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions link fractional index",
-      "status": "passed"
-    },
-    {
-      "name": "Firestore Security Rules Suite V2 external link validation and permissions protects reads and writes by membership, owner/admin and pending status",
       "status": "passed"
     },
     {
@@ -466,7 +382,7 @@
     },
     {
       "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog maximum tags validates atomic create and owner update",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog unsupported category validates atomic create and owner update",
@@ -637,7 +553,7 @@
       "status": "passed"
     },
     {
-      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MANIFEST_VERSION (2) and preserves legacy metadata updates",
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MANIFEST_VERSION (1)",
       "status": "passed"
     },
     {

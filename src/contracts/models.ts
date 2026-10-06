@@ -41,7 +41,7 @@ export interface ChunkManifestEntry {
   size: number;
 }
 
-/** Full presentation document entity in Firestore `presentations/{id}` */
+/** Domain entity: includes links and manifest resolved from v1/v2 storage. */
 export interface Deck {
   /** Document ID */
   id: string;
@@ -75,7 +75,7 @@ export interface Deck {
   sizes: DeckSizes;
   /** Total number of chunk documents in `presentations/{id}/chunks` */
   chunkCount: number;
-  /** Manifest binding each chunk index to its exact byte size */
+  /** v1 stored manifest or v2 manifest derived from total/count */
   chunks: ChunkManifestEntry[];
   /** Creation timestamp */
   createdAt: Date;
@@ -87,7 +87,7 @@ export interface Deck {
   reviewedBy: string | null;
   /** Timestamp when review decision was recorded, or null */
   reviewedAt: Date | null;
-  /** Manifest schema version (currently 1) */
+  /** Stored manifest schema version: legacy 1 or current 2 */
   manifestVersion: number;
   /** Quota transition binding marker tying deck creation/status to user quota */
   quotaMarker: string;
@@ -99,6 +99,8 @@ export interface DeckChunk {
   index: number;
   /** Binary chunk payload (max 900,000 bytes) */
   data: Uint8Array;
+  /** Explicit v2 storage size; absent on legacy v1 chunks. */
+  size?: number;
 }
 
 /** User profile document in `users/{uid}` */

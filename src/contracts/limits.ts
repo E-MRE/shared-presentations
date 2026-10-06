@@ -61,7 +61,8 @@ export const MAX_HTML_UNPACKED_BYTES = 25 * 1024 * 1024; // 26,214,400 bytes
 export const MAX_HTML_FILE_COUNT = 300;
 
 /** Canonical manifest version */
-export const MANIFEST_VERSION = 1;
+export const MANIFEST_VERSION = 2;
+export const LEGACY_MANIFEST_VERSION = 1;
 
 /**
  * Limit definitions exported as a structured object for automated parity

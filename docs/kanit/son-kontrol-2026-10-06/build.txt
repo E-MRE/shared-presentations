@@ -4,7 +4,7 @@
 
 vite v8.3.2 building client environment for production...
 transforming...
-✓ 111 modules transformed.
+✓ 112 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                                                      1.48 kB │ gzip:   0.65 kB
@@ -35,21 +35,21 @@ dist/assets/ViewerPage-0dHhCMbL.css                                  7.42 kB │
 dist/assets/index-DhwGEelB.css                                      45.91 kB │ gzip:   8.90 kB
 dist/assets/rolldown-runtime-CbXtAM7H.js                             0.58 kB │ gzip:   0.36 kB
 dist/assets/state-motion-DPB1AEsP.js                                 0.72 kB │ gzip:   0.40 kB
-dist/assets/useDeckMutation-Df-jKZb5.js                              0.73 kB │ gzip:   0.44 kB
+dist/assets/useDeckMutation-DuWog0Ds.js                              0.73 kB │ gzip:   0.44 kB
 dist/assets/mime-BXmme3vB.js                                         1.07 kB │ gzip:   0.55 kB
-dist/assets/LibraryUI-CTg6evho.js                                    2.18 kB │ gzip:   0.95 kB
-dist/assets/MyDecksPage-DiRrpCAV.js                                  2.87 kB │ gzip:   1.33 kB
-dist/assets/LibraryPage-CZV2Qovc.js                                  3.88 kB │ gzip:   1.84 kB
-dist/assets/pipeline-BaFpYaAw.js                                     4.31 kB │ gzip:   1.75 kB
-dist/assets/AdminPage-DlArwiQW.js                                    6.37 kB │ gzip:   2.37 kB
-dist/assets/ViewerPage-BYl-0opi.js                                  12.37 kB │ gzip:   4.75 kB
-dist/assets/chunks-cSc_bD0S.js                                      17.47 kB │ gzip:   7.70 kB
-dist/assets/cover-DO9L5sDF.js                                       39.82 kB │ gzip:  15.06 kB
-dist/assets/PresentationEditor-D3FaOAYG.js                          57.19 kB │ gzip:  17.19 kB
-dist/assets/index-tRLhmiwz.js                                       64.81 kB │ gzip:  20.01 kB
-dist/assets/firebase-auth-CR59iyjt.js                               80.12 kB │ gzip:  23.85 kB
+dist/assets/LibraryUI-BaFao5L_.js                                    2.18 kB │ gzip:   0.95 kB
+dist/assets/MyDecksPage-D6hcyBR9.js                                  2.87 kB │ gzip:   1.33 kB
+dist/assets/LibraryPage-e4DRDSY2.js                                  3.88 kB │ gzip:   1.85 kB
+dist/assets/pipeline-DOlnCQPm.js                                     4.31 kB │ gzip:   1.74 kB
+dist/assets/AdminPage-zfpkGl0N.js                                    6.37 kB │ gzip:   2.37 kB
+dist/assets/ViewerPage-DmsTGrjj.js                                  12.39 kB │ gzip:   4.76 kB
+dist/assets/chunks-BTBPozcl.js                                      17.50 kB │ gzip:   7.70 kB
+dist/assets/cover-DOaNaMEn.js                                       39.82 kB │ gzip:  15.06 kB
+dist/assets/PresentationEditor-BbKC5Bhs.js                          57.21 kB │ gzip:  17.18 kB
+dist/assets/index-DEPnElVX.js                                       66.69 kB │ gzip:  20.63 kB
+dist/assets/firebase-auth-2qASohrh.js                               80.13 kB │ gzip:  23.88 kB
 dist/assets/lottie_light-DWNij8TF.js                               169.13 kB │ gzip:  47.43 kB
 dist/assets/react-router-BUiKsvmN.js                               258.60 kB │ gzip:  82.09 kB
-dist/assets/firebase-firestore-C3g0w7sU.js                         476.97 kB │ gzip: 140.45 kB
+dist/assets/firebase-firestore-D3zwtJbM.js                         477.02 kB │ gzip: 140.47 kB
 
-✓ built in 207ms
+✓ built in 353ms

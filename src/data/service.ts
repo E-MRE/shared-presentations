@@ -25,10 +25,12 @@ import {
   startAfter,
   runTransaction,
   serverTimestamp,
+  deleteField,
   Bytes,
   type Firestore,
   type QueryConstraint,
   type DocumentSnapshot,
+  type DocumentData,
 } from 'firebase/firestore';
 import type { Auth } from 'firebase/auth';
 import { db as defaultDb, auth as defaultAuth } from '../firebase';
@@ -43,14 +45,16 @@ import type {
   PaginationCursor,
   Result,
 } from '../contracts/services';
-import type { Deck, DeckChunk } from '../contracts/models';
+import type { Deck, DeckChunk, DeckLink } from '../contracts/models';
 import type { AuthUser } from '../contracts/auth';
 import { AppErrorCode, type AppError } from '../contracts/errors';
 import { ok, err } from '../contracts/services';
-import { MAX_PENDING_PER_USER, MANIFEST_VERSION } from '../contracts/limits';
+import { MAX_PENDING_PER_USER, MANIFEST_VERSION, MAX_LINKS_COUNT, MAX_CHUNKS_COUNT } from '../contracts/limits';
+import { rebalanceChunks } from '../content/manifest';
 import {
   validateCreateDeckInput,
   validateUpdateDeckInput,
+  validateLink,
 } from './validation';
 import { deckFromDoc, deckChunkFromDoc } from './converters';
 import { mapFirebaseUserToAuthUser } from '../auth/service';
@@ -146,16 +150,34 @@ export class FirestorePresentationDataService implements PresentationDataService
         });
       }
 
-      return ok(deckFromDoc(id, snap.data()));
+      return ok(await this.hydrateDeck(id, snap.data()));
     } catch (error) {
       return err(mapFirestoreError(error, 'Sunum bilgisi alınamadı.'));
     }
   }
 
+  /** Resolve external links for v2 and edited legacy records; v1 inline links remain readable. */
+  private async hydrateDeck(id: string, data: DocumentData): Promise<Deck> {
+    const deck = deckFromDoc(id, data);
+    if (data.linkCount === undefined) return deck;
+    if (!Number.isInteger(data.linkCount) || data.linkCount < 0 || data.linkCount > MAX_LINKS_COUNT) {
+      throw { code: AppErrorCode.INVALID_ARGUMENT, message: 'Sunum bağlantı sayısı geçersiz.' };
+    }
+    deck.links = await Promise.all(Array.from({ length: data.linkCount }, async (_, index) => {
+      const snap = await getDoc(doc(this.db, 'presentations', id, 'links', String(index)));
+      const link = snap.data();
+      if (!link || link.index !== index || !validateLink(link as DeckLink).ok) {
+        throw { code: AppErrorCode.NOT_FOUND, message: `Sunum bağlantısı (${index}) eksik veya geçersiz.` };
+      }
+      return { label: link.label, url: link.url } as DeckLink;
+    }));
+    return deck;
+  }
+
   /** Get chunk payload for presentation viewer / download */
   async getChunk(deckId: string, index: number): Promise<Result<DeckChunk>> {
     try {
-      if (!deckId || typeof index !== 'number' || index < 0) {
+      if (!deckId || !Number.isInteger(index) || index < 0 || index >= MAX_CHUNKS_COUNT) {
         return err({
           code: AppErrorCode.INVALID_ARGUMENT,
           message: 'Geçersiz sunum veya parça indeksi.',
@@ -181,7 +203,7 @@ export class FirestorePresentationDataService implements PresentationDataService
   /** Get all chunks for a deck in order */
   async getAllChunks(deckId: string, chunkCount: number): Promise<Result<DeckChunk[]>> {
     try {
-      if (!deckId || typeof chunkCount !== 'number' || chunkCount < 1) {
+      if (!deckId || !Number.isInteger(chunkCount) || chunkCount < 1 || chunkCount > MAX_CHUNKS_COUNT) {
         return err({
           code: AppErrorCode.INVALID_ARGUMENT,
           message: 'Geçersiz parça sayısı veya sunum kimliği.',
@@ -272,7 +294,7 @@ export class FirestorePresentationDataService implements PresentationDataService
       const hasMore = docs.length > pageSize;
       const pageDocs = hasMore ? docs.slice(0, pageSize) : docs;
 
-      const items = pageDocs.map((d: DocumentSnapshot) => deckFromDoc(d.id, d.data()!));
+      const items = await Promise.all(pageDocs.map((d: DocumentSnapshot) => this.hydrateDeck(d.id, d.data()!)));
 
       let nextCursor: PaginationCursor | null = null;
       if (hasMore && pageDocs.length > 0) {
@@ -372,7 +394,7 @@ export class FirestorePresentationDataService implements PresentationDataService
           ownerPhotoURL: caller.photoURL || null,
           title: input.title.trim(),
           description: input.description.trim(),
-          links: input.links,
+          linkCount: input.links.length,
           ...(input.category !== undefined ? { category: input.category } : {}),
           ...(input.tags !== undefined ? { tags: input.tags } : {}),
           kind: input.kind,
@@ -387,7 +409,6 @@ export class FirestorePresentationDataService implements PresentationDataService
             fileCount: input.sizes.fileCount,
           },
           chunkCount: input.chunkCount,
-          chunks: input.manifest.map((m) => ({ index: m.index, size: m.size })),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           publishedAt: null,
@@ -399,18 +420,20 @@ export class FirestorePresentationDataService implements PresentationDataService
         tx.set(deckRef, deckData);
 
         // Write all chunks matching manifest
-        for (const chunk of input.chunks) {
+        for (const chunk of rebalanceChunks(input.chunks, input.sizes.encoded, input.chunkCount)) {
           const chunkRef = doc(this.db, 'presentations', deckId, 'chunks', String(chunk.index));
           tx.set(chunkRef, {
             index: chunk.index,
+            size: chunk.size,
             data: Bytes.fromUint8Array(chunk.data),
           });
         }
+        input.links.forEach((link, index) => tx.set(doc(this.db, 'presentations', deckId, 'links', String(index)), { index, ...link }));
       });
 
       // Read back created deck snapshot to return full object
       const createdSnap = await getDoc(deckRef);
-      return ok(deckFromDoc(deckId, createdSnap.data()!));
+      return ok(await this.hydrateDeck(deckId, createdSnap.data()!));
     } catch (error) {
       // If error is permission-denied caused by quota rejection in rules
       if (typeof error === 'object' && error !== null && 'code' in error) {
@@ -495,7 +518,8 @@ export class FirestorePresentationDataService implements PresentationDataService
         const updates: Record<string, unknown> = {
           title: input.title.trim(),
           description: input.description.trim(),
-          links: input.links,
+          links: deleteField(),
+          linkCount: input.links.length,
           ...(input.category !== undefined ? { category: input.category } : {}),
           ...(input.tags !== undefined ? { tags: input.tags } : {}),
           status: 'pending',
@@ -506,6 +530,9 @@ export class FirestorePresentationDataService implements PresentationDataService
           updatedAt: serverTimestamp(),
           quotaMarker: input.id,
         };
+        const oldLinkCount = deckData.linkCount ?? 0;
+        input.links.forEach((link, index) => tx.set(doc(this.db, 'presentations', input.id, 'links', String(index)), { index, ...link }));
+        for (let i = input.links.length; i < oldLinkCount; i++) tx.delete(doc(this.db, 'presentations', input.id, 'links', String(i)));
 
         if (input.cover) {
           updates.cover = Bytes.fromUint8Array(input.cover);
@@ -523,7 +550,9 @@ export class FirestorePresentationDataService implements PresentationDataService
             fileCount: rc.sizes.fileCount,
           };
           updates.chunkCount = rc.chunkCount;
-          updates.chunks = rc.manifest.map((m) => ({ index: m.index, size: m.size }));
+          updates.chunks = deleteField();
+          updates.manifestVersion = MANIFEST_VERSION;
+          updates.kind = rc.fileName.toLowerCase().endsWith('.pptx') ? 'pptx' : 'html';
 
           // Tail cleanup: delete old chunks at index >= new chunkCount
           const oldChunkCount = deckData.chunkCount || 0;
@@ -533,10 +562,11 @@ export class FirestorePresentationDataService implements PresentationDataService
           }
 
           // Write new replacement chunks
-          for (const ch of rc.chunks) {
+          for (const ch of rebalanceChunks(rc.chunks, rc.sizes.encoded, rc.chunkCount)) {
             const chunkRef = doc(this.db, 'presentations', input.id, 'chunks', String(ch.index));
             tx.set(chunkRef, {
               index: ch.index,
+              size: ch.size,
               data: Bytes.fromUint8Array(ch.data),
             });
           }
@@ -546,7 +576,7 @@ export class FirestorePresentationDataService implements PresentationDataService
       });
 
       const updatedSnap = await getDoc(deckRef);
-      return ok(deckFromDoc(input.id, updatedSnap.data()!));
+      return ok(await this.hydrateDeck(input.id, updatedSnap.data()!));
     } catch (error) {
       return err(mapFirestoreError(error, 'Sunum güncellenirken hata oluştu.'));
     }
@@ -648,7 +678,7 @@ export class FirestorePresentationDataService implements PresentationDataService
       });
 
       const updatedSnap = await getDoc(deckRef);
-      return ok(deckFromDoc(input.id, updatedSnap.data()!));
+      return ok(await this.hydrateDeck(input.id, updatedSnap.data()!));
     } catch (error) {
       return err(mapFirestoreError(error, 'İnceleme işlemi sırasında hata oluştu.'));
     }
@@ -724,6 +754,7 @@ export class FirestorePresentationDataService implements PresentationDataService
           const chunkRef = doc(this.db, 'presentations', input.id, 'chunks', String(i));
           tx.delete(chunkRef);
         }
+        for (let i = 0; i < (deckData.linkCount ?? 0); i++) tx.delete(doc(this.db, 'presentations', input.id, 'links', String(i)));
 
         // Delete parent deck document
         tx.delete(deckRef);

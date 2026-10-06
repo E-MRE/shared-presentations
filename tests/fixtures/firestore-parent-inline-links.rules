@@ -45,12 +45,12 @@ service cloud.firestore {
     // --- Field and Manifest Validations ---
 
     function isHttpsUrl(url) {
-      return url is string && url.size() <= 1000 && url.matches('^https://.+');
+      return url.size() <= 1000 && url.matches('^https://.+');
     }
 
     function isValidLink(link) {
       return link.keys().hasOnly(['label', 'url']) &&
-        link.label is string && link.label.size() >= 1 && link.label.size() <= 100 &&
+        link.label.size() <= 100 && link.label.matches('(?s).+') &&
         isHttpsUrl(link.url);
     }
 
@@ -84,9 +84,7 @@ service cloud.firestore {
     }
 
     function isValidTag(input) {
-      let tag = input;
-      let length = tag.size();
-      return tag is string && length >= 1 && length <= 32 && tag.matches('.*[^ ].*');
+      return input.size() <= 32 && input.matches('.*[^ ].*');
     }
     function areValidTags(input) {
       let tags = input;

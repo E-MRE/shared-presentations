@@ -78,12 +78,12 @@ npx firebase deploy --project shared-presentations --only firestore:rules
 npx firebase deploy --project shared-presentations --only hosting
 ```
 
-Kurallar yeni kategori/etiket alanlarını opsiyonel kabul eder; eski kayıtlar `Kategorisiz` ve boş etiketlerle okunur. Toplu veri dönüşümü gerekmez. Eski Hosting derlemesine dönüş mümkündür; yeni kurallar eski kategorisiz istemci payload'larını kabul eder. Eski kurallara körlemesine dönmek anonim yayın okuma açığını ve yönetici iptal sorununu geri getirir. Kural geri dönüşü gerekiyorsa bu iki sınırı koruyan uyumlu sürüm hazırlanmalıdır.
+Kurallar yeni kategori/etiket alanlarını opsiyonel kabul eder; eski kayıtlar `Kategorisiz` ve boş etiketlerle okunur. Toplu veri dönüşümü gerekmez. V1 kayıtların okunması ve onayı korunur; yeni oluşturma yalnız v2 kabul edilir. Eski Hosting derlemesine tek başına dönüş v2 kayıtlarla uyumlu değildir. V2 okuyabilen geri dönüş bundle’ı ve uyumlu kurallar birlikte hazırlanmalıdır. Kurallar → Hosting aralığında eski sekmelerin v1 yazımları reddedileceği için yazım geçişi/istemci yenilemesi planlanmalıdır. Eski kurallara körlemesine dönmek anonim yayın okuma açığını ve yönetici iptal sorununu geri getirir. Kural geri dönüşü gerekiyorsa bu iki sınırı koruyan uyumlu sürüm hazırlanmalıdır.
 
 Yayın sonrası gerçek origin'de derin link, giriş, CSP, cache, HTML kendi kontrolleri, fullscreen, PPTX indirme, üyelik ve iki hesaplı yönetim kontrol edilir. Paket veya yerel PASS sonucu canlı deployment onayı sayılmaz.
 
 Güncel komut sonuçları, başarısız ilk denemeler, düzeltmeler, kullanıcı teyitleri ve yayına kalan koşullar [son kontrol raporunda](SON-KONTROL-RAPORU.md) ve kalıcı kanıt dizininde bulunur.
 
-## 6 Ekim yapısal kural ölçümü
+## 6 Ekim v2 geçişi ve yapısal kural ölçümü
 
-[Manifest alt koleksiyon geçiş planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md) ve `npm run test:manifest-prototype` izole deneydir. 1/6/12 parça + sekiz etiket geçti; tam prototip 22 geçti/1 başarısız/0 skip (sekiz etiket + on bağlantı). Uygulama hâlâ v1 kullanıyor, güncel backend 131 geçti/8 başarısız/0 skip. Yayına hazır değildir. Üretim yapılandırması test kurallarını kullanmaz.
+[Geçiş ve ölçüm kaydı](MANIFEST-ALT-KOLEKSIYON-PLANI.md): etiket/bağlantı regex maliyeti ölçüldü; ana belge yine limite takılınca links de alt koleksiyona taşındı. Ana belge count/size metadata, çocuklar parça/bağlantı taşır. V2 ürün servisi tamamlandı; tam backend 160/160 sıfır skip, 12 parça + sekiz etiket + on bağlantı dahil. Üretim kuralları demo projede mimari kabul ile de sınanır. Gerçek servis v1 okuma/onay/edit ve içerik değişiminde v2’ye geçişi doğrular. Yeni kurallar henüz canlıda yok; push/deploy yapılmadı. Güncel diğer kontroller ve canlı yayın koşulları [son raporda](SON-KONTROL-RAPORU.md).

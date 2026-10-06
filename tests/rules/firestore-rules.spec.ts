@@ -29,9 +29,11 @@ import {
   writeBatch,
   Bytes,
   Timestamp,
+  type Firestore,
 } from 'firebase/firestore';
 
 import { PROJECT_ID, hasEmulator, emuHost, emuPort } from '../emulator-config';
+import { balancedManifest } from '../../src/content/manifest';
 
 describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
   let testEnv: RulesTestEnvironment;
@@ -73,7 +75,7 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       ownerPhotoURL: 'https://example.com/avatar.jpg',
       title: 'Valid Presentation Title',
       description: 'Valid presentation description that complies with limits.',
-      links: [{ label: 'GitHub', url: 'https://github.com/example/repo' }],
+      linkCount: 0,
       kind: 'html',
       fileName: 'deck.html',
       status: 'pending',
@@ -86,16 +88,12 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
         fileCount: 1,
       },
       chunkCount: 2,
-      chunks: [
-        { index: 0, size: c0 },
-        { index: 1, size: c1 },
-      ],
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
       publishedAt: null,
       reviewedBy: null,
       reviewedAt: null,
-      manifestVersion: 1,
+      manifestVersion: 2,
       quotaMarker: id,
       ...overrides,
     };
@@ -132,15 +130,19 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       await setDoc(doc(db, 'presentations', deckId), deckData);
 
       // Seed chunks matching manifest
-      const chunks = (deckData.chunks as Array<{ index: number; size: number }>) || [];
+      const chunks = balancedManifest(deckData.sizes.encoded, deckData.chunkCount);
       for (const ch of chunks) {
         const chunkRef = doc(db, 'presentations', deckId, 'chunks', String(ch.index));
         const dummyBytes = new Uint8Array(ch.size).fill(7);
         await setDoc(chunkRef, {
           index: ch.index,
+          size: ch.size,
           data: Bytes.fromUint8Array(dummyBytes),
         });
       }
+      for (let index = 0; index < deckData.linkCount; index++) await setDoc(doc(db, 'presentations', deckId, 'links', String(index)), {
+        index, label: `Link ${index}`, url: `https://example.com/${index}`,
+      });
     });
   }
 
@@ -247,14 +249,56 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
     });
   });
 
+  describe('V2 external link validation and permissions', () => {
+    it.each([
+      ['valid Unicode and multiline label', { label: 'öğrenme\nLLM' }, true],
+      ['maximum label', { label: 'x'.repeat(100) }, true],
+      ['long label', { label: 'x'.repeat(101) }, false],
+      ['empty label', { label: '' }, false], ['numeric label', { label: 1 }, false],
+      ['list label', { label: ['a'] }, false], ['map label', { label: { a: 1 } }, false],
+      ['null label', { label: null }, false], ['http URL', { url: 'http://example.com' }, false],
+      ['bare https prefix', { url: 'https://' }, false], ['numeric URL', { url: 1 }, false],
+      ['list URL', { url: ['https://example.com'] }, false], ['null URL', { url: null }, false],
+      ['maximum URL', { url: 'https://' + 'x'.repeat(992) }, true],
+      ['long URL', { url: 'https://' + 'x'.repeat(993) }, false],
+      ['extra field', { extra: true }, false], ['outside count', { index: 1 }, false],
+      ['fractional index', { index: 0.5 }, false],
+    ])('link %s', async (_name, patch, allowed) => {
+      await seedDeck('link-schema', 'alice', { linkCount: 1 });
+      const db = testEnv.authenticatedContext('alice', { email_verified: true }).firestore();
+      await (allowed ? assertSucceeds : assertFails)(setDoc(doc(db, 'presentations', 'link-schema', 'links', '0'), {
+        index: 0, label: 'Link', url: 'https://example.com', ...patch,
+      }));
+    });
+    it('protects reads and writes by membership, owner/admin and pending status', async () => {
+      await seedDeck('link-policy', 'alice', { linkCount: 1 });
+      await seedAdmin('link-admin');
+      const owner = testEnv.authenticatedContext('alice', { email_verified: true }).firestore();
+      const admin = testEnv.authenticatedContext('link-admin', { email_verified: true }).firestore();
+      const stranger = testEnv.authenticatedContext('bob', { email_verified: true }).firestore();
+      const unverified = testEnv.authenticatedContext('alice', { email_verified: false }).firestore();
+      const anon = testEnv.unauthenticatedContext().firestore();
+      const path = (db: Firestore) => doc(db, 'presentations', 'link-policy', 'links', '0');
+      const data = { index: 0, label: 'Link', url: 'https://example.com' };
+      for (const db of [owner, admin]) { await assertSucceeds(getDoc(path(db))); await assertSucceeds(setDoc(path(db), data)); }
+      for (const db of [stranger, unverified, anon]) { await assertFails(getDoc(path(db))); await assertFails(setDoc(path(db), data)); }
+      await assertFails(setDoc(doc(owner, 'presentations', 'link-policy', 'links', '00'), data));
+      await assertFails(deleteDoc(path(owner)));
+      await testEnv.withSecurityRulesDisabled(ctx => updateDoc(doc(ctx.firestore(), 'presentations', 'link-policy'), { status: 'published' }));
+      await assertSucceeds(getDoc(path(stranger)));
+      for (const db of [owner, admin]) await assertFails(setDoc(path(db), data));
+      await assertFails(getDoc(path(unverified))); await assertFails(getDoc(path(anon)));
+    });
+  });
+
   describe('Catalog compatibility and admin active policy', () => {
     it.each([
       ['HTML archive bounds', { kind: 'html', sizes: { encoded: 1000, unpacked: 26214400, fileCount: 300 } }, true],
       ['HTML archive overflow', { sizes: { encoded: 1000, unpacked: 26214401, fileCount: 1 } }, false],
       ['HTML file count overflow', { sizes: { encoded: 1000, unpacked: 2000, fileCount: 301 } }, false],
-      ['chunk byte overflow', { chunks: [{ index: 0, size: 900001 }], chunkCount: 1, sizes: { encoded: 900001, unpacked: 900001, fileCount: 1 } }, false],
-      ['HTML encoded overflow', { chunks: Array.from({ length: 6 }, (_, index) => ({ index, size: 900000 })), chunkCount: 6, sizes: { encoded: 5400000, unpacked: 5400000, fileCount: 1 } }, false],
-      ['PPTX encoded overflow', { kind: 'pptx', chunks: Array.from({ length: 10 }, (_, index) => ({ index, size: 900000 })), chunkCount: 10, sizes: { encoded: 9000000, unpacked: 9000000, fileCount: 1 } }, false],
+      ['chunk byte overflow', { chunkCount: 1, sizes: { encoded: 900001, unpacked: 900001, fileCount: 1 } }, false],
+      ['HTML encoded overflow', { chunkCount: 6, sizes: { encoded: 5400000, unpacked: 5400000, fileCount: 1 } }, false],
+      ['PPTX encoded overflow', { kind: 'pptx', chunkCount: 10, sizes: { encoded: 9000000, unpacked: 9000000, fileCount: 1 } }, false],
     ])('declared upload limit %s', async (_name, changes, allowed) => {
       await seedUser('alice', 1, 'limit-edit');
       await seedDeck('limit-edit', 'alice');
@@ -296,7 +340,7 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       const batch = writeBatch(db);
       batch.set(doc(db, 'presentations', 'catalog-create'), createValidDeckData('catalog-create', 'alice', catalog));
       for (const index of [0, 1]) batch.set(doc(db, 'presentations', 'catalog-create', 'chunks', String(index)), {
-        index, data: Bytes.fromUint8Array(new Uint8Array(500)),
+        index, size: 500, data: Bytes.fromUint8Array(new Uint8Array(500)),
       });
       batch.update(doc(db, 'users', 'alice'), { pendingCount: 1, pendingDeckId: 'catalog-create' });
       const assertWrite = allowed ? assertSucceeds : assertFails;
@@ -409,9 +453,10 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       // Non-https link
       const batch1 = writeBatch(aliceDb);
       const deckData1 = createValidDeckData('deck-http', 'alice', {
-        links: [{ label: 'Insecure', url: 'http://insecure.example.com' }],
+        linkCount: 1,
       });
       batch1.set(doc(aliceDb, 'presentations', 'deck-http'), deckData1);
+      batch1.set(doc(aliceDb, 'presentations', 'deck-http', 'links', '0'), { index: 0, label: 'Insecure', url: 'http://insecure.example.com' });
       batch1.update(doc(aliceDb, 'users', 'alice'), {
         pendingCount: 1,
         pendingDeckId: 'deck-http',
@@ -420,12 +465,8 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
 
       // 11 links (> 10)
       const batch2 = writeBatch(aliceDb);
-      const elevenLinks = Array.from({ length: 11 }, (_, i) => ({
-        label: `Link ${i}`,
-        url: `https://example.com/${i}`,
-      }));
       const deckData2 = createValidDeckData('deck-11links', 'alice', {
-        links: elevenLinks,
+        linkCount: 11,
       });
       batch2.set(doc(aliceDb, 'presentations', 'deck-11links'), deckData2);
       batch2.update(doc(aliceDb, 'users', 'alice'), {
@@ -495,6 +536,7 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       const ch0 = new Uint8Array(500).fill(1);
       batch.set(doc(aliceDb, 'presentations', 'deck-valid', 'chunks', '0'), {
         index: 0,
+        size: 500,
         data: Bytes.fromUint8Array(ch0),
       });
 
@@ -502,6 +544,7 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       const ch1 = new Uint8Array(500).fill(2);
       batch.set(doc(aliceDb, 'presentations', 'deck-valid', 'chunks', '1'), {
         index: 1,
+        size: 500,
         data: Bytes.fromUint8Array(ch1),
       });
 
@@ -531,12 +574,14 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       const forgedChunk0 = new Uint8Array(600).fill(1);
       batch.set(doc(aliceDb, 'presentations', 'deck-forged', 'chunks', '0'), {
         index: 0,
+        size: 600,
         data: Bytes.fromUint8Array(forgedChunk0),
       });
 
       const chunk1 = new Uint8Array(500).fill(2);
       batch.set(doc(aliceDb, 'presentations', 'deck-forged', 'chunks', '1'), {
         index: 1,
+        size: 500,
         data: Bytes.fromUint8Array(chunk1),
       });
 
@@ -545,7 +590,7 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
         pendingDeckId: 'deck-forged',
       });
 
-      // DENIED because chunk size doesn't match deckAfter.chunks[0].size
+      // DENIED because 600 differs from the v2 size derived from encoded/count.
       await assertFails(batch.commit());
     });
 
@@ -561,12 +606,11 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       // chunks sum to 900, but sizes.encoded is 1000
       const deckData = createValidDeckData('deck-mismatch', 'alice', {
         sizes: { encoded: 1000, unpacked: 2000, fileCount: 1 },
-        chunks: [
-          { index: 0, size: 450 },
-          { index: 1, size: 450 },
-        ],
       });
       batch.set(doc(aliceDb, 'presentations', 'deck-mismatch'), deckData);
+      for (const index of [0, 1]) batch.set(doc(aliceDb, 'presentations', 'deck-mismatch', 'chunks', String(index)), {
+        index, size: 450, data: Bytes.fromUint8Array(new Uint8Array(450)),
+      });
       batch.update(doc(aliceDb, 'users', 'alice'), {
         pendingCount: 1,
         pendingDeckId: 'deck-mismatch',
@@ -856,11 +900,6 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
         status: 'pending',
         chunkCount: 3,
         sizes: { encoded: 900, unpacked: 2000, fileCount: 1 },
-        chunks: [
-          { index: 0, size: chSize },
-          { index: 1, size: chSize },
-          { index: 2, size: chSize },
-        ],
       });
 
       const aliceDb = testEnv.authenticatedContext('alice', {
@@ -873,11 +912,10 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       batch.update(doc(aliceDb, 'presentations', 'tail-clean'), {
         chunkCount: 2,
         sizes: { encoded: 600, unpacked: 2000, fileCount: 1 },
-        chunks: [
-          { index: 0, size: chSize },
-          { index: 1, size: chSize },
-        ],
         updatedAt: Timestamp.now(),
+      });
+      for (const index of [0, 1]) batch.set(doc(aliceDb, 'presentations', 'tail-clean', 'chunks', String(index)), {
+        index, size: chSize, data: Bytes.fromUint8Array(new Uint8Array(chSize)),
       });
       // Delete old tail chunk 2
       batch.delete(doc(aliceDb, 'presentations', 'tail-clean', 'chunks', '2'));

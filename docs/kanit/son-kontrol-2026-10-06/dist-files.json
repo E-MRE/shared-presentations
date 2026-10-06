@@ -1,0 +1,242 @@
+[
+  {
+    "path": "assets/AdminPage-tDfPcqsa.css",
+    "size": 702,
+    "sha256": "19edcb45489320b0d5583901a0540b34bb6a2c44d6f82620d60ba8d5d61f6631"
+  },
+  {
+    "path": "assets/AdminPage-zfpkGl0N.js",
+    "size": 6373,
+    "sha256": "9e6f78a9bca76fba34c7de4cb73547b8944e818734e56786330ab5a3daa57b2e"
+  },
+  {
+    "path": "assets/LibraryPage-e4DRDSY2.js",
+    "size": 3880,
+    "sha256": "03a71793924cd6302188c85c3704fda5405c555db6b6745e243cfe3f987989f8"
+  },
+  {
+    "path": "assets/LibraryUI-BaFao5L_.js",
+    "size": 2186,
+    "sha256": "3268591b06e72f2dc519ad7eaf5280e0db7eecc494c51d538cc20b13b044fb9e"
+  },
+  {
+    "path": "assets/LibraryUI-DBRZ_B5E.css",
+    "size": 1889,
+    "sha256": "7541c3d60d0338a72508425446692c6d102691ee71693e6d8ca041fc3808d3c4"
+  },
+  {
+    "path": "assets/MyDecksPage-D6hcyBR9.js",
+    "size": 2872,
+    "sha256": "f4b39b864a0ce3433615838f4cfb13ffd8d68fcbb6a8f582b21cf4b7838ac0d7"
+  },
+  {
+    "path": "assets/PresentationEditor-BbKC5Bhs.js",
+    "size": 57213,
+    "sha256": "173e84af8899412d1d2f8b6956360e3a0a09a2a45f30910dd5d30465aa1d6462"
+  },
+  {
+    "path": "assets/PresentationEditor-BgFRbbQE.css",
+    "size": 5187,
+    "sha256": "f52a1089a6dc97610819775ab8edb76d7d55a72b39af0a31f54dee44a4384fa9"
+  },
+  {
+    "path": "assets/ViewerPage-0dHhCMbL.css",
+    "size": 7428,
+    "sha256": "7acf7f318dd1ee68d2cccca2d3b96cf7f093d6f462e575302363d75d2f5aa902"
+  },
+  {
+    "path": "assets/ViewerPage-DmsTGrjj.js",
+    "size": 12396,
+    "sha256": "a0af332bd3a8aa1dee4653fcce07cccb76f21cf3dc50abc41cbfb9238bef3330"
+  },
+  {
+    "path": "assets/chunks-BTBPozcl.js",
+    "size": 17503,
+    "sha256": "3dadf1625b12f876bb0ec5518cad94e3ec85c068b27ee718f53597e8feb68ace"
+  },
+  {
+    "path": "assets/cover-DOaNaMEn.js",
+    "size": 39820,
+    "sha256": "e91c3c8ad9bacb259acf9ab6816629bf1ab0461fdcca235eec2e8a1c7a3d4d2b"
+  },
+  {
+    "path": "assets/firebase-auth-2qASohrh.js",
+    "size": 80132,
+    "sha256": "0b2e80cc4556f0aab359b2bbc387e73d7a2d99d3ea7c71c001ea6d7467bb3041"
+  },
+  {
+    "path": "assets/firebase-firestore-D3zwtJbM.js",
+    "size": 477021,
+    "sha256": "9b80f19faea54e0ac8a0e29e80536de2839f0f63fa57452bfead7bd2cd78ef68"
+  },
+  {
+    "path": "assets/index-DEPnElVX.js",
+    "size": 66691,
+    "sha256": "1db405fb439c8d6751c6d0aa66cc13328c2426d2412baf0fda1b09a8ddb02ff3"
+  },
+  {
+    "path": "assets/index-DhwGEelB.css",
+    "size": 45912,
+    "sha256": "45e80db01627dc6184994527411a0ff304c389124d48a1ced6e50c5277bfa1ed"
+  },
+  {
+    "path": "assets/jetbrains-mono-latin-400-normal-6-qcROiO.woff",
+    "size": 27496,
+    "sha256": "658b9ee07b0249cf910a8d6f3d812d46c962bae81d7379a0355b1db35c61586f"
+  },
+  {
+    "path": "assets/jetbrains-mono-latin-400-normal-V6pRDFza.woff2",
+    "size": 21168,
+    "sha256": "14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb"
+  },
+  {
+    "path": "assets/jetbrains-mono-latin-ext-400-normal-Bc8Ftmh3.woff2",
+    "size": 7336,
+    "sha256": "505dfba8ecbe77e82765f36d317ed7ef4ac42719dc5f4ae68d1c483fd22d0d14"
+  },
+  {
+    "path": "assets/jetbrains-mono-latin-ext-400-normal-fXTG6kC5.woff",
+    "size": 10128,
+    "sha256": "e7131bbf591e1ed9b74e44e162f6a39affa00ac21654cb683585d085733f6355"
+  },
+  {
+    "path": "assets/lottie_light-DWNij8TF.js",
+    "size": 169135,
+    "sha256": "31d56ef8853a112454e2b1fae1e26acbdec838eeb5f58a85f4fc9b09ae2d5873"
+  },
+  {
+    "path": "assets/mime-BXmme3vB.js",
+    "size": 1078,
+    "sha256": "3b5958ad207467541552cb371c8ba787781b1ff6c9d32175ae46d2383abc3b46"
+  },
+  {
+    "path": "assets/pipeline-DOlnCQPm.js",
+    "size": 4316,
+    "sha256": "18179f222cccdc5df72b0217a9773cf6635114fc3afd6cf6c163c7c2df404d92"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-400-normal-BDKaGhyp.woff",
+    "size": 15728,
+    "sha256": "9709167175cee7dcd331a7ed95be1182a5d5f00715b67a02107ecc80a55f490d"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-400-normal-Dhut76fR.woff2",
+    "size": 11816,
+    "sha256": "221a4135d06a4b33abbd535e9a0da4e565d19545ddd9267c4e678a916d54d9b6"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-500-normal-Bf-nb4oT.woff2",
+    "size": 12312,
+    "sha256": "bad081c8dbc15aed6c5e4cde5461914f7b3bdc295b7a7aed177e4beddb79bffa"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-500-normal-DYtqi0QS.woff",
+    "size": 16124,
+    "sha256": "a1b54d9fda75d8de13e283ef09668395160e23cbb7dd9ae1aec91d6199da85bb"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-600-normal-BR_Ojra4.woff",
+    "size": 16084,
+    "sha256": "d9569c0aacc16c33c52e57e1e48c1b94f3b0a6be99e75479edc6438cc44c48e0"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-600-normal-DLTa1BUW.woff2",
+    "size": 12188,
+    "sha256": "8872bb5c9111df9bd3162c2394aee6354d782b13408a4dd5bbf65c48207206e6"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-700-normal-CfpNZvy6.woff2",
+    "size": 12244,
+    "sha256": "2050755bf475817c96ac7d914c7f07cc3c2d11ff4b3fb4747b8d41de584aad17"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-700-normal-DqEcQeE5.woff",
+    "size": 16136,
+    "sha256": "6188f593f250aa25137865e8d07373fd0f585f5920a496c73ede84dbbdff7a92"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-ext-400-normal-2ppkqaOR.woff",
+    "size": 15312,
+    "sha256": "d0a823b74d65410a8faaf5efb1232813197cdc898d9191e5997428b42aa4cafd"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-ext-400-normal-D127hM_v.woff2",
+    "size": 10592,
+    "sha256": "65b5680bf2ba9c6c42af74ddd2e8aadde93af7c523454ebb3d4e32fdba3f94db"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-ext-500-normal-9VZagAe1.woff2",
+    "size": 10864,
+    "sha256": "d1584f50c388cae7e570bed35be331fa4a9afd6832ef45a32fa8bf81930e6db9"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-ext-500-normal-CqEEAICU.woff",
+    "size": 15620,
+    "sha256": "42793e2d60d4b62191fa9f1968002d76c1c7438e76b7c3bcc145af154803e9d5"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-ext-600-normal-B0WRRYJ1.woff",
+    "size": 15608,
+    "sha256": "ade6f23e14c20160f924f980f6610cd73979c03227541d8734b2c42563d11325"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-ext-600-normal-DQgPU_Cg.woff2",
+    "size": 10896,
+    "sha256": "080a1fea8589c2bd4fa08750d0d99b3388be63df8c41a649de05cb2dda1ec007"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-ext-700-normal-8-d-IyIQ.woff",
+    "size": 15616,
+    "sha256": "aaa9d5f7040bcf5ee2c9569f6c54aaf8327ee769fd2d02764a858f450a8fbf13"
+  },
+  {
+    "path": "assets/plus-jakarta-sans-latin-ext-700-normal-BajbvANd.woff2",
+    "size": 11008,
+    "sha256": "b202ec87899e78825db955e6ab43858b88c0cd444abe2dfac2e763f837b8f234"
+  },
+  {
+    "path": "assets/react-router-BUiKsvmN.js",
+    "size": 258608,
+    "sha256": "e9f1e3cba8e9669342ecf12708c44a31df2d225152cf5be0e3ce66dbcf523378"
+  },
+  {
+    "path": "assets/rolldown-runtime-CbXtAM7H.js",
+    "size": 589,
+    "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
+  },
+  {
+    "path": "assets/state-motion-DPB1AEsP.js",
+    "size": 729,
+    "sha256": "34914fb1da4e3c740b98f6214bef28cdbcfa9a741ee61222520194eb5e32aeed"
+  },
+  {
+    "path": "assets/useDeckMutation-DuWog0Ds.js",
+    "size": 734,
+    "sha256": "a8080b38184a92ecfc37c4501d3e454454b3e6235144134f72d98cbec04f8b3e"
+  },
+  {
+    "path": "favicon.svg",
+    "size": 248,
+    "sha256": "8c334cbd3ef687fbbd60db8aff0633c6f90a08a0bddc0c087fcebfdff0ec5fc9"
+  },
+  {
+    "path": "index.html",
+    "size": 1486,
+    "sha256": "3af711f791f666b66c27e3d180a8c23d44564d3a652e87cedfe4efb2e2cc914d"
+  },
+  {
+    "path": "licenses/jetbrains-mono-OFL.txt",
+    "size": 4524,
+    "sha256": "403581b69dac5cff4079205e01c6b467e56af449ecbd7247693ddb1baafa005b"
+  },
+  {
+    "path": "licenses/lottie-web-MIT.txt",
+    "size": 1075,
+    "sha256": "9d8d4d8b4bb99572ee8b51025a30b8493d949798cac465c6c15b1b29420bcb06"
+  },
+  {
+    "path": "licenses/plus-jakarta-sans-OFL.txt",
+    "size": 4534,
+    "sha256": "e07fd1167c2aaaa6fb965dd66e1e73b13c9c95b76b2d648b6e938780f30b37af"
+  }
+]

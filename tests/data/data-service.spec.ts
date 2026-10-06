@@ -35,6 +35,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   Timestamp,
   Bytes,
 } from 'firebase/firestore';
@@ -43,6 +44,7 @@ import { registerListener, closeAllListeners, getActiveListenerCount } from '../
 import { AppErrorCode } from '../../src/contracts/errors';
 import type { AuthUser } from '../../src/contracts/auth';
 import type { CreateDeckInput } from '../../src/contracts/services';
+import { reconstructPresentation } from '../../src/content/chunks';
 
 import { PROJECT_ID, hasEmulator, emuHost, emuPort } from '../emulator-config';
 
@@ -152,7 +154,98 @@ describe.skipIf(!hasEmulator)('Presentation Data Service Integration Suite (Real
     await testEnv.withSecurityRulesDisabled(context => setDoc(doc(context.firestore(), 'admins', 'boundary-admin'), { active: true }));
     const adminDb = testEnv.authenticatedContext('boundary-admin', { email_verified: true }).firestore();
     const admin = new FirestorePresentationDataService({ db: adminDb, getCurrentUser: () => makeUser('boundary-admin', true, true) });
-    expect((await admin.approveDeck(created.value.id)).ok).toBe(true);
+    expect((await admin.reviewDeck({ id: created.value.id, action: 'approve' })).ok).toBe(true);
+  }, 30_000);
+  it('v2 keeps 12 chunks + 8 tags + 10 links, preserves bytes, reviews, replaces and removes all tails', async () => {
+    const user = makeUser('v2-owner', true);
+    const db = testEnv.authenticatedContext(user.uid, { email_verified: true }).firestore();
+    const service = new FirestorePresentationDataService({ db, getCurrentUser: () => user });
+    const prepared = makeDeckInput('x'.repeat(120), [50, 150, 101, ...Array(9).fill(100)]);
+    const prefix = 'https://example.com/';
+    const links = Array.from({ length: 10 }, (_, i) => ({ label: String(i).padEnd(100, 'x'), url: prefix + String(i).padEnd(1000 - prefix.length, 'x') }));
+    const input = { ...prepared, description: 'x'.repeat(2000), kind: 'pptx' as const, fileName: 'deck.pptx',
+      sizes: { encoded: 1201, unpacked: 1201, fileCount: 1 }, cover: new Uint8Array(150000), category: 'AI & LLM',
+      tags: Array.from({ length: 8 }, (_, i) => String(i).padEnd(32, 'x')), links };
+    const result = await service.createDeck(input);
+    expect(result.ok, String(result.error?.details)).toBe(true);
+    if (!result.ok) throw new Error('V2 maximum metadata create failed');
+    const id = result.value.id;
+    const parent = (await getDoc(doc(db, 'presentations', id))).data()!;
+    expect(parent).toMatchObject({ manifestVersion: 2, chunkCount: 12, linkCount: 10 });
+    expect(parent).not.toHaveProperty('chunks'); expect(parent).not.toHaveProperty('links');
+    expect((await service.getDeck(id)).value?.links).toEqual(links);
+    const chunks = await service.getAllChunks(id, 12);
+    expect(chunks.ok).toBe(true);
+    const reconstructed = reconstructPresentation(chunks.value!, result.value.chunks, 'pptx', input.sizes);
+    expect(reconstructed.ok).toBe(true);
+    expect(reconstructed.value?.rawBytes).toEqual(new Uint8Array(prepared.chunks.flatMap(chunk => [...chunk.data])));
+    await testEnv.withSecurityRulesDisabled(ctx => setDoc(doc(ctx.firestore(), 'admins', 'v2-admin'), {}));
+    const adminDb = testEnv.authenticatedContext('v2-admin', { email_verified: true }).firestore();
+    const admin = new FirestorePresentationDataService({ db: adminDb, getCurrentUser: () => makeUser('v2-admin', true, true) });
+    expect((await admin.reviewDeck({ id, action: 'approve' })).ok).toBe(true);
+    const replacement = makeDeckInput('Replacement', [1200, 1]);
+    const edited = await service.updateDeck({ id, title: 'Replacement', description: '', links: links.slice(0, 3),
+      tags: input.tags, replacementContent: { ...replacement, fileName: 'replacement.pptx', sizes: input.sizes } });
+    expect(edited.ok, String(edited.error?.details)).toBe(true);
+    expect(edited.value?.chunks).toEqual([{ index: 0, size: 601 }, { index: 1, size: 600 }]);
+    expect((await getDoc(doc(db, 'presentations', id, 'chunks', '2'))).exists()).toBe(false);
+    expect((await getDoc(doc(db, 'presentations', id, 'links', '3'))).exists()).toBe(false);
+    expect((await getDoc(doc(db, 'users', user.uid))).data()?.pendingCount).toBe(1);
+    expect((await service.deleteDeck({ id })).ok).toBe(true);
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      expect((await getDoc(doc(ctx.firestore(), 'presentations', id, 'chunks', '0'))).exists()).toBe(false);
+      expect((await getDoc(doc(ctx.firestore(), 'presentations', id, 'links', '0'))).exists()).toBe(false);
+    });
+    expect((await getDoc(doc(db, 'users', user.uid))).data()?.pendingCount).toBe(0);
+  }, 30_000);
+  it('reads and reviews maximum-catalog v1 records, preserves legacy binary fields on edit and upgrades on replacement', async () => {
+    const id = 'legacy-v2-transition';
+    const user = makeUser('legacy-v2-owner', true);
+    const db = testEnv.authenticatedContext(user.uid, { email_verified: true }).firestore();
+    const service = new FirestorePresentationDataService({ db, getCurrentUser: () => user });
+    const tags = Array.from({ length: 8 }, (_, i) => `tag-${i}`);
+    const oldSizes = [50, 150, 101, ...Array(9).fill(100)];
+    const links = Array.from({ length: 10 }, (_, i) => ({ label: `Link ${i}`, url: `https://example.com/${i}` }));
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      const local = ctx.firestore();
+      await setDoc(doc(local, 'admins', 'legacy-admin'), { active: true });
+      await setDoc(doc(local, 'users', user.uid), { displayName: 'Legacy', email: user.email,
+        createdAt: Timestamp.now(), pendingCount: 1, pendingDeckId: id });
+      await setDoc(doc(local, 'presentations', id), {
+        ownerUid: user.uid, title: 'Legacy', description: '', links, tags, kind: 'pptx', fileName: 'legacy.pptx',
+        status: 'pending', rejectNote: '', cover: Bytes.fromUint8Array(new Uint8Array([1])), coverSource: 'auto',
+        sizes: { encoded: 1201, unpacked: 1201, fileCount: 1 }, chunkCount: 12,
+        chunks: oldSizes.map((size, index) => ({ index, size })), manifestVersion: 1,
+        createdAt: Timestamp.now(), updatedAt: Timestamp.now(), quotaMarker: id,
+        publishedAt: null, reviewedBy: null, reviewedAt: null,
+      });
+      for (const [index, size] of oldSizes.entries()) await setDoc(doc(local, 'presentations', id, 'chunks', String(index)),
+        { index, data: Bytes.fromUint8Array(new Uint8Array(size).fill(index + 1)) });
+    });
+    const legacy = await service.getDeck(id);
+    expect(legacy.value?.manifestVersion).toBe(1); expect(legacy.value?.links).toEqual(links);
+    const legacyChunks = await service.getAllChunks(id, 12);
+    expect(reconstructPresentation(legacyChunks.value!, legacy.value!.chunks, 'pptx', legacy.value!.sizes).ok).toBe(true);
+    await assertFails(updateDoc(doc(db, 'presentations', id), { sizes: { encoded: 1200, unpacked: 1200, fileCount: 1 } }));
+    await assertFails(setDoc(doc(db, 'presentations', id, 'chunks', '0'), { index: 0, data: Bytes.fromUint8Array(new Uint8Array(50)) }));
+    const adminDb = testEnv.authenticatedContext('legacy-admin', { email_verified: true }).firestore();
+    const admin = new FirestorePresentationDataService({ db: adminDb, getCurrentUser: () => makeUser('legacy-admin', true, true) });
+    expect((await admin.reviewDeck({ id, action: 'approve' })).ok).toBe(true);
+    const edited = await service.updateDeck({ id, title: 'Edited legacy', description: '', links, tags });
+    expect(edited.ok, String(edited.error?.details)).toBe(true);
+    expect(edited.value?.manifestVersion).toBe(1);
+    expect(edited.value?.chunks).toEqual(legacy.value?.chunks);
+    const raw = (await getDoc(doc(db, 'presentations', id))).data()!;
+    expect(raw.linkCount).toBe(10); expect(raw).not.toHaveProperty('links');
+    expect((await admin.reviewDeck({ id, action: 'approve' })).ok).toBe(true);
+    const replacement = makeDeckInput('V2 replacement', [901, 300]);
+    const replaced = await service.updateDeck({ id, title: 'V2', description: '', links, tags,
+      replacementContent: { ...replacement, fileName: 'v2.pptx', sizes: { encoded: 1201, unpacked: 1201, fileCount: 1 } } });
+    expect(replaced.ok, String(replaced.error?.details)).toBe(true);
+    expect(replaced.value?.manifestVersion).toBe(2);
+    expect((await getDoc(doc(db, 'presentations', id))).data()).not.toHaveProperty('chunks');
+    expect((await getDoc(doc(db, 'presentations', id, 'chunks', '11'))).exists()).toBe(false);
+    expect((await admin.reviewDeck({ id, action: 'approve' })).ok).toBe(true);
   }, 30_000);
   it('1. unverified e-mail user is NOT a member: no listener, upload denied', async () => {
     const unverifiedUser = makeUser('unverified-alice', false, false, false);

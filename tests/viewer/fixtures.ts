@@ -35,7 +35,7 @@ export function fixtureService(scenario: Scenario): ViewerReadService {
     switch (scenario.invalid) {
       case 'count': deck.chunkCount = 100000; break;
       case 'size': deck.chunks[0].size = 900001; break;
-      case 'version': deck.manifestVersion = 2; break;
+      case 'version': deck.manifestVersion = 3; break;
       case 'order': deck.chunks[0].index = 1; break;
       case 'encoded': deck.sizes.encoded = Number.NaN; break;
       case 'unpacked': deck.sizes.unpacked = 30 * 1024 * 1024; break;

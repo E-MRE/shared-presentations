@@ -1,4 +1,4 @@
-// Isolated architecture experiment. The application still uses manifest v1.
+// Architecture acceptance against the production v2 rules, in an isolated demo project.
 import { readFileSync } from 'node:fs';
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { initializeTestEnvironment, assertFails, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
@@ -10,7 +10,7 @@ describe.skipIf(!hasEmulator)('Manifest v2 isolated prototype', () => {
   beforeAll(async () => {
     env = await initializeTestEnvironment({ projectId: PROJECT_ID, firestore: {
       host: emuHost, port: emuPort,
-      rules: readFileSync(new URL('../fixtures/firestore-subcollection-v2.rules', import.meta.url), 'utf8'),
+      rules: readFileSync(new URL('../../firestore.rules', import.meta.url), 'utf8'),
     } });
   });
   beforeEach(async () => { await env.clearFirestore(); });
@@ -23,7 +23,7 @@ describe.skipIf(!hasEmulator)('Manifest v2 isolated prototype', () => {
       links: Array.from({ length: linkCount }, (_, i) => ({ label: `Link ${i}`, url: `https://example.com/${i}` })),
       category: 'AI & LLM', tags: Array.from({ length: 8 }, (_, i) => `tag-${i}`),
       kind, fileName: `deck.${kind}`, status: 'pending', rejectNote: '',
-      cover: Bytes.fromUint8Array(new Uint8Array(150000)), coverSource: 'auto',
+      cover: Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4])), coverSource: 'auto',
       sizes: { encoded, unpacked: kind === 'html' ? 26214400 : encoded, fileCount: kind === 'html' ? 300 : 1 },
       chunkCount: count, manifestVersion: 2, quotaMarker: 'deck',
       createdAt: Timestamp.now(), updatedAt: Timestamp.now(),
@@ -32,11 +32,16 @@ describe.skipIf(!hasEmulator)('Manifest v2 isolated prototype', () => {
   }
   type Deck = ReturnType<typeof deck>;
   type Fault = 'wrong-size' | 'wrong-index' | 'wrong-data' | 'foreign-field' | 'missing-quota';
+  function parent(data: Deck) {
+    const { links, ...fields } = data;
+    return { ...fields, linkCount: links.length };
+  }
   async function create(db: Firestore, data: Deck, fault?: Fault) {
     await runTransaction(db, async tx => {
       const userRef = doc(db, 'users', 'owner');
       const before = await tx.get(userRef);
-      tx.set(doc(db, 'presentations', 'deck'), data);
+      tx.set(doc(db, 'presentations', 'deck'), parent(data));
+      data.links.forEach((link, index) => tx.set(doc(db, 'presentations', 'deck', 'links', String(index)), { index, ...link }));
       for (let i = 0; i < data.chunkCount; i++) {
         const size = Math.floor(data.sizes.encoded / data.chunkCount) + (i < data.sizes.encoded % data.chunkCount ? 1 : 0);
         const chunk = {
@@ -55,6 +60,7 @@ describe.skipIf(!hasEmulator)('Manifest v2 isolated prototype', () => {
   async function verifyAndApprove(db: Firestore, data: Deck) {
     const parent = await getDoc(doc(db, 'presentations', 'deck'));
     expect(parent.data()).not.toHaveProperty('chunks');
+    expect(parent.data()).not.toHaveProperty('links');
     let actualTotal = 0;
     for (let i = 0; i < data.chunkCount; i++) {
       const chunk = (await getDoc(doc(db, 'presentations', 'deck', 'chunks', String(i)))).data()!;
@@ -79,6 +85,7 @@ describe.skipIf(!hasEmulator)('Manifest v2 isolated prototype', () => {
     for (const reader of [env.unauthenticatedContext().firestore(), env.authenticatedContext('unverified', { email_verified: false }).firestore()]) {
       await assertFails(getDoc(doc(reader, 'presentations', 'deck')));
       await assertFails(getDoc(doc(reader, 'presentations', 'deck', 'chunks', '0')));
+      await assertFails(getDoc(doc(reader, 'presentations', 'deck', 'links', '0')));
     }
     expect((await getDoc(doc(member('reader'), 'presentations', 'deck', 'chunks', '0'))).exists()).toBe(true);
   }
@@ -89,7 +96,7 @@ describe.skipIf(!hasEmulator)('Manifest v2 isolated prototype', () => {
   }, 30_000);
   it.each([{ kind: 'html', encoded: 5242880, count: 6 }, { kind: 'pptx', encoded: 8388608, count: 10 }])(
     'creates and approves maximum $kind payload with 8 tags and maximum cover', async ({ kind, encoded, count }) => {
-      const db = member(); const data = deck(count, encoded, kind);
+      const db = member(); const data = { ...deck(count, encoded, kind), cover: Bytes.fromUint8Array(new Uint8Array(150000)) };
       await create(db, data); await verifyAndApprove(db, data);
     }, 30_000);
   it('supports 12 chunks, 8 tags and 10 links together', async () => {
@@ -116,7 +123,7 @@ describe.skipIf(!hasEmulator)('Manifest v2 isolated prototype', () => {
     // No child loop for malformed numeric counts; parent + quota is sufficient to test denial.
     const db = member();
     await assertFails(runTransaction(db, async tx => {
-      tx.set(doc(db, 'presentations', 'deck'), { ...deck(1), ...patch });
+      tx.set(doc(db, 'presentations', 'deck'), { ...parent(deck(1)), ...patch });
       tx.set(doc(db, 'users', 'owner'), { displayName: 'Owner', email: 'owner@example.com',
         createdAt: Timestamp.now(), pendingCount: 1, pendingDeckId: 'deck' });
     }));

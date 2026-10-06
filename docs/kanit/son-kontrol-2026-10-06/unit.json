@@ -1,8 +1,8 @@
 {
   "passed": 192,
   "failed": 0,
-  "skipped": 105,
-  "total": 297,
+  "skipped": 130,
+  "total": 322,
   "cases": [
     {
       "name": "Authentication & Membership Invariants Membership Logic Invariants unverified email user is NOT a member (isMember === false)",
@@ -62,6 +62,214 @@
     },
     {
       "name": "Verification dispatch is independent from account creation preserves resend failures and supports retry using the same account",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags reads legacy documents as uncategorized without changing stored data",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags accepts supported categories and bounded tags",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"category\":\"unsupported\"}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"a\",\"a\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\" \"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 2 chunks with 8 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 6 chunks with 8 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 10 chunks with 8 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 8 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 0 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves html at encoded, cover and catalog limits",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves pptx at encoded, cover and catalog limits",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) v2 keeps 12 chunks + 8 tags + 10 links, preserves bytes, reviews, replaces and removes all tails",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) reads and reviews maximum-catalog v1 records, preserves legacy binary fields on edit and upgrades on replacement",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 1. unverified e-mail user is NOT a member: no listener, upload denied",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 2. Google-signed-in member creates a deck → pendingCount becomes 1 (assert read back from emulator)",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 3. 6th pending deck is rejected by the quota rule → service returns typed Turkish error",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 4. pending → pending edit leaves pendingCount unchanged (assert counter value)",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 5. editing a published deck returns it to pending and increments counter by 1",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 6. admin approve sets status, publishedAt, reviewedBy, reviewedAt and decrements the counter",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 7. admin reject without a note is refused; with a note it succeeds",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 8. owner delete of a pending deck removes chunks and decrements counter; zero orphan chunks remain",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 9. owner CANNOT delete a published deck; a non-owner CANNOT delete anything",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 10. member cannot read another member's pending deck or its chunks",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 11. published feed, own-decks and review-queue queries return correct order, and cursor pagination returns next page without duplicates or gaps",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 12. sign-out closes listeners",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 13. a raw Firestore call from a non-admin client attempting a client-side admin grant is DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation accepts valid titles within limits",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation rejects empty or whitespace-only titles",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation rejects titles exceeding MAX_TITLE_LENGTH (120)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Description validation accepts valid descriptions",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Description validation rejects descriptions exceeding MAX_DESCRIPTION_LENGTH (2000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation accepts valid HTTPS links array up to MAX_LINKS_COUNT",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects links array exceeding MAX_LINKS_COUNT (10)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects insecure HTTP links",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects links with empty labels",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation accepts valid cover payloads",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation rejects empty cover payload",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation rejects cover exceeding MAX_COVER_BYTES (150000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants accepts sizes within HTML compressed and unpacked limits",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants rejects HTML encoded size exceeding MAX_HTML_ENCODED_BYTES (5242880)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants rejects PPTX encoded size exceeding MAX_PPTX_BYTES (8388608)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants enforces browser-only unpacked size MAX_HTML_UNPACKED_BYTES (26214400)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants enforces browser-only file count limit MAX_HTML_FILE_COUNT (300)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation accepts valid chunk manifest with matching sizes",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects chunk exceeding MAX_CHUNK_BYTES (900000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects manifest where sum of chunks does not equal encoded size",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects mismatch between binary chunk byteLength and manifest size",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite CreateDeckInput and UpdateDeckInput validation validates a complete valid CreateDeckInput payload",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite CreateDeckInput and UpdateDeckInput validation rejects invalid UpdateDeckInput missing id",
       "status": "passed"
     },
     {
@@ -345,275 +553,31 @@
       "status": "passed"
     },
     {
-      "name": "Backward compatible category and tags reads legacy documents as uncategorized without changing stored data",
+      "name": "application auth boundary with real Firebase User token API shape requires refreshed token claims, not providerData or stale emailVerified, and avoids admin reads for unverified",
       "status": "passed"
     },
     {
-      "name": "Backward compatible category and tags accepts supported categories and bounded tags",
+      "name": "application auth boundary with real Firebase User token API shape commits admin membership before service getter callbacks and hides replaced UID before observer delivery",
       "status": "passed"
     },
     {
-      "name": "Backward compatible category and tags rejects invalid metadata {\"category\":\"unsupported\"}",
+      "name": "application auth boundary with real Firebase User token API shape drops delayed admin resolution after signout and account replacement",
       "status": "passed"
     },
     {
-      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\"]}",
+      "name": "application auth boundary with real Firebase User token API shape drops delayed reload after signout/replacement, refreshes token on successful verification",
       "status": "passed"
     },
     {
-      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"a\",\"a\"]}",
+      "name": "application auth boundary with real Firebase User token API shape quarantines cancelled delayed login and synchronously locks duplicate calls",
       "status": "passed"
     },
     {
-      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\" \"]}",
+      "name": "application auth boundary with real Firebase User token API shape disposes and reopens role observation through the frozen registry",
       "status": "passed"
     },
     {
-      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"]}",
-      "status": "passed"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 2 chunks with 8 tags",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 6 chunks with 8 tags",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 10 chunks with 8 tags",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 8 tags",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 0 tags",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves html at encoded, cover and catalog limits",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves pptx at encoded, cover and catalog limits",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 1. unverified e-mail user is NOT a member: no listener, upload denied",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 2. Google-signed-in member creates a deck → pendingCount becomes 1 (assert read back from emulator)",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 3. 6th pending deck is rejected by the quota rule → service returns typed Turkish error",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 4. pending → pending edit leaves pendingCount unchanged (assert counter value)",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 5. editing a published deck returns it to pending and increments counter by 1",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 6. admin approve sets status, publishedAt, reviewedBy, reviewedAt and decrements the counter",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 7. admin reject without a note is refused; with a note it succeeds",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 8. owner delete of a pending deck removes chunks and decrements counter; zero orphan chunks remain",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 9. owner CANNOT delete a published deck; a non-owner CANNOT delete anything",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 10. member cannot read another member's pending deck or its chunks",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 11. published feed, own-decks and review-queue queries return correct order, and cursor pagination returns next page without duplicates or gaps",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 12. sign-out closes listeners",
-      "status": "skipped"
-    },
-    {
-      "name": "Presentation Data Service Integration Suite (Real Emulator) 13. a raw Firestore call from a non-admin client attempting a client-side admin grant is DENIED",
-      "status": "skipped"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Title validation accepts valid titles within limits",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Title validation rejects empty or whitespace-only titles",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Title validation rejects titles exceeding MAX_TITLE_LENGTH (120)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Description validation accepts valid descriptions",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Description validation rejects descriptions exceeding MAX_DESCRIPTION_LENGTH (2000)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Links validation accepts valid HTTPS links array up to MAX_LINKS_COUNT",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Links validation rejects links array exceeding MAX_LINKS_COUNT (10)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Links validation rejects insecure HTTP links",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Links validation rejects links with empty labels",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Cover validation accepts valid cover payloads",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Cover validation rejects empty cover payload",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Cover validation rejects cover exceeding MAX_COVER_BYTES (150000)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants accepts sizes within HTML compressed and unpacked limits",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants rejects HTML encoded size exceeding MAX_HTML_ENCODED_BYTES (5242880)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants rejects PPTX encoded size exceeding MAX_PPTX_BYTES (8388608)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants enforces browser-only unpacked size MAX_HTML_UNPACKED_BYTES (26214400)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants enforces browser-only file count limit MAX_HTML_FILE_COUNT (300)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation accepts valid chunk manifest with matching sizes",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects chunk exceeding MAX_CHUNK_BYTES (900000)",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects manifest where sum of chunks does not equal encoded size",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects mismatch between binary chunk byteLength and manifest size",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite CreateDeckInput and UpdateDeckInput validation validates a complete valid CreateDeckInput payload",
-      "status": "passed"
-    },
-    {
-      "name": "Data Limits Validation Unit Suite CreateDeckInput and UpdateDeckInput validation rejects invalid UpdateDeckInput missing id",
-      "status": "passed"
-    },
-    {
-      "name": "production Firestore admin adapter with mocked SDK transport gates queries/listeners for loading, visitor, unverified and nonadmin with zero transport",
-      "status": "passed"
-    },
-    {
-      "name": "production Firestore admin adapter with mocked SDK transport paginates every status with deterministic descending doc ID and exact nanosecond cursor",
-      "status": "passed"
-    },
-    {
-      "name": "production Firestore admin adapter with mocked SDK transport retains exact backend chronology when frozen Deck.Date loses nanosecond precision",
-      "status": "passed"
-    },
-    {
-      "name": "production Firestore admin adapter with mocked SDK transport discards result after role/UID changes and maps query errors into Turkish results",
-      "status": "passed"
-    },
-    {
-      "name": "production Firestore admin adapter with mocked SDK transport counts the full pending set and closes on permission failure, UID/role loss and registry cleanup",
-      "status": "passed"
-    },
-    {
-      "name": "production Firestore admin adapter with mocked SDK transport handles synchronous subscribe throw without leaving a listener",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium gates all nonmembers and nonadmin admin routes with zero reads or subscriptions",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium loads published pages on demand, deduplicates newest cards and searches Turkish title, description and author without reads",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium shows recoverable list errors, thrown errors, loading and empty states",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium shows only current UID, all own statuses/notes and edit/view links, confirms eligible deletion with keyboard focus restore",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium approves oldest pending, validates required and max1000 trimmed reject note, and refreshes count/lists",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium paginates all statuses and confirms unpublish/delete, reapproves rejected and unpublished, prevents duplicate calls",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium allows an administrator to delete an own published deck while owner controls remain gated",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium provides reusable live count, immediate updates, recoverable errors and disposal on role/service/unmount",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium discards delayed reads on logout/UID/service and mutations on role loss without late refresh",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium invalidates an open own dialog and late mutation on service replacement and logout",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium rejects stale pagination when a successful own mutation refreshes the list",
-      "status": "passed"
-    },
-    {
-      "name": "actual production library, own and admin React components in Chromium captures library/my/admin/reject/confirm at375/1280 light/dark with long content, no overflow and keyboard modal trap",
+      "name": "application auth boundary with real Firebase User token API shape preserves reload errors after route state restoration and token failure",
       "status": "passed"
     },
     {
@@ -709,31 +673,75 @@
       "status": "passed"
     },
     {
-      "name": "application auth boundary with real Firebase User token API shape requires refreshed token claims, not providerData or stale emailVerified, and avoids admin reads for unverified",
+      "name": "production Firestore admin adapter with mocked SDK transport gates queries/listeners for loading, visitor, unverified and nonadmin with zero transport",
       "status": "passed"
     },
     {
-      "name": "application auth boundary with real Firebase User token API shape commits admin membership before service getter callbacks and hides replaced UID before observer delivery",
+      "name": "production Firestore admin adapter with mocked SDK transport paginates every status with deterministic descending doc ID and exact nanosecond cursor",
       "status": "passed"
     },
     {
-      "name": "application auth boundary with real Firebase User token API shape drops delayed admin resolution after signout and account replacement",
+      "name": "production Firestore admin adapter with mocked SDK transport retains exact backend chronology when frozen Deck.Date loses nanosecond precision",
       "status": "passed"
     },
     {
-      "name": "application auth boundary with real Firebase User token API shape drops delayed reload after signout/replacement, refreshes token on successful verification",
+      "name": "production Firestore admin adapter with mocked SDK transport discards result after role/UID changes and maps query errors into Turkish results",
       "status": "passed"
     },
     {
-      "name": "application auth boundary with real Firebase User token API shape quarantines cancelled delayed login and synchronously locks duplicate calls",
+      "name": "production Firestore admin adapter with mocked SDK transport counts the full pending set and closes on permission failure, UID/role loss and registry cleanup",
       "status": "passed"
     },
     {
-      "name": "application auth boundary with real Firebase User token API shape disposes and reopens role observation through the frozen registry",
+      "name": "production Firestore admin adapter with mocked SDK transport handles synchronous subscribe throw without leaving a listener",
       "status": "passed"
     },
     {
-      "name": "application auth boundary with real Firebase User token API shape preserves reload errors after route state restoration and token failure",
+      "name": "actual production library, own and admin React components in Chromium gates all nonmembers and nonadmin admin routes with zero reads or subscriptions",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium loads published pages on demand, deduplicates newest cards and searches Turkish title, description and author without reads",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium shows recoverable list errors, thrown errors, loading and empty states",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium shows only current UID, all own statuses/notes and edit/view links, confirms eligible deletion with keyboard focus restore",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium approves oldest pending, validates required and max1000 trimmed reject note, and refreshes count/lists",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium paginates all statuses and confirms unpublish/delete, reapproves rejected and unpublished, prevents duplicate calls",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium allows an administrator to delete an own published deck while owner controls remain gated",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium provides reusable live count, immediate updates, recoverable errors and disposal on role/service/unmount",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium discards delayed reads on logout/UID/service and mutations on role loss without late refresh",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium invalidates an open own dialog and late mutation on service replacement and logout",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium rejects stale pagination when a successful own mutation refreshes the list",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium captures library/my/admin/reject/confirm at375/1280 light/dark with long content, no overflow and keyboard modal trap",
       "status": "passed"
     },
     {
@@ -821,6 +829,22 @@
       "status": "skipped"
     },
     {
+      "name": "Parent validator expression measurements measures tags independently with 8 tags and 10 links",
+      "status": "skipped"
+    },
+    {
+      "name": "Parent validator expression measurements measures links independently with 8 tags and 10 links",
+      "status": "skipped"
+    },
+    {
+      "name": "Parent validator expression measurements measures other independently with 8 tags and 10 links",
+      "status": "skipped"
+    },
+    {
+      "name": "Parent validator expression measurements measures stored independently with 8 tags and 10 links",
+      "status": "skipped"
+    },
+    {
       "name": "Expression budget scope controls one transaction of 12 individually costly writes passes",
       "status": "skipped"
     },
@@ -878,6 +902,82 @@
     },
     {
       "name": "Firestore Security Rules Suite 1. Read Permissions user profile documents are not listable by members → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link valid Unicode and multiline label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link maximum label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link long label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link empty label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link numeric label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link list label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link map label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link null label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link http URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link bare https prefix",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link numeric URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link list URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link null URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link maximum URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link long URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link extra field",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link outside count",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link fractional index",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions protects reads and writes by membership, owner/admin and pending status",
       "status": "skipped"
     },
     {
@@ -1117,7 +1217,7 @@
       "status": "passed"
     },
     {
-      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MANIFEST_VERSION (1)",
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MANIFEST_VERSION (2) and preserves legacy metadata updates",
       "status": "passed"
     },
     {

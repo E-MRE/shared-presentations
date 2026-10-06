@@ -1,0 +1,62 @@
+{
+  "scope": "AST evaluation counts normalized by two observed invocations per independent validator request. Not exact engine quota charges.",
+  "input": {
+    "tags": 8,
+    "links": 10,
+    "chunkCount": 12
+  },
+  "before": {
+    "tags": {
+      "invocations": 2,
+      "recordedTotal": 400,
+      "perInvocation": 200.0
+    },
+    "links": {
+      "invocations": 2,
+      "recordedTotal": 778,
+      "perInvocation": 389.0
+    },
+    "other": {
+      "invocations": 2,
+      "recordedTotal": 416,
+      "perInvocation": 208.0
+    }
+  },
+  "afterRegex": {
+    "tags": {
+      "invocations": 2,
+      "recordedTotal": 240,
+      "perInvocation": 120.0
+    },
+    "links": {
+      "invocations": 2,
+      "recordedTotal": 618,
+      "perInvocation": 309.0
+    },
+    "other": {
+      "invocations": 2,
+      "recordedTotal": 416,
+      "perInvocation": 208.0
+    }
+  },
+  "inlineLinksTransactionBefore": "failed at 1000 expressions",
+  "inlineLinksTransactionAfterRegex": "failed at 1000 expressions",
+  "externalLinksTransaction": "passed",
+  "finalV2": {
+    "tags": {
+      "invocations": 2,
+      "recordedTotal": 240,
+      "perInvocation": 120.0
+    },
+    "links": {
+      "invocations": 2,
+      "recordedTotal": 36,
+      "perInvocation": 18.0
+    },
+    "other": {
+      "invocations": 2,
+      "recordedTotal": 442,
+      "perInvocation": 221.0
+    }
+  }
+}

@@ -10,6 +10,7 @@
  */
 
 import { gzipSync, Gunzip } from 'fflate';
+import { balancedManifest } from './manifest';
 import {
   MAX_CHUNK_BYTES,
   MAX_CHUNKS_COUNT,
@@ -99,23 +100,18 @@ export function prepareChunks(
 
   // Divide encoded data into chunks <= MAX_CHUNK_BYTES (900,000 bytes)
   const chunks: PreparedChunk[] = [];
-  const manifest: ChunkManifestEntry[] = [];
   const totalLength = encodedData.length;
+  const manifest = balancedManifest(totalLength, Math.ceil(totalLength / MAX_CHUNK_BYTES));
   let offset = 0;
   let index = 0;
 
   while (offset < totalLength) {
-    const chunkLength = Math.min(MAX_CHUNK_BYTES, totalLength - offset);
+    const chunkLength = manifest[index].size;
     const chunkData = encodedData.subarray(offset, offset + chunkLength);
 
     chunks.push({
       index,
       data: chunkData,
-      size: chunkLength,
-    });
-
-    manifest.push({
-      index,
       size: chunkLength,
     });
 
@@ -245,7 +241,7 @@ export function reconstructPresentation(
     }
     const manifestEntry = manifest[i];
     const dataSize = chunk.data.length;
-    if (dataSize !== manifestEntry.size) {
+    if (dataSize !== manifestEntry.size || (chunk.size !== undefined && chunk.size !== dataSize)) {
       return err({
         code: AppErrorCode.MALFORMED_MANIFEST,
         message: `Parça ${i} gerçek boyutu (${dataSize}) ile manifest boyutu (${manifestEntry.size}) uyuşmuyor.`,

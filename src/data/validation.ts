@@ -225,7 +225,7 @@ export function validateManifest(
   chunks: PreparedChunk[],
   encodedSize: number
 ): Result<void> {
-  if (typeof chunkCount !== 'number' || chunkCount < MIN_CHUNKS_COUNT || chunkCount > MAX_CHUNKS_COUNT) {
+  if (!Number.isInteger(chunkCount) || chunkCount < MIN_CHUNKS_COUNT || chunkCount > MAX_CHUNKS_COUNT) {
     return err({
       code: AppErrorCode.MALFORMED_MANIFEST,
       message: `Parça sayısı ${MIN_CHUNKS_COUNT} ile ${MAX_CHUNKS_COUNT} arasında olmalıdır.`,
@@ -265,7 +265,7 @@ export function validateManifest(
       });
     }
 
-    if (entry.size <= 0 || entry.size > MAX_CHUNK_BYTES) {
+    if (!Number.isInteger(entry.size) || entry.size <= 0 || entry.size > MAX_CHUNK_BYTES) {
       return err({
         code: AppErrorCode.CHUNK_TOO_LARGE,
         message: `Parça ${i} boyutu (${entry.size} bayt) 900 KB (${MAX_CHUNK_BYTES} bayt) sınırını aşıyor.`,

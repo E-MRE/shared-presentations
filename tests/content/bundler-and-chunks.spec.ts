@@ -331,8 +331,8 @@ console.log("Deck active");
       if (!chunkRes.ok) return;
 
       expect(chunkRes.value.chunkCount).toBe(2);
-      expect(chunkRes.value.chunks[0].size).toBe(MAX_CHUNK_BYTES); // 900,000 bytes
-      expect(chunkRes.value.chunks[1].size).toBe(targetSize - MAX_CHUNK_BYTES); // 100,000 bytes
+      expect(chunkRes.value.chunks[0].size).toBe(Math.ceil(targetSize / 2)); // balanced v2 partition
+      expect(chunkRes.value.chunks[1].size).toBe(Math.floor(targetSize / 2));
 
       // Roundtrip reconstruction
       const reconRes = reconstructPresentation(

@@ -1,9 +1,9 @@
 import type { Deck } from '../../contracts/models';
-import { MANIFEST_VERSION, MAX_CHUNK_BYTES, MAX_CHUNKS_COUNT, MAX_HTML_FILE_COUNT, MAX_HTML_UNPACKED_BYTES, MAX_HTML_ENCODED_BYTES, MAX_PPTX_BYTES } from '../../contracts/limits';
+import { MANIFEST_VERSION, LEGACY_MANIFEST_VERSION, MAX_CHUNK_BYTES, MAX_CHUNKS_COUNT, MAX_HTML_FILE_COUNT, MAX_HTML_UNPACKED_BYTES, MAX_HTML_ENCODED_BYTES, MAX_PPTX_BYTES } from '../../contracts/limits';
 
 /** Check metadata before allowing the service to allocate/read any chunks. */
 export function validContentMetadata(deck: Deck): boolean {
-  if (deck.manifestVersion !== MANIFEST_VERSION || !['html', 'pptx'].includes(deck.kind) ||
+  if ((deck.manifestVersion !== MANIFEST_VERSION && deck.manifestVersion !== LEGACY_MANIFEST_VERSION) || !['html', 'pptx'].includes(deck.kind) ||
       !Number.isInteger(deck.chunkCount) || deck.chunkCount < 1 || deck.chunkCount > MAX_CHUNKS_COUNT ||
       !Array.isArray(deck.chunks) || deck.chunks.length !== deck.chunkCount || !deck.sizes) return false;
   const { encoded, unpacked, fileCount } = deck.sizes;

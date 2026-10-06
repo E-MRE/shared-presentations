@@ -1,8 +1,8 @@
 {
-  "passed": 22,
-  "failed": 1,
+  "passed": 27,
+  "failed": 0,
   "skipped": 0,
-  "total": 23,
+  "total": 27,
   "cases": [
     {
       "name": "Manifest v2 isolated prototype creates and approves 1 chunks with 8 tags in single transactions",
@@ -26,7 +26,7 @@
     },
     {
       "name": "Manifest v2 isolated prototype supports 12 chunks, 8 tags and 10 links together",
-      "status": "failed"
+      "status": "passed"
     },
     {
       "name": "Manifest v2 isolated prototype rejects wrong-size and rolls back the complete transaction",
@@ -86,6 +86,22 @@
     },
     {
       "name": "Manifest v2 isolated prototype binds root ownership to the authenticated caller",
+      "status": "passed"
+    },
+    {
+      "name": "Parent validator expression measurements measures tags independently with 8 tags and 10 links",
+      "status": "passed"
+    },
+    {
+      "name": "Parent validator expression measurements measures links independently with 8 tags and 10 links",
+      "status": "passed"
+    },
+    {
+      "name": "Parent validator expression measurements measures other independently with 8 tags and 10 links",
+      "status": "passed"
+    },
+    {
+      "name": "Parent validator expression measurements measures stored independently with 8 tags and 10 links",
       "status": "passed"
     },
     {

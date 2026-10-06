@@ -1,0 +1,96 @@
+{
+  "sourceSha256": "f043f1e21340508bb7b61a900516b3edbb7ede3ad3940a7f466b3cb9a30c57e9",
+  "scope": "Recorded AST evaluations across the trial; NOT exact per-document budget charge. Helpers exclusive, unexecuted markers excluded.",
+  "functions": {
+    "userPath": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "adminPath": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "presentationPath": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isSignedIn": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isMember": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isAdmin": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isOwner": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isHttpsUrl": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isValidLink": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidLinks": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "validateSizes": {
+      "recorded": 92,
+      "undefined": 0,
+      "unexecutedMarkers": 6
+    },
+    "validateManifest": {
+      "recorded": 52,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isValidTag": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidTags": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidCatalog": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "validateDeckFields": {
+      "recorded": 272,
+      "undefined": 0,
+      "unexecutedMarkers": 6
+    },
+    "measurement": {
+      "recorded": 10,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "matchStatements": {
+      "recorded": 8,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    }
+  }
+}

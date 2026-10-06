@@ -44,68 +44,7 @@ service cloud.firestore {
     // --- Field and Manifest Validations ---
 
     function isHttpsUrl(url) {
-      return url is string && url.size() <= 1000 && url.matches('^https://.+');
-    }
-
-    function isValidLink(link) {
-      return link.keys().hasOnly(['label', 'url']) &&
-        link.label is string && link.label.size() >= 1 && link.label.size() <= 100 &&
-        isHttpsUrl(link.url);
-    }
-
-    function areValidLinks(links) {
-      let count = links.size();
-      return links is list && links.size() <= 10 &&
-        (count < 1 || isValidLink(links[0])) &&
-        (count < 2 || isValidLink(links[1])) &&
-        (count < 3 || isValidLink(links[2])) &&
-        (count < 4 || isValidLink(links[3])) &&
-        (count < 5 || isValidLink(links[4])) &&
-        (count < 6 || isValidLink(links[5])) &&
-        (count < 7 || isValidLink(links[6])) &&
-        (count < 8 || isValidLink(links[7])) &&
-        (count < 9 || isValidLink(links[8])) &&
-        (count < 10 || isValidLink(links[9]));
-    }
-
-    function isValidChunkEntry(entry, idx) {
-      let index = entry.index;
-      let size = entry.size;
-      return entry.keys().hasOnly(['index', 'size']) &&
-        index is int && index == idx &&
-        size is int && size > 0 && size <= 900000;
-    }
-
-    function areValidManifestEntries(input, inputCount) {
-      let chunks = input;
-      let count = inputCount;
-      return (count < 1 || isValidChunkEntry(chunks[0], 0)) &&
-             (count < 2 || isValidChunkEntry(chunks[1], 1)) &&
-             (count < 3 || isValidChunkEntry(chunks[2], 2)) &&
-             (count < 4 || isValidChunkEntry(chunks[3], 3)) &&
-             (count < 5 || isValidChunkEntry(chunks[4], 4)) &&
-             (count < 6 || isValidChunkEntry(chunks[5], 5)) &&
-             (count < 7 || isValidChunkEntry(chunks[6], 6)) &&
-             (count < 8 || isValidChunkEntry(chunks[7], 7)) &&
-             (count < 9 || isValidChunkEntry(chunks[8], 8)) &&
-             (count < 10 || isValidChunkEntry(chunks[9], 9)) &&
-             (count < 11 || isValidChunkEntry(chunks[10], 10)) &&
-             (count < 12 || isValidChunkEntry(chunks[11], 11));
-    }
-
-    function sumChunkSizes(chunks, count) {
-      return count == 1 ? chunks[0].size :
-             count == 2 ? chunks[0].size + chunks[1].size :
-             count == 3 ? chunks[0].size + chunks[1].size + chunks[2].size :
-             count == 4 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size :
-             count == 5 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size :
-             count == 6 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size :
-             count == 7 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size :
-             count == 8 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size :
-             count == 9 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size :
-             count == 10 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size :
-             count == 11 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size + chunks[10].size :
-             count == 12 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size + chunks[10].size + chunks[11].size : 0;
+      return url.size() <= 1000 && url.matches('^https://.+');
     }
 
     function validateSizes(sizes, kind) {
@@ -117,19 +56,25 @@ service cloud.firestore {
         (kind != 'html' || (sizes.unpacked <= 26214400 && sizes.fileCount <= 300));
     }
 
-    function validateManifest(input) {
-      let data = input;
-      return data.chunks is list &&
-        data.chunks.size() == data.chunkCount &&
-        data.chunkCount >= 1 && data.chunkCount <= 12 &&
-        areValidManifestEntries(data.chunks, data.chunkCount) &&
-        sumChunkSizes(data.chunks, data.chunkCount) == data.sizes.encoded;
+    function validateManifest(data) {
+      return data.manifestVersion == 2 ?
+        (!('chunks' in data) && data.sizes.encoded >= data.chunkCount &&
+          data.sizes.encoded <= 900000 * data.chunkCount) :
+        (resource.data.manifestVersion == 1 &&
+          data.chunks == resource.data.chunks && data.chunkCount == resource.data.chunkCount &&
+          data.sizes == resource.data.sizes && data.kind == resource.data.kind &&
+          data.fileName == resource.data.fileName);
+    }
+
+    function validateStoredLinks(data) {
+      return 'linkCount' in data ?
+        (!('links' in data) && data.linkCount is int && data.linkCount >= 0 && data.linkCount <= 10) :
+        (data.manifestVersion == 1 && data.links is list && data.links.size() <= 10 &&
+          data.links == resource.data.links);
     }
 
     function isValidTag(input) {
-      let tag = input;
-      let length = tag.size();
-      return tag is string && length >= 1 && length <= 32 && tag.matches('.*[^ ].*');
+      return input.size() <= 32 && input.matches('.*[^ ].*');
     }
     function areValidTags(input) {
       let tags = input;
@@ -149,15 +94,15 @@ service cloud.firestore {
       let data = input;
       let allowedKeys = [
         'ownerUid', 'ownerName', 'ownerPhotoURL', 'title', 'description',
-        'links', 'kind', 'fileName', 'status', 'rejectNote', 'cover',
-        'coverSource', 'sizes', 'chunkCount', 'chunks', 'createdAt',
+        'links', 'linkCount', 'chunks', 'kind', 'fileName', 'status', 'rejectNote', 'cover',
+        'coverSource', 'sizes', 'chunkCount', 'createdAt',
         'updatedAt', 'publishedAt', 'reviewedBy', 'reviewedAt',
         'manifestVersion', 'quotaMarker', 'category', 'tags'
       ];
       let requiredKeys = [
-        'ownerUid', 'title', 'description', 'links', 'kind', 'fileName',
+        'ownerUid', 'title', 'description', 'kind', 'fileName',
         'status', 'rejectNote', 'cover', 'coverSource', 'sizes',
-        'chunkCount', 'chunks', 'createdAt', 'updatedAt',
+        'chunkCount', 'createdAt', 'updatedAt',
         'manifestVersion', 'quotaMarker'
       ];
 
@@ -167,7 +112,7 @@ service cloud.firestore {
         data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
         data.description is string && data.description.size() <= 2000 &&
         areValidCatalog(data) &&
-        areValidLinks(data.links) &&
+        validateStoredLinks(data) &&
         (data.kind == 'html' || data.kind == 'pptx') &&
         data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 255 &&
         data.status in ['pending', 'published', 'rejected', 'unpublished'] &&
@@ -176,7 +121,7 @@ service cloud.firestore {
         data.coverSource in ['auto', 'upload', 'default'] &&
         validateSizes(data.sizes, data.kind) &&
         data.chunkCount is int && data.chunkCount >= 1 && data.chunkCount <= 12 &&
-        data.manifestVersion is int && data.manifestVersion == 1 &&
+        data.manifestVersion is int && (data.manifestVersion == 1 || data.manifestVersion == 2) &&
         data.quotaMarker is string &&
         data.createdAt is timestamp &&
         data.updatedAt is timestamp;
@@ -262,18 +207,38 @@ service cloud.firestore {
       return isMember() && (deck.status == 'published' || deck.ownerUid == request.auth.uid || isAdmin());
     }
 
+    // v2 balanced sizes bind each chunk to the total without a stored parent array.
     function canWriteChunk(deckId, chunkIdx) {
-      let deckPath = presentationPath(deckId);
-      let deckAfter = getAfter(deckPath).data;
-      let index = request.resource.data.index;
-      let size = request.resource.data.data.size();
-      return (isMember() && (deckAfter.ownerUid == request.auth.uid || isAdmin())) &&
+      let deckAfter = getAfter(presentationPath(deckId)).data;
+      let chunk = request.resource.data;
+      let baseSize = int(deckAfter.sizes.encoded / deckAfter.chunkCount);
+      let remainder = deckAfter.sizes.encoded % deckAfter.chunkCount;
+      let expectedSize = baseSize + (chunk.index < remainder ? 1 : 0);
+      return isMember() && (deckAfter.ownerUid == request.auth.uid || isAdmin()) &&
+        deckAfter.status == 'pending' && deckAfter.manifestVersion == 2 &&
+        chunk.keys().hasOnly(['index', 'size', 'data']) &&
+        chunk.index is int && chunk.index == int(chunkIdx) && chunkIdx == string(chunk.index) &&
+        chunk.index >= 0 && chunk.index < deckAfter.chunkCount &&
+        chunk.size is int && chunk.size > 0 && chunk.size <= 900000 &&
+        chunk.data is bytes && chunk.data.size() == chunk.size && chunk.size == expectedSize;
+    }
+
+    function canWriteLink(deckId, linkIdx) {
+      let deckAfter = getAfter(presentationPath(deckId)).data;
+      let link = request.resource.data;
+      return isMember() && (deckAfter.ownerUid == request.auth.uid || isAdmin()) &&
         deckAfter.status == 'pending' &&
-        request.resource.data.keys().hasOnly(['index', 'data']) &&
-        index is int && index == int(chunkIdx) &&
-        index >= 0 && index < deckAfter.chunkCount &&
-        request.resource.data.data is bytes &&
-        size == deckAfter.chunks[index].size && size <= 900000;
+        link.keys().hasOnly(['index', 'label', 'url']) &&
+        link.index is int && link.index == int(linkIdx) && linkIdx == string(link.index) &&
+        link.index >= 0 && link.index < deckAfter.linkCount &&
+        link.label.size() <= 100 && link.label.matches('(?s).+') && isHttpsUrl(link.url);
+    }
+
+    function canDeleteLink(deckId, linkIdx) {
+      let deckPath = presentationPath(deckId);
+      return !existsAfter(deckPath) ? canDeleteChunkParentDeleted(deckId) :
+        (isMember() && (getAfter(deckPath).data.ownerUid == request.auth.uid || isAdmin()) &&
+          int(linkIdx) >= getAfter(deckPath).data.linkCount);
     }
 
     function canDeleteChunkTail(deckId, chunkIdx) {
@@ -298,6 +263,7 @@ service cloud.firestore {
       let data = request.resource.data;
       return isMember() &&
         data.ownerUid == request.auth.uid &&
+        data.manifestVersion == 2 &&
         data.status == 'pending' &&
         data.rejectNote == "" &&
         (!('publishedAt' in data) || data.publishedAt == null) &&
@@ -432,6 +398,12 @@ service cloud.firestore {
           checkQuotaOnDeckDelete(id, resource.data.ownerUid) :
           true
       );
+
+      match /links/{linkIndex} {
+        allow read: if canReadChunk(id);
+        allow create, update: if canWriteLink(id, linkIndex);
+        allow delete: if canDeleteLink(id, linkIndex);
+      }
 
       // --- Chunks Subcollection ---
       match /chunks/{chunkIndex} {

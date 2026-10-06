@@ -40,7 +40,7 @@ describe('Limits Agreement (TypeScript Contracts vs firestore.rules)', () => {
 
   it('matches MAX_LINKS_COUNT (10)', () => {
     expect(MAX_LINKS_COUNT).toBe(10);
-    expect(rulesContent).toContain(`links.size() <= ${MAX_LINKS_COUNT}`);
+    expect(rulesContent).toContain(`linkCount <= ${MAX_LINKS_COUNT}`);
   });
 
   it('matches MAX_LINK_LABEL_LENGTH (100)', () => {
@@ -80,9 +80,10 @@ describe('Limits Agreement (TypeScript Contracts vs firestore.rules)', () => {
     expect(rulesContent).toContain(`sizes.encoded <= ${MAX_PPTX_BYTES}`);
   });
 
-  it('matches MANIFEST_VERSION (1)', () => {
-    expect(MANIFEST_VERSION).toBe(1);
+  it('matches MANIFEST_VERSION (2) and preserves legacy metadata updates', () => {
+    expect(MANIFEST_VERSION).toBe(2);
     expect(rulesContent).toContain(`manifestVersion == ${MANIFEST_VERSION}`);
+    expect(rulesContent).toContain('resource.data.manifestVersion == 1');
   });
   it('bounds declared HTML unpacked size and file count in rules', () => {
     expect(rulesContent).toContain(`sizes.unpacked <= ${MAX_HTML_UNPACKED_BYTES}`);

@@ -36,7 +36,12 @@ const summary = spawnSync(process.execPath, ['scripts/summarize-rule-coverage.mj
   resolve(evidence, 'coverage.json'), resolve(evidence, 'coverage-summary.json')], { stdio: 'inherit' });
 const costs = JSON.parse(readFileSync(resolve(evidence, 'coverage-summary.json'), 'utf8'));
 if (costs.functions.budgetSegment.recorded <= 1000) throw Error('Aggregate budget control did not record over 1000 evaluations');
+for (const mode of ['tags', 'links', 'other', 'stored']) {
+  const summarize = spawnSync(process.execPath, ['scripts/summarize-rule-coverage.mjs',
+    resolve(evidence, `parent-${mode}-coverage.json`), resolve(evidence, `parent-${mode}-summary.json`)], { stdio: 'inherit' });
+  if (summarize.status) throw Error(`Parent ${mode} coverage summary failed`);
+}
 const report = JSON.parse(readFileSync(reportFile, 'utf8'));
 const incomplete = report.testResults.flatMap(file => file.assertionResults).filter(test => test.status !== 'passed');
 if (run.status || summary.status || incomplete.length || !report.numPassedTests) process.exitCode = 1;
-else console.log(`PASS prototype: ${report.numPassedTests} tests, zero skips. Application v1 unchanged; no deploy.`);
+else console.log(`PASS architecture acceptance: ${report.numPassedTests} tests, zero skips, production v2 rules in demo emulators; no deploy.`);

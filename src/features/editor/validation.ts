@@ -1,5 +1,5 @@
 import type { Deck, DeckLink } from '../../contracts/models';
-import { MANIFEST_VERSION, MAX_CHUNK_BYTES, MAX_CHUNKS_COUNT, MAX_DESCRIPTION_LENGTH, MAX_HTML_ENCODED_BYTES, MAX_HTML_FILE_COUNT, MAX_HTML_UNPACKED_BYTES, MAX_LINKS_COUNT, MAX_PPTX_BYTES } from '../../contracts/limits';
+import { MANIFEST_VERSION, LEGACY_MANIFEST_VERSION, MAX_CHUNK_BYTES, MAX_CHUNKS_COUNT, MAX_DESCRIPTION_LENGTH, MAX_HTML_ENCODED_BYTES, MAX_HTML_FILE_COUNT, MAX_HTML_UNPACKED_BYTES, MAX_LINKS_COUNT, MAX_PPTX_BYTES } from '../../contracts/limits';
 import { validateTitle, validateDescription, validateLink } from '../../data/validation';
 
 export type FieldErrors = Record<string, string>;
@@ -23,7 +23,7 @@ export function metadataErrors(title: string, description: string, links: DeckLi
 
 /** Refuse malformed allocation metadata before asking the service for content. */
 export function validOriginalMetadata(deck: Deck): boolean {
-  if (deck.manifestVersion !== MANIFEST_VERSION || !['html', 'pptx'].includes(deck.kind) || !deck.sizes || !Number.isInteger(deck.chunkCount) || deck.chunkCount < 1 || deck.chunkCount > MAX_CHUNKS_COUNT || !Array.isArray(deck.chunks) || deck.chunks.length !== deck.chunkCount) return false;
+  if ((deck.manifestVersion !== MANIFEST_VERSION && deck.manifestVersion !== LEGACY_MANIFEST_VERSION) || !['html', 'pptx'].includes(deck.kind) || !deck.sizes || !Number.isInteger(deck.chunkCount) || deck.chunkCount < 1 || deck.chunkCount > MAX_CHUNKS_COUNT || !Array.isArray(deck.chunks) || deck.chunks.length !== deck.chunkCount) return false;
   const { encoded, unpacked, fileCount } = deck.sizes;
   if (![encoded, unpacked, fileCount].every(n => Number.isInteger(n) && n > 0)) return false;
   if (deck.kind === 'html' ? encoded > MAX_HTML_ENCODED_BYTES || unpacked > MAX_HTML_UNPACKED_BYTES || fileCount > MAX_HTML_FILE_COUNT : encoded > MAX_PPTX_BYTES || unpacked !== encoded || fileCount !== 1) return false;

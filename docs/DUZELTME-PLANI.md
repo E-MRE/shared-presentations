@@ -1,6 +1,6 @@
 # Vektör — Öncelik sıralı düzeltme planı
 
-Tarih: 6 Ekim 2026 · Durum: devam edildi; yapısal prototip ölçüldü, ürün geçişi açık; yayına hazır değil · Sorumlu: Codex
+Tarih: 6 Ekim 2026 · Durum: v2 yerelde tamamlandı; backend 160/160, yayın kabulü açık · Sorumlu: Codex
 
 Bu plan, inceleme raporundaki F01–F16 bulgularının tamamını ve bunları kapatmak için gereken hazırlık, doğrulama ve teslim işlerini kapsar. Kullanıcı bağımlılıkları netleştirildi ve yerel ürün düzeltmeleri uygulandı. Güncel uygulama, test sonuçları ve dış ortamda kalan kontroller [teslim belgesinde](TESLIM-VE-CALISTIRMA.md) kayıtlı. İşaretler yerel uygulama adımlarını gösterir; aşağıdaki emülatör/canlı kabul notları tam yayın kabulü yerine geçmez.
 
@@ -14,13 +14,14 @@ Bu plan, inceleme raporundaki F01–F16 bulgularının tamamını ve bunları ka
 - [x] Profil oluşturmanın opsiyonel `pendingDeckId` alanı düzeltildi; HTML boyut/dosya beyanları kurallarda sınırlandı. İki test altyapısı hatası giderildi.
 - [x] Başarısız 12 parça coverage HTML/JSON/ekranı kaydedildi; fonksiyon sayımları çalışmamış dallardan ayrıldı.
 - [x] İzole alt koleksiyon prototipi: 1/6/12 parça + sekiz etiket ve azami HTML/PPTX oluşturma/onay geçti. 12 maliyetli yazım transaction’ında 8448 değerlendirme; tek belgenin 1000 sınırı ayrı doğrulandı.
-- [ ] [Ölçülmüş geçiş planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md): uygulama/servis v1→v2, eski kayıt uyumluluğu, replacement/metadata edit ve tam kota/yönetim kabulü. Ek sekiz etiket + on bağlantı kombinasyonu prototipte başarısız: 22 geçti/1 başarısız/0 skip. Kurallar gevşetilmedi; deploy yok.
-- [ ] Korunan v1 kurallarıyla tam backend 131 geçti/8 başarısız/0 skip. Bu oturumdaki başarısız mikro değişiklikler oturum başındaki çalışma kopyasına alındı; önceki düzeltmeler korunuyor.
-- [ ] Ürün geçişi sonrası tam backend sıfır skip ve gereken diğer kontroller. Devamda lint/build/release tekrar geçti; E2E önceki 35 geçti. Birim sayımı son kontrol raporunda.
+- [x] Ön/son regex ölçümü: tags 200→120, links 389→309, diğer 208→208 AST/çağrı. Parent gerçek transaction’da yine 1000 sınırını aştı; bundan sonra links de alt koleksiyona taşındı.
+- [x] [V2 uygulama ve ölçüm kaydı](MANIFEST-ALT-KOLEKSIYON-PLANI.md): tek transaction, deterministik parça boyutları, bağlantı alt koleksiyonu, v1 okuma/onay/edit ve replacement sırasında v2 geçişi. Tam metadata 12 parça + 8 etiket + 10 bağlantı gerçek servisle geçti.
+- [x] Tam backend 160/160, sıfır skip; üretim kurallarıyla mimari kabul 27/27, sıfır skip. Sekiz eski limit hatası kapandı; ortaya çıkan onay API test hatası düzeltildi. Parça/bağlantı kuyruk ve silme temizliği doğrulandı.
+- [x] Lint/build/release tekrar geçti; birim 192 geçti/130 skip (emülatörler ayrı çalıştı); E2E 35 geçti. Geçersiz sürüm fixture’ı 3’e güncellendi.
 - [ ] Geliştirme CLI bağımlılığındaki npm audit bulgusu: 3 high, üretim bağımlılıkları 0. Güvenli yamalı sürüm/çözüm değerlendirmesi açık.
 - [ ] Gerçek hedef origin, iki hesaplı yönetim kabulü, mobil klavye/görünüm ayrıntıları ve yayın sonrası CSP/cache kontrolleri açık.
 
-Son kural yeniden yazım denemesi otomatik onay incelemesinde güvenlik sınırını zayıflatma riskiyle reddedildi; uygulanmadı. Devamda daha dar ve kanıtlanabilir bir düzeltme hazırlanmalı; reddedilen işlem dolaylı yoldan tekrarlanmamalı.
+Önceki oturumdaki referans commit’ten kural yeniden kurma denemesi otomatik incelemede reddedilmişti; uygulanmadı. Bu v2 geçişi kullanıcının açık talimatıyla, korunmuş çalışma kopyası ve pozitif/negatif emülatör kanıtlarıyla yapıldı.
 
 ## Kapsam ve çalışma ilkeleri
 
