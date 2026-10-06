@@ -124,13 +124,14 @@ describe('shared UI in real Chromium',{timeout:20_000},()=>{
     await page.evaluate(()=>document.body.style.overflow='auto');await trigger.click();await page.evaluate(()=>(window as unknown as HarnessWindow).ui.setMounted(false));await browserExpect(dialog).toHaveCount(0);await browserExpect(trigger).toBeFocused();expect(await page.evaluate(()=>document.body.style.overflow)).toBe('auto');
     reports.push({check:'modal focus, native background exclusion, backdrop/Escape and unmount cleanup',passed:true});expect(errors).toEqual([]);
   });
-  it('announces multiple stable toasts without focus theft, pauses on hover/focus, preserves errors and clears timers',async()=>{
+  it('announces multiple stable toasts without focus theft, pauses on hover/focus, supports explicit persistent errors, expires transient errors and clears timers',async()=>{
     const trigger=page.locator('#toast-trigger');await trigger.focus();
-    const ids=await page.evaluate(()=>{const api=(window as unknown as HarnessWindow).ui;return [api.notify({message:'Otomatik mesaj',kind:'info',duration:1500}),api.notify({message:'Kalıcı hata',kind:'error',duration:350})];});expect(new Set(ids).size).toBe(2);
+    const ids=await page.evaluate(()=>{const api=(window as unknown as HarnessWindow).ui;return [api.notify({message:'Otomatik mesaj',kind:'info',duration:1500}),api.notify({message:'Kalıcı hata',kind:'error',duration:0})];});expect(new Set(ids).size).toBe(2);
     const info=page.locator(`[data-toast-id="${ids[0]}"]`),error=page.locator(`[data-toast-id="${ids[1]}"]`);
     await browserExpect(trigger).toBeFocused();await browserExpect(info.getByRole('status')).toHaveText('Bilgi: Otomatik mesaj');await browserExpect(error.getByRole('alert')).toHaveText('Hata: Kalıcı hata');
     await info.hover();await page.waitForTimeout(1800);await browserExpect(info).toBeVisible();await info.getByRole('button').focus();await page.mouse.move(0,0);await page.waitForTimeout(1800);await browserExpect(info).toBeVisible();
     await trigger.focus();await browserExpect(info).toHaveCount(0,{timeout:3000});await browserExpect(error).toBeVisible();await error.getByRole('button').click();await browserExpect(error).toHaveCount(0);
+    await page.evaluate(()=>(window as unknown as HarnessWindow).ui.notify({message:'Geçici hata',kind:'error',duration:350})); await browserExpect(page.getByRole('alert')).toContainText('Geçici hata'); await page.mouse.move(0,0); await browserExpect(page.getByRole('alert')).toHaveCount(0,{timeout:2000});
     await trigger.click();await browserExpect(page.getByRole('status').filter({hasText:'Başarılı: Sunum kaydedildi'})).toBeVisible();
     expect(await page.evaluate(()=>(window as unknown as HarnessWindow).metrics.timers.size)).toBe(1);
     await page.evaluate(()=>(window as unknown as HarnessWindow).unmountUI());expect(await page.evaluate(()=>(window as unknown as HarnessWindow).metrics.timers.size)).toBe(0);

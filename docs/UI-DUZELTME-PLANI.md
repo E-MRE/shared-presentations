@@ -1,5 +1,7 @@
 # UI ve inceleme bulguları — 6 Ekim 2026
 
+Devam teslimi: önizleme artık pencere açar; kapak kartında yükleme/hazır kapak sekmeleri vardır; geçici işlem sonuçları ortak sabit bildirimlerle gösterilir. [Detay ve kontrol adımları](ONIZLEME-VE-BILDIRIM-RAPORU.md).
+
 Kullanıcının “bitti” mesajından sonra uygulanan toplu düzeltme. Başlangıç kodu: `8aa2390`. Ekran görüntülerindeki diğer siteler yalnız etkileşim referansı; renkleri veya dosya işleme iddiaları kopyalanmadı. Bu oturumda Impeccable skill'i bulunmadı; Vektör'ün mevcut tasarım dili korundu.
 
 | Öncelik | İş | Son durum |

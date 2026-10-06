@@ -8,6 +8,9 @@ import { useUnsavedChanges } from './useUnsavedChanges';
 import { CoverPreview } from './CoverPreview';
 
 import { UploadPicker } from './UploadPicker';
+import { CoverPicker } from './CoverPicker';
+import { preparationNotice } from './preparationNotice';
+import { Modal } from '../../components/Modal';
 export function EditorForm({ deck, service, content, onClose, onComplete }: { deck?: Deck; service: EditorService; content: EditorContent; onClose?: () => void; onComplete?: (deck: Deck) => void }) {
   const release = useRef<() => void>(() => {});
   const editor = useEditor({ deck, service, content, onComplete: value => { release.current(); onComplete?.(value); } });
@@ -15,7 +18,7 @@ export function EditorForm({ deck, service, content, onClose, onComplete }: { de
   useLayoutEffect(() => { release.current = guard.release; });
   const close = () => guard.request(onClose);
   const summary = useRef<HTMLDivElement>(null);
-  const coverFile = useRef<HTMLInputElement>(null);
+  const previewClose = useRef<HTMLButtonElement>(null);
   const [focusSummary, setFocusSummary] = useState(0);
   useLayoutEffect(() => { if (focusSummary) summary.current?.focus(); }, [focusSummary]);
   const originalCover = useMemo(() => deck ? { bytes: deck.cover, source: deck.coverSource, mimeType: deck.cover[0] === 0xff ? 'image/jpeg' as const : 'image/webp' as const } : undefined, [deck]);
@@ -26,6 +29,7 @@ export function EditorForm({ deck, service, content, onClose, onComplete }: { de
   function attributes(key: string) { return { id: `editor-${key}`, 'aria-invalid': !!editor.errors[key], 'aria-describedby': editor.errors[key] ? `editor-${key}-error` : undefined, onBlur: () => editor.validateField(key) }; }
   const fileName = editor.prepared?.fileName ?? deck?.fileName;
   const kind = editor.prepared?.kind ?? deck?.kind;
+  const contentNotice = preparationNotice(editor.prepared?.warnings ?? []);
   return <section className="vektor-editor" aria-label="Sunum düzenleyici">
     <header className="editor-header"><div><p className="editor-eyebrow">VEKTÖR / SUNUM</p><h1>{deck ? 'Sunumu Düzenle' : 'Yeni Sunum Yükle'}</h1><p>{deck ? 'Bilgileri güncelleyin veya aynı biçimde bir dosya seçin.' : 'HTML veya PowerPoint sunumunuzu ekibinizle paylaşın.'}</p></div><button className="btn btn-secondary" type="button" onClick={close}>Geri dön</button></header>
 
@@ -38,12 +42,12 @@ export function EditorForm({ deck, service, content, onClose, onComplete }: { de
           {fileName && <div className="editor-file-info"><strong>{fileName}</strong><span>{kind === 'pptx' ? 'PPTX' : 'HTML'} · {editor.prepared ? 'Yeni içerik hazır' : 'Mevcut içerik korunur'}</span></div>}
           <UploadPicker kind={deck?.kind} disabled={disabled} select={editor.selectFiles}/>{error('file')}
           {editor.selected && editor.selected.candidates.length > 1 && <div className="form-group"><label className="form-label" htmlFor="editor-entry">HTML giriş dosyası (zorunlu)</label><select className="form-select" id="editor-entry" disabled={disabled} value={editor.selected.entry} onChange={event => void editor.chooseEntry(event.target.value)}><option value="">Giriş dosyasını seçin</option>{editor.selected.candidates.map(path => <option key={path} value={path}>{path}</option>)}</select></div>}
-          {editor.fileError && <div role="alert" className="editor-error"><p>{editor.fileError}</p><button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => void editor.retryFile()}>Hazırlamayı yeniden dene</button></div>}
+          {editor.fileError && <div className="editor-error"><p>{editor.fileError}</p><button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => void editor.retryFile()}>Hazırlamayı yeniden dene</button></div>}
           {deck && <button type="button" className="btn btn-secondary" disabled={disabled} onClick={editor.clearReplacement}>Mevcut içeriği koru</button>}
           {editor.prepared && <div className="editor-ready"><strong>Sunum hazır</strong><p>{editor.prepared.sizes.fileCount} dosya · {(editor.prepared.sizes.encoded / 1024 / 1024).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} MB</p></div>}
-          {!!editor.prepared?.warnings.length && <div className="editor-warnings" role="status"><h3>Hazırlama uyarıları</h3><ul>{editor.prepared.warnings.map((warning, index) => <li key={index}>{warning.message}{warning.target && <span> — {warning.target}</span>}</li>)}</ul></div>}
+          {contentNotice && <p className="editor-content-note">{contentNotice}</p>}
           {(editor.prepared || deck) && <button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => void editor.openPreview()}>Sunumu önizle</button>}
-          {editor.previewError && <div role="alert" className="editor-error"><p>{editor.previewError}</p><button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => void editor.openPreview()}>Önizlemeyi yeniden dene</button></div>}
+          {editor.previewError && <div className="editor-error"><p>{editor.previewError}</p><button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => void editor.openPreview()}>Önizlemeyi yeniden dene</button></div>}
         </section>
     <div className="editor-review"><strong>{deck ? 'Değişiklikler yeniden incelemeye gönderilir.' : 'Sunumunuz yönetici onayından sonra yayınlanır.'}</strong><p>{deck?.status === 'pending' ? 'Bu sunum zaten onay bekliyor; düzenleme yeni bekleyen sunum kotası kullanmaz.' : 'En fazla 5 sunum onay bekleyebilir. Bu gönderim yeni bir bekleyen sunum kotası kullanır.'}</p>{deck?.status === 'rejected' && deck.rejectNote && <p>Ret notu: {deck.rejectNote}</p>}</div>
         <section className="editor-section"><h2>Sunum bilgileri</h2><div className="form-group"><label className="form-label" htmlFor="editor-title">Sunum başlığı (zorunlu)</label><input className="form-input" {...attributes('title')} value={editor.title} onChange={event => { editor.clearError('title'); editor.changeTitle(event.target.value); }} disabled={disabled} required /><div className="editor-hint">En fazla {MAX_TITLE_LENGTH} karakter · {editor.title.length}/{MAX_TITLE_LENGTH}</div>{error('title')}</div>
@@ -55,10 +59,11 @@ export function EditorForm({ deck, service, content, onClose, onComplete }: { de
           {error('links')}
         </section>
 
-      </div><aside className="editor-side"><section className="editor-section"><h2>Kapak görseli</h2><CoverPreview cover={displayedCover} title={editor.title} />{displayedCover && <p className="editor-hint">{displayedCover?.source === 'upload' ? 'Yüklediğiniz kapak' : displayedCover?.source === 'auto' ? 'Sunumdan otomatik yakalanan kapak' : displayedCover ? 'Varsayılan kapak' : 'Otomatik veya varsayılan kapak hazırlanır.'}</p>}<div className="form-group"><label className="form-label" htmlFor="editor-cover-file">Kapak yükle veya değiştir</label><button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => coverFile.current?.click()}>Kapak görseli seç</button><input ref={coverFile} hidden id="editor-cover-file" type="file" accept="image/jpeg,image/png,image/webp" disabled={disabled} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void editor.chooseCover(file); }} /><p className="editor-hint">JPEG, PNG veya WebP · kaynak en fazla 10 MB, 8192 px ve 16 MP. Kapak 640 × 360 boyutuna işlenir.</p></div>{editor.coverError && <p role="alert" className="editor-error">{editor.coverError}</p>}<div className="editor-cover-actions"><button className="btn btn-secondary" type="button" disabled={disabled} onClick={() => void editor.resetCover('default')}>Varsayılan kapağa dön</button>{editor.prepared?.autoCover && <button className="btn btn-secondary" type="button" disabled={disabled} onClick={() => void editor.resetCover('auto')}>Otomatik kapağı kullan</button>}{deck && <button className="btn btn-secondary" type="button" disabled={disabled} onClick={() => void editor.resetCover('original')}>Mevcut kapağı koru</button>}</div></section></aside></div>
-      {editor.preview && <section className="editor-preview" aria-label="Sunum önizlemesi"><div className="editor-section-heading"><h2>Sunum önizlemesi</h2><button type="button" className="btn btn-secondary" onClick={editor.closePreview}>Önizlemeyi kapat</button></div>{editor.preview.kind === 'html' ? <iframe sandbox="allow-scripts" allow="fullscreen" title={`${editor.title || 'Sunum'} — önizleme`} srcDoc={editor.preview.html} /> : <div className="editor-pptx"><h3>{fileName}</h3><p>PPTX sunumu dosya olarak saklanır.</p><p>Bu dosya antivirüs taramasından geçirilmemiştir. Açmadan önce güvenlik yazılımınızla tarayın.</p></div>}</section>}
-      {editor.message && <p className={editor.saved ? 'editor-ready' : 'editor-error'} role={editor.saved ? 'status' : 'alert'}>{editor.message}</p>}
+      </div><aside className="editor-side"><section className="editor-section editor-cover-section"><h2>Kapak görseli</h2><CoverPreview cover={displayedCover} title={editor.title} />{displayedCover && <p className="editor-hint">{displayedCover.source === 'upload' ? 'Yüklediğiniz kapak' : displayedCover.source === 'auto' ? 'Sunumdan otomatik yakalanan kapak' : 'Varsayılan kapak'}</p>}<CoverPicker disabled={disabled} hasAuto={!!editor.prepared?.autoCover} hasOriginal={!!deck} choose={editor.chooseCover} reset={editor.resetCover}/>{editor.coverError && <p className="editor-error">{editor.coverError}</p>}</section></aside></div>
       <footer className="editor-footer"><button type="button" className="btn btn-secondary" onClick={close}>Vazgeç</button><button type="submit" className="btn btn-primary" disabled={disabled}>{editor.saved ? 'Onaya gönderildi' : editor.phase ? 'İşleniyor…' : deck ? 'Değişiklikleri onaya gönder' : 'Onaya gönder'}</button></footer>
     </form>
+    <Modal open={!!editor.preview} size="wide" title="Sunum önizlemesi" onClose={editor.closePreview} initialFocus={previewClose} footer={<button ref={previewClose} type="button" className="btn btn-secondary" onClick={editor.closePreview}>Önizlemeyi kapat</button>}>
+      {editor.preview && <div className="editor-preview">{editor.preview.kind === 'html' ? <iframe sandbox="allow-scripts" allow="fullscreen" title={`${editor.title || 'Sunum'} — önizleme`} srcDoc={editor.preview.html} /> : <div className="editor-pptx"><h3>{fileName}</h3><p>PPTX sunumu dosya olarak saklanır.</p><p>Bu dosya antivirüs taramasından geçirilmemiştir. Açmadan önce güvenlik yazılımınızla tarayın.</p></div>}</div>}
+    </Modal>
   </section>;
 }

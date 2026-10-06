@@ -1,0 +1,35 @@
+{
+  "passed": 5,
+  "failed": 0,
+  "skipped": 0,
+  "flaky": 0,
+  "retries": 0,
+  "durationMs": 11720.93,
+  "tests": [
+    {
+      "name": "editor-feedback.pw.ts > preview opens in a visible modal on desktop and phone, isolates HTML and restores focus on Escape",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > quota failure stays visible at any scroll position, preserves the form, replaces repeats and allows retry",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > cover picker separates upload and ready covers with keyboard tabs and a real image drop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > authentication failure is visible and dismissible above its active native dialog",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > download failures remain visible and dismissible inside native fullscreen",
+      "status": "passed",
+      "attempts": 1
+    }
+  ]
+}

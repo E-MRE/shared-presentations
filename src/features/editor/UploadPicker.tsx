@@ -1,6 +1,7 @@
 import { useRef, useState, type InputHTMLAttributes, type KeyboardEvent } from 'react';
 import type { DeckKind } from '../../contracts/models';
 import { readDroppedFiles, EditorInputError } from './input';
+import { useToast } from '../../components/toastContext';
 
 const directoryAttributes = { webkitdirectory: '', directory: '' } as InputHTMLAttributes<HTMLInputElement>;
 type Mode = 'bundle' | 'single' | 'pptx';
@@ -8,6 +9,7 @@ const choices: Array<{ mode: Mode; label: string }> = [
   { mode: 'bundle', label: 'HTML (Klasör / ZIP)' }, { mode: 'single', label: 'Tek HTML' }, { mode: 'pptx', label: 'PowerPoint' },
 ];
 export function UploadPicker({ kind, disabled, select }: { kind?: DeckKind; disabled: boolean; select: (files: File[], directory?: boolean) => Promise<void> }) {
+  const toast = useToast();
   const [mode, setMode] = useState<Mode>(kind === 'pptx' ? 'pptx' : 'bundle');
   const [dragging, setDragging] = useState(false), [dropError, setDropError] = useState(''), [reading, setReading] = useState(false);
   const file = useRef<HTMLInputElement>(null), directory = useRef<HTMLInputElement>(null), dropLock = useRef(false);
@@ -34,7 +36,7 @@ export function UploadPicker({ kind, disabled, select }: { kind?: DeckKind; disa
         const valid = mode === 'bundle' ? input.directory || (input.files.length === 1 && /\.zip$/i.test(input.files[0].name)) : !input.directory && input.files.length === 1 && (mode === 'single' ? /\.html?$/i : /\.pptx$/i).test(input.files[0].name);
         if (!valid) throw new EditorInputError('Seçili sekmeye uygun bir dosya sürükleyin veya sunum biçimini değiştirin.');
         await select(input.files, input.directory);
-      } catch (error) { setDropError(error instanceof EditorInputError ? error.message : 'Sürüklenen dosyalar okunamadı. Dosya seçim düğmesini deneyin.'); }
+      } catch (error) { const message = error instanceof EditorInputError ? error.message : 'Sürüklenen dosyalar okunamadı. Dosya seçim düğmesini deneyin.'; setDropError(message); toast.notify({ message, kind: 'error', key: 'editor-feedback' }); }
       finally { dropLock.current = false; setReading(false); }
     }}>
       <svg aria-hidden="true" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 16V3m-5 5 5-5 5 5M3 15v6h18v-6" /></svg>
@@ -45,6 +47,6 @@ export function UploadPicker({ kind, disabled, select }: { kind?: DeckKind; disa
       </div>
       <p id="editor-file-hint" className="upload-limits editor-hint">{mode === 'pptx' ? 'PPTX · En fazla 8 MB' : mode === 'single' ? 'HTML · En fazla 25 MB · Hazırlanan içerik en fazla 5 MB' : 'En fazla 300 dosya · Açılmış boyut 25 MB · Sıkıştırılmış boyut 5 MB · ZIP dosyası en fazla 25 MB'}</p>
       {reading && <p role="status">Dosyalar okunuyor…</p>}
-    </div>{dropError && <p role="alert" className="editor-error">{dropError}</p>}
+    </div>{dropError && <p className="editor-error">{dropError}</p>}
   </div>;
 }

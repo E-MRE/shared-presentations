@@ -45,7 +45,7 @@ npm run preview -- --host 0.0.0.0 --port 4175
 
 Kendi makinenizde `http://localhost:4175`, aynı ağdaki telefonda makinenizin güncel IP'si ve 4175 portu kullanılabilir. `192.168.1.150` önceki test IP'sidir; hâlâ geçerli olduğunu varsayma. Üretim önizlemesi varsayılan gerçek Firebase'i kullanır.
 
-Eski önizlemeyi kapat, yeni build'i aç, sayfayı yenile. Yeni Sunum → **Tek HTML** → aynı dosya. “Sunum hazır” ve önizlemeyi kontrol et. Hazırlama bileşeni yüklenemedi mesajı varsa sayfayı yenileyip tekrar seç. Sorun sürerse hataya yol açan HTML dosyasını ve tarayıcı adı/sürümünü ilet; e-posta/şifre/token gerekmez. Bu hazırlama adımı canlıya sunum kaydetmez; gönderim ayrı işlemdir.
+Eski önizlemeyi kapat, yeni build'i aç, sayfayı yenile. Yeni Sunum → **Tek HTML** → aynı dosya. “Sunum hazır” sonrasında **Sunumu önizle** ile açılan pencereyi ve içeriği kontrol et. Hazırlama bileşeni yüklenemedi mesajı varsa sayfayı yenileyip tekrar seç. Sorun sürerse hataya yol açan HTML dosyasını ve tarayıcı adı/sürümünü ilet; e-posta/şifre/token gerekmez. Bu hazırlama adımı canlıya sunum kaydetmez; gönderim ayrı işlemdir.
 
 ## 4. Güncel UI'ı tarayıcıda kontrol et
 
@@ -54,6 +54,8 @@ Eski önizlemeyi kapat, yeni build'i aç, sayfayı yenile. Yeni Sunum → **Tek 
 - Arşivde arama, kategori ve sunum kartları; yalnız mevcut sayfanın seçili navigasyonu; açık/koyu tema ve yenilemede tercihin korunması.
 - Giriş ekranında tek giriş düğmesi, şifre gösterme ve alanın altındaki kurtarma bağlantısı; kayıt penceresinde tek açıklama.
 - Yeni Sunum'da üç yükleme sekmesi, seçilen türe ait dosya alanları ve baştan açık kaynak bağlantıları. Tamamen boş kaynak satırı isteğe bağlı; yarım dolu satır hata vermeli.
+- Kapak kartında Görsel yükle / Hazır kapak sekmeleri, görsel sürükleme/seçme ve mevcut hazır kapaklara geçiş. Önizleme penceresi masaüstünde ve telefonda görünür açılmalı; kapanınca form korunmalı.
+- Onaya gönderme hatasında bildirim ekranın alt ortasında, kaydırma konumundan bağımsız görünmeli. Aynı işlemin tekrar hatası birikmemeli; hata sonrası dosya/başlık korunmalı. Beş bekleyen sınırı geçerli; beşten az bekleyen varken hata varsa [kota inceleme notunu](ONIZLEME-VE-BILDIRIM-RAPORU.md#beş-bekleyen-sunum-hatası) takip et.
 - Aynı hatalı HTML dosyasıyla “Sunum hazır” ve önizleme. Ayrıca kendi kullandığın ZIP/klasör ve PPTX dosyalarının hazırlama/önizlemesi.
 - Benim Sunumlarım'da uygun bir test kaydını silince geçici bildirim ve boş listede gereksiz “0 sunum” yazısının olmaması. Silme gerçek veriyi değiştirir; yalnız silinebilecek test kaydını kullan.
 

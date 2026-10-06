@@ -9,7 +9,7 @@ test('signup keeps dispatch failure visible; resend recovers without recreating 
   await flags(page, { mailFail: true }); await dialog.getByRole('button', { name: 'Hesap oluştur', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('Hesabınız oluşturuldu fakat');
   await flags(page, { mailFail: false }); await page.getByRole('button', { name: 'Doğrulama e-postasını yeniden gönder' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Gönderim isteği kabul edildi.' }).last()).toBeVisible();
+  await expect(page.locator('.vektor-toasts').getByRole('status')).toContainText('Doğrulama e-postası gönderildi.');
   const resend = page.getByRole('button', { name: 'Doğrulama e-postasını yeniden gönder' });
   await expect(resend).toBeDisabled();
   await page.clock.runFor(59_000);

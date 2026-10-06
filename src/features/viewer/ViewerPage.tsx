@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { ToastHostContext, useToast } from '../../components/toastContext';
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { StatePanel } from '../../components/StatePanel';
@@ -96,6 +98,9 @@ function errorText(error: AppError) {
 const corrupt = 'Sunum içeriği eksik veya bozuk. Tekrar deneyin.';
 
 function ViewerSession({ id, uid, isAdmin, service, onClose }: { id: string; uid: string; isAdmin: boolean; service: ViewerReadService; onClose: () => void }) {
+  const toast = useToast();
+  const toastHost = useContext(ToastHostContext);
+  const fullscreenHost = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const alive = useRef(true);
@@ -105,25 +110,25 @@ function ViewerSession({ id, uid, isAdmin, service, onClose }: { id: string; uid
   const [attempt, setAttempt] = useState(0);
   const [info, setInfo] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [fullscreenError, setFullscreenError] = useState('');
+  const fullscreenError = useCallback((message: string) => toast.notify({ message, kind: 'error', key: 'viewer-fullscreen' }), [toast]);
   const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState('');
+  const downloadError = (message: string) => toast.notify({ message, kind: 'error', key: 'viewer-download' });
   const panelId = useId();
 
   useLayoutEffect(() => {
     alive.current = true;
     const element = root.current;
-    const change = () => setFullscreen(document.fullscreenElement === element);
+    const change = () => { const active = document.fullscreenElement === element; setFullscreen(active); toastHost(active ? fullscreenHost.current : null); };
     document.addEventListener('fullscreenchange', change);
     return () => {
       alive.current = false;
       document.removeEventListener('fullscreenchange', change);
       // Only the fullscreen state owned by this viewer is ours to exit.
-      if (document.fullscreenElement === element) void document.exitFullscreen().catch(() => {});
+      if (document.fullscreenElement === element) { toastHost(null); void document.exitFullscreen().catch(() => {}); }
       // Activated downloads keep their short lease across unmount so the browser can consume them.
       // Their timers always revoke, without accessing React state or keeping DOM/listeners alive.
     };
-  }, []);
+  }, [toastHost]);
 
   useEffect(() => {
     let current = true;
@@ -155,14 +160,13 @@ function ViewerSession({ id, uid, isAdmin, service, onClose }: { id: string; uid
   const toggleFullscreen = useCallback(async () => {
     const element = root.current;
     if (!element) return;
-    setFullscreenError('');
     try {
       if (document.fullscreenElement === element) await document.exitFullscreen();
-      else if (!element.requestFullscreen || !document.fullscreenEnabled) { setFullscreenError('Bu tarayıcı tam ekranı desteklemiyor.'); return; }
-      else if (document.fullscreenElement) { setFullscreenError('Önce açık olan diğer tam ekran görünümünden çıkın.'); return; }
+      else if (!element.requestFullscreen || !document.fullscreenEnabled) { fullscreenError('Bu tarayıcı tam ekranı desteklemiyor.'); return; }
+      else if (document.fullscreenElement) { fullscreenError('Önce açık olan diğer tam ekran görünümünden çıkın.'); return; }
       else await element.requestFullscreen();
-    } catch { if (alive.current) setFullscreenError('Tam ekran açılamadı. Tam Ekran düğmesiyle tekrar deneyin.'); }
-  }, []);
+    } catch { if (alive.current) fullscreenError('Tam ekran açılamadı. Tam Ekran düğmesiyle tekrar deneyin.'); }
+  }, [fullscreenError]);
 
   const close = useCallback(() => {
     if (document.fullscreenElement === root.current) void document.exitFullscreen().catch(() => {});
@@ -171,26 +175,26 @@ function ViewerSession({ id, uid, isAdmin, service, onClose }: { id: string; uid
 
   async function download() {
     if (busy.current || state.status !== 'ready' || state.deck.kind !== 'pptx') return;
-    busy.current = true; setDownloading(true); setDownloadError('');
+    busy.current = true; setDownloading(true);
     const deck = state.deck;
     try {
       const chunks = await service.getAllChunks(id, deck.chunkCount);
       if (!alive.current) return;
-      if (!chunks.ok) { setDownloadError('Dosya indirilemedi. Tekrar deneyin.'); return; }
+      if (!chunks.ok) { downloadError('Dosya indirilemedi. Tekrar deneyin.'); return; }
       const content = reconstructPresentation(chunks.value, deck.chunks, deck.kind, deck.sizes);
-      if (!content.ok || content.value.rawBytes.length !== deck.sizes.unpacked) { setDownloadError(corrupt); return; }
+      if (!content.ok || content.value.rawBytes.length !== deck.sizes.unpacked) { downloadError(corrupt); return; }
       const url = URL.createObjectURL(new Blob([new Uint8Array(content.value.rawBytes)], { type: PPTX_MIME }));
       const link = document.createElement('a');
       link.href = url; link.download = safeDownloadName(deck.fileName);
       document.body.append(link);
-      try { link.click(); } finally {
+      try { link.click(); toast.notify({ message: 'İndirme başlatıldı.', kind: 'success', key: 'viewer-download' }); } finally {
         link.remove();
         // Chromium consumes the URL asynchronously; immediate unmount must not revoke too soon.
         const leases = retainedDownloads.current;
         const timer = window.setTimeout(() => { URL.revokeObjectURL(url); leases.delete(url); }, 30_000);
         leases.set(url, timer);
       }
-    } catch { if (alive.current) setDownloadError('Dosya indirilemedi. Tekrar deneyin.'); }
+    } catch { if (alive.current) downloadError('Dosya indirilemedi. Tekrar deneyin.'); }
     finally { busy.current = false; if (alive.current) setDownloading(false); }
   }
 
@@ -214,13 +218,13 @@ function ViewerSession({ id, uid, isAdmin, service, onClose }: { id: string; uid
         <button className="viewer-button" onClick={() => void toggleFullscreen()} aria-label={fullscreen ? 'Tam ekrandan çık' : 'Tam Ekran'} aria-pressed={fullscreen} title="Tam Ekran (F)"><Icon type="fullscreen" /><span className="viewer-fullscreen-label">{fullscreen ? 'Tam ekrandan çık' : 'Tam Ekran'}</span></button>
       </div>
     </header>
-    {fullscreenError && <p className="viewer-inline-error" role="alert">{fullscreenError}</p>}
     {state.status === 'loading' && <StatePanel title="Sunum yükleniyor…" description="İçerik hazırlanırken lütfen bekleyin." kind="loading"/>}
     {state.status === 'error' && <StatePanel title={state.message} kind="error"><button className="viewer-button" onClick={() => { setState({ status: 'loading' }); setAttempt(value => value + 1); }}>Tekrar dene</button></StatePanel>}
     {state.status === 'ready' && (state.deck.kind === 'html' ? <div className={`viewer-stage${info ? ' viewer-stage-info' : ''}`}>
       <div className="viewer-frame-area"><iframe ref={frame} title={`${state.deck.title} — sunum`} sandbox="allow-scripts" allow="fullscreen" srcDoc={state.html} /></div>
       <aside id={panelId} className="viewer-panel" hidden={!info} aria-label="Sunum bilgileri"><Metadata deck={state.deck} /></aside>
-    </div> : <div className="viewer-pptx"><div className="viewer-pptx-grid"><Cover deck={state.deck} /><div><Metadata deck={state.deck} /><div className="viewer-download"><button className="viewer-button viewer-primary" onClick={() => void download()} disabled={downloading}><Icon type="download" />{downloading ? 'İndiriliyor…' : 'PPTX dosyasını indir'}</button><p className="viewer-warning">Bu dosya antivirüs taramasından geçirilmemiştir. Açmadan önce güvenlik yazılımınızla tarayın.</p><p role="status" aria-live="polite">{downloading ? 'Dosya indirme için hazırlanıyor…' : ''}</p>{downloadError && <p role="alert">{downloadError}</p>}</div></div></div></div>)}
+    </div> : <div className="viewer-pptx"><div className="viewer-pptx-grid"><Cover deck={state.deck} /><div><Metadata deck={state.deck} /><div className="viewer-download"><button className="viewer-button viewer-primary" onClick={() => void download()} disabled={downloading}><Icon type="download" />{downloading ? 'İndiriliyor…' : 'PPTX dosyasını indir'}</button><p className="viewer-warning">Bu dosya antivirüs taramasından geçirilmemiştir. Açmadan önce güvenlik yazılımınızla tarayın.</p><p role="status" aria-live="polite">{downloading ? 'Dosya indirme için hazırlanıyor…' : ''}</p></div></div></div></div>)}
+    <div ref={fullscreenHost}/>
     <footer className="viewer-footer"><span>VEKTÖR</span>{deck?.kind === 'html' && <button className="viewer-button" onClick={() => frame.current?.focus()}>Sunuma odaklan</button>}<p>{deck?.kind === 'html' ? 'Sunumun kendi kontrollerini kullanın. Tuşlarla kontrol için önce sunuma tıklayın. ' : ''}Uygulama kontrollerindeyken F: Tam Ekran · Esc: Kapat</p></footer>
   </main>;
 }

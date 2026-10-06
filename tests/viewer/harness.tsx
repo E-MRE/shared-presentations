@@ -1,3 +1,4 @@
+import { ToastProvider } from '../../src/components/ToastProvider';
 import { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -32,4 +33,4 @@ function Harness() {
 }
 const root = createRoot(document.getElementById('root')!);
 window.unmountViewer = () => root.unmount();
-root.render(<BrowserRouter><Harness /></BrowserRouter>);
+root.render(<BrowserRouter><ToastProvider><Harness /></ToastProvider></BrowserRouter>);

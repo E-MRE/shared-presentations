@@ -1,5 +1,7 @@
 # Library feature
 
+Wrap library/admin routes in the shared `ToastProvider`. Mutation outcomes use keyed transient notifications, including inside native confirmation dialogs; list loading errors retain their contextual retry panels.
+
 `LibraryPage({auth, service})` and `MyDecksPage({auth, service})` are typed exports for L09 route composition at `/` and `/benim`. Wrap them in the shared router, load foundation styles, and place them inside AppLayout. They do not own Firebase authentication or root routing.
 
 Only an authenticated member mounts a read session. Sessions are keyed by UID, admin role and service identity; layout cleanup invalidates asynchronous work during a change/unmount, and old cards/modals disappear in that same commit. Keep dependency objects stable between unrelated renders.

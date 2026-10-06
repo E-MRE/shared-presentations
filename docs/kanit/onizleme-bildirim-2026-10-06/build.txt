@@ -1,0 +1,61 @@
+
+> vektor-presentations@0.1.0 build
+> tsc -b && vite build
+
+vite v8.3.2 building client environment for production...
+transforming...
+✓ 115 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                      1.56 kB │ gzip:   0.67 kB
+dist/assets/jetbrains-mono-latin-ext-400-normal-Bc8Ftmh3.woff2       7.33 kB
+dist/assets/jetbrains-mono-latin-ext-400-normal-fXTG6kC5.woff       10.12 kB
+dist/assets/plus-jakarta-sans-latin-ext-400-normal-D127hM_v.woff2   10.59 kB
+dist/assets/plus-jakarta-sans-latin-ext-500-normal-9VZagAe1.woff2   10.86 kB
+dist/assets/plus-jakarta-sans-latin-ext-600-normal-DQgPU_Cg.woff2   10.89 kB
+dist/assets/plus-jakarta-sans-latin-ext-700-normal-BajbvANd.woff2   11.00 kB
+dist/assets/plus-jakarta-sans-latin-400-normal-Dhut76fR.woff2       11.81 kB
+dist/assets/plus-jakarta-sans-latin-600-normal-DLTa1BUW.woff2       12.18 kB
+dist/assets/plus-jakarta-sans-latin-700-normal-CfpNZvy6.woff2       12.24 kB
+dist/assets/plus-jakarta-sans-latin-500-normal-Bf-nb4oT.woff2       12.31 kB
+dist/assets/plus-jakarta-sans-latin-ext-400-normal-2ppkqaOR.woff    15.31 kB
+dist/assets/plus-jakarta-sans-latin-ext-600-normal-B0WRRYJ1.woff    15.60 kB
+dist/assets/plus-jakarta-sans-latin-ext-700-normal-8-d-IyIQ.woff    15.61 kB
+dist/assets/plus-jakarta-sans-latin-ext-500-normal-CqEEAICU.woff    15.62 kB
+dist/assets/plus-jakarta-sans-latin-400-normal-BDKaGhyp.woff        15.72 kB
+dist/assets/plus-jakarta-sans-latin-600-normal-BR_Ojra4.woff        16.08 kB
+dist/assets/plus-jakarta-sans-latin-500-normal-DYtqi0QS.woff        16.12 kB
+dist/assets/plus-jakarta-sans-latin-700-normal-DqEcQeE5.woff        16.13 kB
+dist/assets/jetbrains-mono-latin-400-normal-V6pRDFza.woff2          21.16 kB
+dist/assets/jetbrains-mono-latin-400-normal-6-qcROiO.woff           27.49 kB
+dist/assets/AdminPage-tDfPcqsa.css                                   0.70 kB │ gzip:   0.31 kB
+dist/assets/LibraryUI-DBRZ_B5E.css                                   1.88 kB │ gzip:   0.62 kB
+dist/assets/PresentationEditor-CLw-3RfN.css                          7.02 kB │ gzip:   1.77 kB
+dist/assets/ViewerPage-0dHhCMbL.css                                  7.42 kB │ gzip:   1.84 kB
+dist/assets/index-CpeH2fR9.css                                      45.84 kB │ gzip:   8.95 kB
+dist/assets/rolldown-runtime-CbXtAM7H.js                             0.58 kB │ gzip:   0.36 kB
+dist/assets/state-motion-DPB1AEsP.js                                 0.72 kB │ gzip:   0.40 kB
+dist/assets/useDeckMutation-TilKHJUY.js                              0.88 kB │ gzip:   0.51 kB
+dist/assets/mime-BXmme3vB.js                                         1.07 kB │ gzip:   0.55 kB
+dist/assets/LibraryUI-tnXkT-CS.js                                    2.19 kB │ gzip:   0.96 kB
+dist/assets/MyDecksPage-BIykK2EF.js                                  2.75 kB │ gzip:   1.31 kB
+dist/assets/StatePanel-D55RaiS7.js                                   3.23 kB │ gzip:   1.38 kB
+dist/assets/LibraryPage-DurWvWH1.js                                  3.78 kB │ gzip:   1.79 kB
+dist/assets/pipeline-BEldMOeK.js                                     4.31 kB │ gzip:   1.75 kB
+dist/assets/AdminPage-BL6pz9NQ.js                                    6.15 kB │ gzip:   2.33 kB
+dist/assets/ViewerPage-DATAssaJ.js                                  12.61 kB │ gzip:   4.85 kB
+dist/assets/chunks-D_8yVUP0.js                                      17.50 kB │ gzip:   7.70 kB
+dist/assets/cover-Bu3qxlHL.js                                       39.82 kB │ gzip:  15.06 kB
+dist/assets/PresentationEditor-BKI4d64Q.js                          63.15 kB │ gzip:  19.08 kB
+dist/assets/index-DdGnq8xd.js                                       65.14 kB │ gzip:  20.08 kB
+dist/assets/firebase-auth-2qASohrh.js                               80.13 kB │ gzip:  23.88 kB
+dist/assets/lottie_light-DWNij8TF.js                               169.13 kB │ gzip:  47.43 kB
+dist/assets/react-router-BUiKsvmN.js                               258.60 kB │ gzip:  82.09 kB
+dist/assets/firebase-firestore-D3zwtJbM.js                         477.02 kB │ gzip: 140.47 kB
+
+✓ built in 260ms
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

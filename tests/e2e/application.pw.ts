@@ -72,7 +72,7 @@ test('Google and verified-email actions open member features; errors/signup/rese
   await dialog.getByRole('button', { name: 'Şifremi unuttum' }).click();
   await dialog.getByLabel('E-posta', { exact: true }).fill('fixture@example.invalid');
   await flags(page, { mailFail: true }); await dialog.getByRole('button', { name: 'Sıfırlama bağlantısı gönder' }).click();
-  await expect(dialog.getByRole('alert')).toHaveText('Sıfırlama e-postası gönderilemedi.');
+  await expect(dialog.getByRole('alert')).toContainText('Sıfırlama e-postası gönderilemedi.');
   await flags(page, { mailFail: false }); await dialog.getByRole('button', { name: 'Sıfırlama bağlantısı gönder' }).click();
   await expect(dialog.getByRole('status')).toContainText('Bu adresle bir hesap varsa');
   await dialog.getByRole('button', { name: 'Girişe dön' }).click();
@@ -94,9 +94,9 @@ test('unverified resend/reload/token failures remain visible and verification en
   await mount(page, '/yeni', 'unverified');
   await expect(page.getByRole('heading', { name: 'E-posta adresinizi doğrulayın' })).toBeVisible();
   await flags(page, { mailFail: true }); await page.getByRole('button', { name: 'Doğrulama e-postasını yeniden gönder' }).click();
-  await expect(page.getByRole('alert')).toHaveText('Doğrulama e-postası gönderilemedi.');
+  await expect(page.getByRole('alert')).toContainText('Doğrulama e-postası gönderilemedi.');
   await flags(page, { mailFail: false }); await page.getByRole('button', { name: 'Doğrulama e-postasını yeniden gönder' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Gönderim isteği kabul edildi.' })).toBeVisible();
+  await expect(page.locator('.vektor-toasts').getByRole('status')).toContainText('Doğrulama e-postası gönderildi.');
   await flags(page, { reloadFail: true }); await page.getByRole('button', { name: 'Doğruladım, yeniden kontrol et' }).click();
   await expect(page.getByRole('alert')).toContainText('Doğrulama kontrol edilemedi');
   await expect(page.getByRole('heading', { name: 'E-posta adresinizi doğrulayın' })).toBeVisible();

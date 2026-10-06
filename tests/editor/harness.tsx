@@ -1,3 +1,4 @@
+import { ToastProvider } from '../../src/components/ToastProvider';
 import { useMemo, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
@@ -32,4 +33,4 @@ function Harness() {
   const props = { auth, service, content, onClose: () => { metrics.closes++; }, onComplete: (deck: { id: string; status: string }) => { metrics.completions.push(deck.id); metrics.completionStatuses.push(deck.status); } };
   return <AppLayout auth={auth} actions={<ThemeToggle />}><span id="theme-label" hidden>Tema: {theme}</span>{mounted && <Routes><Route path="/tests/editor/harness.html" element={<PresentationEditor {...props} mode={mode} id={id} />} /><Route path="/yeni" element={<UploadPage auth={auth} service={service} content={content} />} /><Route path="/duzenle/:id" element={<EditPage auth={auth} service={service} content={content} />} /><Route path="/benim" element={<h1>Benim Sunumlarım</h1>} /><Route path="/s/:id" element={<h1>Sunum görüntüleyici</h1>} /></Routes>}</AppLayout>;
 }
-createRoot(document.getElementById('root')!).render(<BrowserRouter><ThemeProvider><Harness /></ThemeProvider></BrowserRouter>);
+createRoot(document.getElementById('root')!).render(<BrowserRouter><ThemeProvider><ToastProvider><Harness /></ToastProvider></ThemeProvider></BrowserRouter>);

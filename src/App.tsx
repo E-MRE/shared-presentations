@@ -23,6 +23,7 @@ import { StateIllustration } from './components/StatePanel';
 import { AppLayout } from './layout';
 import { ThemeToggle } from './theme';
 import { ApplicationRouter } from './routing/Router';
+import { useToast } from './components/toastContext';
 
 const visitor: AuthState = { status: 'unauthenticated', user: null, isAdmin: false, isMember: false };
 const loading: AuthState = { status: 'loading', user: null, isAdmin: false, isMember: false };
@@ -181,20 +182,32 @@ function RouteLifetime({ runtime, state }: { runtime: ApplicationDependencies; s
   useLayoutEffect(() => { const stop = runtime.auth.connectRole(); return () => { stop(); closeAllListeners(); }; }, [runtime, state.status, state.user?.uid, state.isAdmin]);
   const count = usePendingCount(state, runtime.adapter);
   const [dialog, setDialog] = useState<'login' | 'signup' | 'reset' | null>(null);
-  const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [error, setError] = useState('');
+  const toast = useToast();
+  const countNotice = useRef<string | null>(null);
+  useEffect(() => {
+    if (count.error) countNotice.current = toast.notify({ message: count.error, kind: 'error', key: 'pending-count' });
+    else if (countNotice.current) toast.dismiss(countNotice.current);
+  }, [count.error, toast]);
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{ uid: string; dispatch: AuthUser['verificationDispatch'] } | null>(null);
+  const transportError = runtime.auth.getError();
+  useEffect(() => { if (transportError) toast.notify({ message: transportError, kind: 'error', key: 'auth-feedback' }); }, [transportError, toast]);
   const alive = useRef(true), lock = useRef(false);
   useLayoutEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   async function action(operation: () => Promise<Result<unknown>>, success: string) {
     if (lock.current) return;
-    lock.current = true; setBusy(true); setError(''); setMessage('');
+    lock.current = true; setBusy(true);
+    if (state.user) setFeedback({ uid: state.user.uid, dispatch: state.user.verificationDispatch });
     try {
       const result = await operation();
       if (!alive.current) return;
-      if (result.ok) setMessage(success); else setError(result.error.message);
-    } catch { if (alive.current) setError('İşlem tamamlanamadı. Yeniden deneyin.'); }
+      const user = runtime.auth.getSnapshot().user;
+      setFeedback(user ? { uid: user.uid, dispatch: user.verificationDispatch } : null);
+      if (result.ok) { const verified = success && runtime.auth.getSnapshot().status === 'authenticated'; toast.notify({ message: verified ? 'E-posta adresiniz doğrulandı.' : success || 'İşlem tamamlandı.', kind: 'success', key: 'auth-feedback' }); } else toast.notify({ message: result.error.message, kind: 'error', key: 'auth-feedback' });
+    } catch { if (alive.current) toast.notify({ message: 'İşlem tamamlanamadı. Yeniden deneyin.', kind: 'error', key: 'auth-feedback' }); }
     finally { lock.current = false; if (alive.current) setBusy(false); }
   }
-  async function finishLogin(operation: () => Promise<Result<AuthUser>>) { const result = await operation(); if (result.ok && alive.current) setDialog(null); return result; }
+  async function finishLogin(operation: () => Promise<Result<AuthUser>>) { const result = await operation(); if (result.ok && alive.current) { toast.notify({ message: result.value.isMember ? 'Giriş yapıldı.' : 'Hesabınız hazır. E-posta adresinizi doğrulayın.', kind: 'success', key: 'auth-feedback' }); setDialog(null); } return result; }
   const dialogActions = { ...runtime.auth.actions,
     signInWithGoogle: () => finishLogin(runtime.auth.actions.signInWithGoogle),
     signInWithEmail: (credentials: Parameters<AuthContextValue['signInWithEmail']>[0]) => finishLogin(() => runtime.auth.actions.signInWithEmail(credentials)),
@@ -208,13 +221,12 @@ function RouteLifetime({ runtime, state }: { runtime: ApplicationDependencies; s
     <h1>{state.status === 'loading' ? 'Oturum kontrol ediliyor…' : state.status === 'unverified' ? 'E-posta adresinizi doğrulayın' : <>İyi fikirler<br/><span>paylaşılmayı hak eder.</span></>}</h1>
     <p>{state.status === 'unverified' ? `${state.user.email} adresine gelen bağlantıyı açın. Sonra buradan doğrulamayı kontrol edin.` : 'Sunumlarını bir araya getir. Ekibinin deneyiminden öğren, kendi bildiklerinle ilham ver.'}</p>
     {state.status === 'unauthenticated' && <div className="welcome-actions"><button className="btn btn-primary" onClick={() => setDialog('login')}>Giriş Yap</button><button className="btn btn-secondary" onClick={() => setDialog('signup')}>Hesap oluştur</button></div>}
-    {state.status === 'unverified' && <>{!error && <p className="auth-feedback" role={state.user.verificationDispatch?.sent === false ? 'alert' : 'status'}>{state.user.verificationDispatch?.message || 'İleti görünmüyorsa spam klasörünü kontrol edin veya yeni bir gönderim isteyin.'}</p>}<VerificationActions busy={busy} retryAt={state.user.verificationDispatch?.retryAt} resend={() => void action(runtime.auth.actions.sendVerificationEmail, '')} reload={() => void action(runtime.auth.actions.reloadUser, 'Doğrulama henüz görünmüyor. E-postadaki bağlantıyı açtıktan sonra tekrar kontrol edin.')}/></>}
-    {state.status === 'unverified' && message && <p role="status" className="auth-feedback">{message}</p>}
+    {state.status === 'unverified' && <>{!(feedback?.uid === state.user.uid && feedback.dispatch === state.user.verificationDispatch) && <p className="auth-feedback" role={state.user.verificationDispatch?.sent === false ? 'alert' : 'status'}>{state.user.verificationDispatch?.message || 'İleti görünmüyorsa spam klasörünü kontrol edin veya yeni bir gönderim isteyin.'}</p>}<VerificationActions busy={busy} retryAt={state.user.verificationDispatch?.retryAt} resend={() => void action(runtime.auth.actions.sendVerificationEmail, 'Doğrulama e-postası gönderildi. Gelen kutunuzu ve spam klasörünüzü kontrol edin.')} reload={() => void action(runtime.auth.actions.reloadUser, 'Doğrulama henüz görünmüyor. E-postadaki bağlantıyı açtıktan sonra tekrar kontrol edin.')}/></>}
     {state.status === 'unauthenticated' && <div className="welcome-details"><span>HTML & PowerPoint</span><span>Yalnızca ekip üyeleri</span><span>Tek bir arşiv</span></div>}</div><div className="welcome-visual"><StateIllustration kind={state.status === 'unverified' ? 'mail' : state.status === 'loading' ? 'loading' : 'empty'}/><span>Bir sunum. Yeni bir bakış açısı.</span></div>
   </section>;
   const contents = member ? <ApplicationRouter auth={state} service={runtime.service} adapter={runtime.adapter}/> : gates;
   return <>
-    {viewer ? contents : <AppLayout auth={state} onSignIn={undefined} onSignOut={() => { setDialog(null); void action(runtime.auth.actions.signOut, ''); }} pendingCount={count.count ?? undefined} actions={<ThemeToggle/>} footer={<span className="footer-meta" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>Vektör · Ekip sunum arşivi</span>}>{contents}{count.error && <div role="alert" className="main-content">{count.error} <button className="btn btn-secondary" onClick={count.retry}>Sayacı yeniden dene</button></div>}{(error || runtime.auth.getError()) && <p role="alert" className="main-content">{error || runtime.auth.getError()}</p>}</AppLayout>}
+    {viewer ? contents : <AppLayout auth={state} onSignIn={undefined} onSignOut={() => { setDialog(null); void action(runtime.auth.actions.signOut, 'Çıkış yapıldı.'); }} pendingCount={count.count ?? undefined} actions={<><ThemeToggle/>{count.error && <button className="btn btn-secondary" onClick={count.retry}>Sayacı yeniden dene</button>}</>} footer={<span className="footer-meta" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>Vektör · Ekip sunum arşivi</span>}>{contents}</AppLayout>}
     {dialog && (state.status === 'unauthenticated' || state.status === 'loading') && <AuthenticationDialog key={dialog} mode={dialog} close={() => setDialog(null)} change={setDialog} actions={dialogActions}/>}
   </>;
 }

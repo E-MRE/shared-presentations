@@ -1,5 +1,7 @@
 # Viewer entry points
 
+Wrap viewer entry points in the shared `ToastProvider` for transient fullscreen/download feedback. Its notification viewport follows viewer-owned native fullscreen, so controls remain visible and dismissible.
+
 `ViewerPage({ auth, service, onClose? })` is the React Router `/s/:id` adapter. Supply the current frozen `AuthState` and the real L03 service (only `getDeck` and `getAllChunks` are required). No provider, Firebase singleton, fake identity or data fallback is imported. Without `onClose`, closing replaces the route with `/`; it never follows arbitrary browser history. An integrating application may supply a callback to a known internal return route. Mount this as a dedicated route viewport instead of an overlay over another interactive route. Root/router/bootstrap integration belongs to L09.
 
 `PresentationViewer({ id, auth, service, onClose })` is the same production viewer without router dependencies at runtime. Authentication, route and service identity key a disposable read session. Loading, visitor and unverified states never mount a session or read metadata/chunks. Logout, account/role changes, id changes and service replacement remove old content synchronously at render and discard late promises. Backend rules remain the authorization authority; the UI additionally blocks nonpublished decks belonging to others. Metadata count/manifest/version/aggregate bounds are checked before a chunk read. Existing bounded `reconstructPresentation` handles both formats; actual decoded byte length must also match unpacked metadata.

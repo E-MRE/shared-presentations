@@ -1,0 +1,1363 @@
+{
+  "passed": 200,
+  "failed": 0,
+  "skipped": 139,
+  "tests": [
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants unverified email user is NOT a member (isMember === false)",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants verified email user IS a member (isMember === true)",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants Google signed-in user IS a member regardless of emailVerified flag",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants throws error when non-member attempts to open a Firestore listener",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants registers listener when user is a confirmed member",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants sign-out closes all active listeners",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) a raw Firestore call from a non-admin client attempting a client-side admin grant is DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) resolves isAdmin: true when Console admin doc exists in admins/{uid}",
+      "status": "skipped"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) resolves isAdmin: false cleanly without throwing when user is not an admin",
+      "status": "skipped"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) caches admin verification to minimize read calls",
+      "status": "skipped"
+    },
+    {
+      "name": "Real Auth tokens with Firestore emulator blocks a live SDK hostname before opening a socket",
+      "status": "skipped"
+    },
+    {
+      "name": "Real Auth tokens with Firestore emulator signup, resend, verification/token refresh, membership, reset and signout use only local SDK endpoints",
+      "status": "skipped"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation reports a dispatch failure while retaining the newly created unverified account",
+      "status": "passed"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation reports an accepted dispatch without promising inbox delivery",
+      "status": "passed"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation preserves resend failures and supports retry using the same account",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Entry HTML Selection selects index.html preferentially over other HTML files",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Entry HTML Selection falls back to deterministic first HTML file sorted alphabetically",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Entry HTML Selection respects explicit entry selection when provided",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Entry HTML Selection rejects bundle when no HTML files exist",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-File Inlining and Dependency Resolution inlines linked CSS, nested @import, and url() images as data URIs",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-File Inlining and Dependency Resolution detects and halts @import cycles gracefully",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-File Inlining and Dependency Resolution removes local @import statements when the recursion depth limit is reached",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-File Inlining and Dependency Resolution inlines linked scripts and safely escapes </script> inside script bodies",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-File Inlining and Dependency Resolution inlines img src and multi-descriptor srcset without leaking parent-origin URLs",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-File Inlining and Dependency Resolution neutralizes <base href=\"...\"> tag with a warning",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Four Design Presentation Fixtures Bundling & Roundtrip bundles and roundtrips fixture: flutter-fluid-rendering.html",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Four Design Presentation Fixtures Bundling & Roundtrip bundles and roundtrips fixture: local-first-crdt-sync.html",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Four Design Presentation Fixtures Bundling & Roundtrip bundles and roundtrips fixture: multi-agent-orchestration.html",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Four Design Presentation Fixtures Bundling & Roundtrip bundles and roundtrips fixture: zero-dependency-design-tokens.html",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-Chunk Splitting and Bounded Reconstruction slices large payloads (> 900 KB) into multiple ordered chunks",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-Chunk Splitting and Bounded Reconstruction rejects malformed manifests with non-sequential or mismatched sizes",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-Chunk Splitting and Bounded Reconstruction enforces uncompressed bound in prepareChunks before compression",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Multi-Chunk Splitting and Bounded Reconstruction enforces aggregate encoded bound in reconstructPresentation before stitching",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Edge Case Markup & JavaScript Tokenization preserves markup inside inline JavaScript strings without rewriting",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Edge Case Markup & JavaScript Tokenization preserves existing data-URI JavaScript verbatim",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Edge Case Markup & JavaScript Tokenization handles quoted > character in attributes safely",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Edge Case Markup & JavaScript Tokenization handles data URI srcset candidates containing commas safely",
+      "status": "passed"
+    },
+    {
+      "name": "HTML Bundling & Chunks Roundtrip Suite Edge Case Markup & JavaScript Tokenization inlines local asset inside style=\"...\" attribute url() expression",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Chromium PPTX XML validation accepts valid PPTX and rejects malformed XML and invalid OOXML structures",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Simple VP8 WebP dimensions reads the frame start code and dimensions at VP8 payload offsets",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Four Design Presentation Fixtures Auto Cover Capture captures 16:9 auto cover for fixture [1/4]: flutter-fluid-rendering.html",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Four Design Presentation Fixtures Auto Cover Capture captures 16:9 auto cover for fixture [2/4]: local-first-crdt-sync.html",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Four Design Presentation Fixtures Auto Cover Capture captures 16:9 auto cover for fixture [3/4]: multi-agent-orchestration.html",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Four Design Presentation Fixtures Auto Cover Capture captures 16:9 auto cover for fixture [4/4]: zero-dependency-design-tokens.html",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Owned Multi-File ZIP Package Capture bundles multi-file ZIP (HTML, CSS, JS, PNG) and captures 16:9 auto cover",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite PPTX Package Pipeline Behavior processes PPTX as identity encoding with default cover and no auto capture",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Default and Upload Override Covers generates branded default cover with tokens palette (640x360, no gradient)",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Default and Upload Override Covers processes user-uploaded cover override and gives it precedence in selectedCover",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Default and Upload Override Covers returns honest error when processCoverOverride is called in browser-less Node environment",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Default and Upload Override Covers rejects cover override exceeding MAX_SOURCE_COVER_BYTES (10 MB)",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Default and Upload Override Covers rejects cover override exceeding 16MP or 8192 dimension limits before Image allocation",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Default and Upload Override Covers clears Image callbacks and source when cover override decoding times out",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Security & Sandbox Invariants enforces strict sandbox=\"allow-scripts\" and asserts child BREACH_BLOCKED when accessing parent DOM/cookies",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Security & Sandbox Invariants rejects SVG data URLs before raster Image decoding",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Security & Sandbox Invariants handles one valid capture message and clears stalled Image state on timeout",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Security & Sandbox Invariants rejects spoofed postMessage payloads from untrusted sources",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser Cover Capture and Pipeline Suite Security & Sandbox Invariants cleans up transient iframe elements from DOM upon completion",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite normalizePath normalizes simple relative paths",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite normalizePath converts backslashes to forward slashes",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite normalizePath decodes percent-encoded characters",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite normalizePath rejects path traversal attempting to escape root",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite normalizePath rejects Windows drive letters and null bytes",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite normalizePath strips redundant leading slashes safely without escaping root",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite isPathTraversal detects directory traversal patterns",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite isPathTraversal permits safe interior relative paths",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite resolveRelativePath resolves relative paths from containing directory",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite resolveRelativePath strips query strings and hash anchors during resolution",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite resolveRelativePath returns empty string if resolved path attempts traversal escaping root",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite stripQueryAndHash separates path, query, and hash",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite stripQueryAndHash handles paths without query or hash",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite getDirectoryName extracts parent directory name from relative path",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite classifyUrl classifies URLs into accurate categories",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite stripCommonRoot strips common directory if all files share a top-level folder",
+      "status": "passed"
+    },
+    {
+      "name": "Path Normalization and Traversal Prevention Suite stripCommonRoot does not strip if files do not share a single top-level folder",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive successfully extracts a valid multi-file ZIP",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive strips common root directory if all entries reside within single top folder",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive enforces MAX_HTML_FILE_COUNT (300) during extraction",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive enforces decompressed byte limit against zip bombs during expansion",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive rejects directory traversal in ZIP file names",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive rejects truncated ZIP lacking central directory",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive rejects encrypted-flag ZIP archive",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive rejects symlink archive entries",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive rejects empty or corrupt ZIP data",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive rejects stored ZIP member with corrupted payload (CRC-32 mismatch)",
+      "status": "passed"
+    },
+    {
+      "name": "ZIP Extraction & PPTX Validation Suite extractZipArchive rejects deflated ZIP member with corrupted payload",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags reads legacy documents as uncategorized without changing stored data",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags accepts supported categories and bounded tags",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"category\":\"unsupported\"}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"a\",\"a\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\" \"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 2 chunks with 8 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 6 chunks with 8 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 10 chunks with 8 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 8 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 0 tags",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves html at encoded, cover and catalog limits",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves pptx at encoded, cover and catalog limits",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) v2 keeps 12 chunks + 8 tags + 10 links, preserves bytes, reviews, replaces and removes all tails",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) reads and reviews maximum-catalog v1 records, preserves legacy binary fields on edit and upgrades on replacement",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 1. unverified e-mail user is NOT a member: no listener, upload denied",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 2. Google-signed-in member creates a deck → pendingCount becomes 1 (assert read back from emulator)",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 3. 6th pending deck is rejected by the quota rule → service returns typed Turkish error",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 4. pending → pending edit leaves pendingCount unchanged (assert counter value)",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 5. editing a published deck returns it to pending and increments counter by 1",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 6. admin approve sets status, publishedAt, reviewedBy, reviewedAt and decrements the counter",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 7. admin reject without a note is refused; with a note it succeeds",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 8. owner delete of a pending deck removes chunks and decrements counter; zero orphan chunks remain",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 9. owner CANNOT delete a published deck; a non-owner CANNOT delete anything",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 10. member cannot read another member's pending deck or its chunks",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 11. published feed, own-decks and review-queue queries return correct order, and cursor pagination returns next page without duplicates or gaps",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 12. sign-out closes listeners",
+      "status": "skipped"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 13. a raw Firestore call from a non-admin client attempting a client-side admin grant is DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation accepts valid titles within limits",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation rejects empty or whitespace-only titles",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation rejects titles exceeding MAX_TITLE_LENGTH (120)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Description validation accepts valid descriptions",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Description validation rejects descriptions exceeding MAX_DESCRIPTION_LENGTH (2000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation accepts valid HTTPS links array up to MAX_LINKS_COUNT",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects links array exceeding MAX_LINKS_COUNT (10)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects insecure HTTP links",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects links with empty labels",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation accepts valid cover payloads",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation rejects empty cover payload",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation rejects cover exceeding MAX_COVER_BYTES (150000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants accepts sizes within HTML compressed and unpacked limits",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants rejects HTML encoded size exceeding MAX_HTML_ENCODED_BYTES (5242880)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants rejects PPTX encoded size exceeding MAX_PPTX_BYTES (8388608)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants enforces browser-only unpacked size MAX_HTML_UNPACKED_BYTES (26214400)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants enforces browser-only file count limit MAX_HTML_FILE_COUNT (300)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation accepts valid chunk manifest with matching sizes",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects chunk exceeding MAX_CHUNK_BYTES (900000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects manifest where sum of chunks does not equal encoded size",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects mismatch between binary chunk byteLength and manifest size",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite CreateDeckInput and UpdateDeckInput validation validates a complete valid CreateDeckInput payload",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite CreateDeckInput and UpdateDeckInput validation rejects invalid UpdateDeckInput missing id",
+      "status": "passed"
+    },
+    {
+      "name": "Metadata lists isolate link failures; real service with mocked SDK transport loads zero child documents for a 12-card page with ten links each",
+      "status": "passed"
+    },
+    {
+      "name": "Metadata lists isolate link failures; real service with mocked SDK transport keeps the review queue available when a deck has a missing link",
+      "status": "passed"
+    },
+    {
+      "name": "Metadata lists isolate link failures; real service with mocked SDK transport keeps the feed available when a deck has an invalid link",
+      "status": "passed"
+    },
+    {
+      "name": "Metadata lists isolate link failures; real service with mocked SDK transport detail fetch resolves links and reports missing or invalid links for only that deck",
+      "status": "passed"
+    },
+    {
+      "name": "Metadata lists isolate link failures; real service with mocked SDK transport the same legacy inline label does not break metadata listing",
+      "status": "passed"
+    },
+    {
+      "name": "application auth boundary with real Firebase User token API shape requires refreshed token claims, not providerData or stale emailVerified, and avoids admin reads for unverified",
+      "status": "passed"
+    },
+    {
+      "name": "application auth boundary with real Firebase User token API shape commits admin membership before service getter callbacks and hides replaced UID before observer delivery",
+      "status": "passed"
+    },
+    {
+      "name": "application auth boundary with real Firebase User token API shape drops delayed admin resolution after signout and account replacement",
+      "status": "passed"
+    },
+    {
+      "name": "application auth boundary with real Firebase User token API shape drops delayed reload after signout/replacement, refreshes token on successful verification",
+      "status": "passed"
+    },
+    {
+      "name": "application auth boundary with real Firebase User token API shape quarantines cancelled delayed login and synchronously locks duplicate calls",
+      "status": "passed"
+    },
+    {
+      "name": "application auth boundary with real Firebase User token API shape disposes and reopens role observation through the frozen registry",
+      "status": "passed"
+    },
+    {
+      "name": "application auth boundary with real Firebase User token API shape preserves reload errors after route state restoration and token failure",
+      "status": "passed"
+    },
+    {
+      "name": "directory drop preparation drains multiple directory batches and preserves relative file paths",
+      "status": "passed"
+    },
+    {
+      "name": "directory drop preparation rejects a directory exceeding the file limit",
+      "status": "passed"
+    },
+    {
+      "name": "directory drop preparation rejects oversized loose-file drops before further processing",
+      "status": "passed"
+    },
+    {
+      "name": "supplemental byte and metadata boundaries rejects actual high-entropy gzip payload above 5MB and unpacked bytes above25MB before persistence",
+      "status": "passed"
+    },
+    {
+      "name": "supplemental byte and metadata boundaries rejects more than10 resources at editor output boundary",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium gates loading visitors unverified invalid ID and foreign ownership including admin with zero chunks and mutations",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium loads metadata lazily with missing permission transport throw retry and bounds before chunks",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium creates all four design fixtures and ZIP with real automatic covers, reconstructs helper-free stored HTML then rejects sixth and recovers PPTX",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium uses real directory relative paths and requires explicit entry selection/change without overwriting typed metadata",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium preserves nested raw directory paths so explicit second HTML entry reaches the pipeline without double root stripping",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium prepares with real drag/drop and preview enforces exact opaque sandbox and parent separation, close and cover URL cleanup",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium lazy original HTML preview handles chunk failure throw retry and PPTX contains warning without iframe/chunks",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium keeps plain HTML readable on the native white iframe fallback and preserves authored deck backgrounds",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium handles preparation and cover errors while suppressing technical fallback warnings and preserving cover recovery",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium rejects formats traversal duplicate paths count byte PPTX and malformed prepared bounds with zero writes; restores invalid edit replacement explicitly",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium rejects UI file-count and synthetic byte metadata guards before reading or mutation",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium validates title description trimmed labels HTTPS credentials URL lengths count with linked focus summary and no invalid writes",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium saves metadata links cover-only and same-kind replacement, owns pending transition and preserves unchanged content",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium recovers quota network permission and thrown save errors preserving fields, synchronously locks duplicate submissions",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium discards delayed metadata preparation cover and preview on UID admin route service content logout and unmount",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium discards late file reads before pipeline and late sent mutations cannot complete or refresh a new session",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium limits resource count to ten and accepts removal then validates links-only and uploaded cover-only edits",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium renders 20 actual responsive theme screenshots, one main, accessible keyboard focus reduced motion and long text without overflow",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium shows one readable internet dependency note and restores automatic cover after uploaded override",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium replaces PPTX with real identity payload, restores original cover and retains pending quota at maximum",
+      "status": "passed"
+    },
+    {
+      "name": "actual upload and owner editor in Chromium route adapters default close to my decks and success to internal encoded deck route",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 1 chunks with 8 tags in single transactions",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 6 chunks with 8 tags in single transactions",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 12 chunks with 8 tags in single transactions",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves maximum html payload with 8 tags and maximum cover",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves maximum pptx payload with 8 tags and maximum cover",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype supports 12 chunks, 8 tags and 10 links together",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-size and rolls back the complete transaction",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-index and rolls back the complete transaction",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-data and rolls back the complete transaction",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects foreign-field and rolls back the complete transaction",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects missing-quota and rolls back the complete transaction",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 0",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 1",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 2",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 3",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 4",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 5",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 6",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 7",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 8",
+      "status": "skipped"
+    },
+    {
+      "name": "Manifest v2 isolated prototype binds root ownership to the authenticated caller",
+      "status": "skipped"
+    },
+    {
+      "name": "Parent validator expression measurements measures tags independently with 8 tags and 10 links",
+      "status": "skipped"
+    },
+    {
+      "name": "Parent validator expression measurements measures links independently with 8 tags and 10 links",
+      "status": "skipped"
+    },
+    {
+      "name": "Parent validator expression measurements measures other independently with 8 tags and 10 links",
+      "status": "skipped"
+    },
+    {
+      "name": "Parent validator expression measurements measures stored independently with 8 tags and 10 links",
+      "status": "skipped"
+    },
+    {
+      "name": "Expression budget scope controls one transaction of 12 individually costly writes passes",
+      "status": "skipped"
+    },
+    {
+      "name": "Expression budget scope controls one over-budget document fails with the actual 1000-expression diagnostic",
+      "status": "skipped"
+    },
+    {
+      "name": "production Firestore admin adapter with mocked SDK transport gates queries/listeners for loading, visitor, unverified and nonadmin with zero transport",
+      "status": "passed"
+    },
+    {
+      "name": "production Firestore admin adapter with mocked SDK transport paginates every status with deterministic descending doc ID and exact nanosecond cursor",
+      "status": "passed"
+    },
+    {
+      "name": "production Firestore admin adapter with mocked SDK transport retains exact backend chronology when frozen Deck.Date loses nanosecond precision",
+      "status": "passed"
+    },
+    {
+      "name": "production Firestore admin adapter with mocked SDK transport discards result after role/UID changes and maps query errors into Turkish results",
+      "status": "passed"
+    },
+    {
+      "name": "production Firestore admin adapter with mocked SDK transport counts the full pending set and closes on permission failure, UID/role loss and registry cleanup",
+      "status": "passed"
+    },
+    {
+      "name": "production Firestore admin adapter with mocked SDK transport handles synchronous subscribe throw without leaving a listener",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium gates all nonmembers and nonadmin admin routes with zero reads or subscriptions",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium loads published pages on demand, deduplicates newest cards and searches Turkish title, description and author without reads",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium shows recoverable list errors, thrown errors, loading and empty states",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium shows only current UID, all own statuses/notes and edit/view links, confirms eligible deletion with keyboard focus restore",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium approves oldest pending, validates required and max1000 trimmed reject note, and refreshes count/lists",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium paginates all statuses and confirms unpublish/delete, reapproves rejected and unpublished, prevents duplicate calls",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium allows an administrator to delete an own published deck while owner controls remain gated",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium provides reusable live count, immediate updates, recoverable errors and disposal on role/service/unmount",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium discards delayed reads on logout/UID/service and mutations on role loss without late refresh",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium invalidates an open own dialog and late mutation on service replacement and logout",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium rejects stale pagination when a successful own mutation refreshes the list",
+      "status": "passed"
+    },
+    {
+      "name": "actual production library, own and admin React components in Chromium captures library/my/admin/reject/confirm at375/1280 light/dark with long content, no overflow and keyboard modal trap",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 1. Sandboxed srcdoc iframe executes inline JS and applies CSS under real app CSP",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 2. Data-URI script execution works in sandboxed child under real app CSP",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 3. Blob URL script execution works in child iframe under real app CSP",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 4. Insecure external script (http://) is blocked in child iframe",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 5. Negative Control: parent CSP with script-src none blocks child script inside srcdoc",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions unverified users cannot read published metadata or chunks",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions inactive or malformed admin markers grant no private read access",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions anonymous user cannot read published or pending decks",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions member reads another member's pending deck → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions member reads another member's deck chunks → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions member reads their own pending deck and chunks → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions admin reads any pending deck and its chunks → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions user profile documents are not listable by members → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link valid Unicode and multiline label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link maximum label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link long label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link empty label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link numeric label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link spaces only",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link control whitespace only",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link Unicode whitespace only",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link list label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link map label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link null label",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link http URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link bare https prefix",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link numeric URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link list URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link null URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link maximum URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link long URL",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link extra field",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link outside count",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions link fractional index",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite V2 external link validation and permissions protects reads and writes by membership, owner/admin and pending status",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit HTML archive bounds",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit HTML archive overflow",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit HTML file count overflow",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit chunk byte overflow",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit HTML encoded overflow",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit PPTX encoded overflow",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active missing controls private read and approval",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active true controls private read and approval",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active false controls private read and approval",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active string controls private read and approval",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active number controls private read and approval",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active null controls private read and approval",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active list controls private read and approval",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active map controls private read and approval",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog legacy validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog new fields validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog maximum tags validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog unsupported category validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog category type validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog tags type validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog duplicate tags validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog too many tags validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog long tag validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog empty tag validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog space tag validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog nonstring tag validates atomic create and owner update",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants member creates a deck and tries to set status: published directly → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants member writes a non-whitelisted field → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants member writes a field of the wrong type → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants member creates an admins/{uid} doc → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants links with non-https scheme or more than 10 links → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants cover exceeding 150,000 bytes hard cap → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity rejects standalone owner decrement bound to own-published",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity rejects standalone owner decrement bound to foreign-published",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity rejects standalone owner decrement bound to foreign-pending",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity rejects standalone owner decrement bound to missing",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity rejects deletion of a foreign pending deck used to decrement the wrong profile",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity rejects admin decrement with unrelated profile mutations",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity member increments users/{self}.pendingCount outside bound transaction → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity member creates valid pending deck + chunks + counter increment (+1) in atomic batch → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity member forges a manifest byte total that disagrees with real chunk bytes → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity manifest chunk sizes sum does not equal sizes.encoded → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity creating several decks with a single counter increment → REJECTED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity concurrent double-increment / 6th pending deck exceeding quota (5) → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 4. Update Permissions and Immutability member tries to change ownerUid → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 4. Update Permissions and Immutability member updates their own pending deck (pending → pending) without changing counter → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 4. Update Permissions and Immutability member edits a published deck back to pending → requires new pending slot (+1) → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 5. Admin Review Actions admin approves pending deck (published) and decrements owner pendingCount → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 5. Admin Review Actions admin rejects pending deck with required rejectNote and decrements pendingCount → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 5. Admin Review Actions admin rejects without rejectNote → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 6. Deletion and Cleanup Invariants non-admin deletes a published deck → DENIED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 6. Deletion and Cleanup Invariants owner deletes their own pending deck and decrements counter → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 6. Deletion and Cleanup Invariants admin deletes a published deck and its chunks → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Firestore Security Rules Suite 6. Deletion and Cleanup Invariants replacement tail chunk cleanup on update → ALLOWED",
+      "status": "skipped"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_PENDING_PER_USER (5)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_TITLE_LENGTH (120)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_DESCRIPTION_LENGTH (2000)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_LINKS_COUNT (10)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_LINK_LABEL_LENGTH (100)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_LINK_URL_LENGTH (1000)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_COVER_BYTES (150000)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_CHUNKS_COUNT (12) and MIN_CHUNKS_COUNT (1)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_CHUNK_BYTES (900000)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_HTML_ENCODED_BYTES (5242880)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_PPTX_BYTES (8388608)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MANIFEST_VERSION (2) and preserves legacy metadata updates",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) bounds declared HTML unpacked size and file count in rules",
+      "status": "passed"
+    },
+    {
+      "name": "shared UI in real Chromium uses semantic layout, safe navigation for all roles, active links, callbacks and contextual counts",
+      "status": "passed"
+    },
+    {
+      "name": "shared UI in real Chromium renders safe card metadata and keyboard actions, recovers failed binary covers and revokes URLs",
+      "status": "passed"
+    },
+    {
+      "name": "shared UI in real Chromium contains modal focus in both directions, blocks background/scroll, distinguishes backdrop, restores trigger and cleans unmount",
+      "status": "passed"
+    },
+    {
+      "name": "shared UI in real Chromium announces multiple stable toasts without focus theft, pauses on hover/focus, supports explicit persistent errors, expires transient errors and clears timers",
+      "status": "passed"
+    },
+    {
+      "name": "shared UI in real Chromium follows system, persists explicit theme across reload, synchronizes storage and removes listeners",
+      "status": "passed"
+    },
+    {
+      "name": "shared UI in real Chromium survives denied storage reads/writes including an external event",
+      "status": "passed"
+    },
+    {
+      "name": "shared UI in real Chromium captures implemented UI at 375px and desktop in both themes, modal/landscape/reduced-motion and contrast",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium gates every nonmember state with zero reads and permits published/own/admin metadata only",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium announces loading/notfound/permission/read/thrown/chunk/corruption errors, validates bounds before reads, and retries",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium discards late metadata/chunk work on route, identity, role, service changes and logout",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium reconstructs HTML inside the exact opaque sandbox, preserves deck keyboard navigation and safe Bilgi metadata",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium uses real native fullscreen on the complete viewer, app-focus F/Esc and editable/modifier/repeat exceptions",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium reports rejected/unsupported fullscreen and leaves unrelated fullscreen untouched on unmount",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium keeps PPTX metadata free of chunk reads, downloads exact bytes/MIME/safe filename once and retains URLs through unmount until consumption",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium shows PPTX chunk/reconstruction errors, allows retry and suppresses stale downloads on auth/route/service changes",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium cleans JPEG/WebP covers and failed covers, route fullscreen listeners, and safe direct-link router close",
+      "status": "passed"
+    },
+    {
+      "name": "production presentation viewer in real Chromium captures actual HTML, Bilgi and PPTX at 375/1280 in both app themes and measures dark colors, wrapping, controls, focus and reduced motion",
+      "status": "passed"
+    }
+  ]
+}

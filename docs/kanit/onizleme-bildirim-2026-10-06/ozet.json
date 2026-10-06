@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-06",
+  "timezone": "Europe/Istanbul",
+  "baseCommit": "82813d265d5e467dc2635a99d44a72f780fc8726",
+  "unit": {
+    "passed": 200,
+    "failed": 0,
+    "skipped": 139
+  },
+  "e2e": {
+    "passed": 46,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "durationMs": 112968.776
+  },
+  "finalFeedbackRegression": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "durationMs": 11720.93
+  },
+  "gates": {
+    "lint": "passed",
+    "build": "passed",
+    "release": "passed"
+  },
+  "scope": "Chromium real React/SDK components; controlled local service/auth transport; not live Firebase acceptance",
+  "firestoreRulesSha256": "a9eefa6914251260b18dd1a8167053aeed6f75b659729edff35cdf19b6884869",
+  "rulesChanged": false,
+  "deployed": false,
+  "liveQuotaRead": false,
+  "quotaLimit": 5,
+  "notificationDefaultsMs": {
+    "success": 4000,
+    "info": 4000,
+    "error": 8000
+  },
+  "finalStyleValidation": "After the full suite, snackbar selector specificity was corrected and final 5 feedback scenarios passed, including actual desktop/mobile center and viewport bounds.",
+  "screenshots": [
+    {
+      "file": "preview-1280.png",
+      "title": "Masaüstü önizleme penceresi"
+    },
+    {
+      "file": "preview-375.png",
+      "title": "Telefon önizleme penceresi"
+    },
+    {
+      "file": "quota-at-top.png",
+      "title": "Masaüstünde sayfanın tepesinde kota bildirimi"
+    },
+    {
+      "file": "quota-phone.png",
+      "title": "Telefonda kota bildirimi"
+    },
+    {
+      "file": "dialog-error.png",
+      "title": "Açık giriş penceresinin üzerindeki hata bildirimi"
+    },
+    {
+      "file": "create-1280-dark.png",
+      "title": "Kapak kartı ve dosya yükleme — masaüstü/koyu"
+    },
+    {
+      "file": "create-375-light.png",
+      "title": "Kapak kartı ve dosya yükleme — telefon/açık"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
 .editor-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-6); margin-bottom: var(--space-8); }
 .editor-header > div > p:last-child, .editor-hint { color: var(--text-secondary); font-size: var(--text-sm); }
 .editor-eyebrow { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: var(--tracking-wide); color: var(--text-secondary); margin-bottom: var(--space-3); }
-.editor-review, .editor-summary, .editor-warnings, .editor-ready { padding: var(--space-4); border: 1px solid var(--border-medium); border-radius: var(--radius-md); background: var(--bg-surface-raised); margin-bottom: var(--space-6); }
+.editor-review, .editor-summary, .editor-ready { padding: var(--space-4); border: 1px solid var(--border-medium); border-radius: var(--radius-md); background: var(--bg-surface-raised); margin-bottom: var(--space-6); }
 .editor-review p { margin: var(--space-2) 0 0; font-size: var(--text-sm); color: var(--text-secondary); }
 .editor-columns { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: var(--space-6); }
 .editor-section { padding: var(--space-6); border: 1px solid var(--border-medium); background: var(--bg-surface); border-radius: var(--radius-lg); margin-bottom: var(--space-6); }
@@ -34,13 +34,20 @@
 .editor-cover > div { padding: var(--space-5); font-size: var(--text-sm); }
 .editor-cover span { font-family: var(--font-mono); }
 .editor-cover-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-.editor-preview { margin: var(--space-6) 0; padding: var(--space-5); background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: var(--radius-lg); }
-.editor-preview iframe { display: block; width: 100%; aspect-ratio: 16 / 9; min-height: 240px; border: 0; background: var(--primitive-white); margin-top: var(--space-4); }
+.editor-preview { width: 100%; overflow-wrap: anywhere; }
+.editor-preview iframe { display: block; width: 100%; height: min(65dvh, 630px); min-height: 240px; border: 0; background: var(--primitive-white); }
+.editor-preview .editor-pptx { padding: var(--space-4); }
+.editor-cover-section > .editor-hint { margin-block: var(--space-3) var(--space-5); }
+.cover-picker .editor-dropzone h3 { margin-block: var(--space-3) var(--space-2); font-size: var(--text-base); }
+.cover-ready-panel { padding: var(--space-4); border: 1px solid var(--border-medium); border-radius: var(--radius-md); background: var(--bg-surface-raised); }
+.cover-picker [hidden] { display: none; }
+.cover-ready-panel .editor-cover-actions { flex-direction: column; }
+.editor-content-note { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-4); }
 .editor-progress { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-4); }
 .editor-progress progress { width: 120px; max-width: 30%; accent-color: var(--brand-accent); }
 .editor-footer { display: flex; justify-content: flex-end; gap: var(--space-3); padding-top: var(--space-5); border-top: 1px solid var(--border-medium); }
 .editor-notice { padding: var(--space-12) 0; max-width: 640px; }
-@media (max-width: 740px) { .vektor-editor { padding: var(--space-6) var(--space-4) var(--space-8); } .editor-columns { grid-template-columns: minmax(0, 1fr); gap: 0; } .editor-section { padding: var(--space-5); } .editor-header { flex-wrap: wrap; } .editor-header h1 { font-size: var(--text-2xl); } .editor-preview { padding: var(--space-3); } .editor-section-heading { flex-wrap: wrap; } .editor-footer { flex-wrap: wrap; } }
+@media (max-width: 740px) { .vektor-editor { padding: var(--space-6) var(--space-4) var(--space-8); } .editor-columns { grid-template-columns: minmax(0, 1fr); gap: 0; } .editor-section { padding: var(--space-5); } .editor-header { flex-wrap: wrap; } .editor-header h1 { font-size: var(--text-2xl); } .editor-section-heading { flex-wrap: wrap; } .editor-footer { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { .vektor-editor *, .vektor-editor *::before, .vektor-editor *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
 .upload-tabs { display: flex; gap: 4px; padding: 4px; margin-bottom: 20px; border-radius: 12px; background: var(--bg-surface-raised); }

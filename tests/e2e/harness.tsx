@@ -64,7 +64,7 @@ const service: PresentationDataService = {
   async getMyDecks(uid) { if (!await boundary('own')) return failure(); return page([...decks.values()].filter(deck => deck.ownerUid === uid)); },
   async getReviewQueue() { if (!await boundary('queue', true)) return failure(); return page([...decks.values()].filter(deck => deck.status === 'pending')); },
   async createDeck(input) {
-    if (!await boundary('create')) return failure(); const valid = validateCreateDeckInput(input); if (!valid.ok) return valid;
+    if (!await boundary('create')) return failure(); if (flags.error === 'quota') return err({ code: AppErrorCode.QUOTA_EXCEEDED, message: 'Quota' }); const valid = validateCreateDeckInput(input); if (!valid.ok) return valid;
     metrics.creates.push(input); const id = `created-${metrics.creates.length}`;
     const deck: Deck = { ...decks.get('html')!, id, title: input.title, description: input.description, category: input.category, tags: input.tags, links: input.links, fileName: input.fileName, cover: input.cover, coverSource: input.coverSource, sizes: input.sizes, kind: input.kind, chunkCount: input.chunkCount, chunks: input.manifest, ownerUid: store.getMember()!.uid, status: 'pending', publishedAt: null, rejectNote: '', quotaMarker: id };
     decks.set(id, deck); chunks.set(id, input.chunks); counts(); return ok({ ...deck });

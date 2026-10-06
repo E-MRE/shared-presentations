@@ -1,18 +1,19 @@
 import { useLayoutEffect, useRef, useState, type FormEvent } from 'react';
-import { Modal } from '../components';
+import { Modal, useToast } from '../components';
 import type { AuthContextValue } from './authContext';
 import type { Result } from '../contracts/services';
 
 export type AuthDialogMode = 'login' | 'signup' | 'reset';
 export function AuthenticationDialog({ mode, close, change, actions }: { mode: AuthDialogMode; close: () => void; change: (mode: AuthDialogMode) => void; actions: Omit<AuthContextValue, 'state'> }) {
   const email = useRef<HTMLInputElement>(null), lock = useRef(false), alive = useRef(true);
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState(''), [showPassword, setShowPassword] = useState(false);
+  const toast = useToast();
+  const [busy, setBusy] = useState(false), [showPassword, setShowPassword] = useState(false);
   useLayoutEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   async function run(operation: () => Promise<Result<unknown>>, success: string) {
     if (lock.current) return;
-    lock.current = true; setBusy(true); setError(''); setMessage('');
-    try { const result = await operation(); if (!alive.current) return; if (result.ok) setMessage(success); else setError(result.error.message); }
-    catch { if (alive.current) setError('İşlem tamamlanamadı. Yeniden deneyin.'); }
+    lock.current = true; setBusy(true);
+    try { const result = await operation(); if (!alive.current) return; if (result.ok) toast.notify({ message: success, kind: 'success', key: 'auth-feedback', duration: 8000 }); else toast.notify({ message: result.error.message, kind: 'error', key: 'auth-feedback' }); }
+    catch { if (alive.current) toast.notify({ message: 'İşlem tamamlanamadı. Yeniden deneyin.', kind: 'error', key: 'auth-feedback' }); }
     finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -28,7 +29,6 @@ export function AuthenticationDialog({ mode, close, change, actions }: { mode: A
       {signup && <div className="form-group"><label className="form-label" htmlFor="auth-name">Ad soyad</label><input className="form-input" id="auth-name" name="name" autoComplete="name" placeholder="Nasıl hitap edelim?" required maxLength={100} disabled={busy}/></div>}
       <div className="form-group"><label className="form-label" htmlFor="auth-email">E-posta</label><div className="auth-input"><svg className="auth-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 6 9 7 9-7"/></svg><input ref={email} className="form-input" id="auth-email" name="email" type="email" autoComplete="email" placeholder="ornek@ekibin.com" required disabled={busy}/></div></div>
       {!reset && <div className="form-group"><label className="form-label" htmlFor="auth-password">Şifre</label><div className="auth-input auth-password"><svg className="auth-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><input className="form-input" id="auth-password" name="password" type={showPassword ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} minLength={6} required disabled={busy} aria-describedby={signup ? 'auth-password-hint' : undefined}/><button type="button" className="auth-eye" disabled={busy} aria-pressed={showPassword} aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'} onClick={() => setShowPassword(value => !value)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>{showPassword && <path d="m3 3 18 18"/>}</svg></button></div>{signup ? <p className="form-hint" id="auth-password-hint">En az 6 karakter kullanın.</p> : <div className="auth-recovery"><button type="button" className="auth-text-button" disabled={busy} onClick={() => change('reset')}>Şifremi unuttum</button></div>}</div>}
-      {error && <p className="auth-feedback auth-error" role="alert">{error}</p>}{message && <p className="auth-feedback" role="status">{message}</p>}
       <button className="btn btn-primary auth-submit" type="submit" disabled={busy}>{busy ? 'İşleniyor…' : signup ? 'Hesap oluştur' : reset ? 'Sıfırlama bağlantısı gönder' : 'E-posta ile giriş yap'}</button>
     </form>
     <div className="auth-switch">{mode === 'login' ? <><span>İlk kez mi buradasın?</span><button className="auth-text-button" disabled={busy} onClick={() => change('signup')}>Hesap oluştur</button></> : <button className="auth-text-button" disabled={busy} onClick={() => change('login')}>Girişe dön</button>}</div>

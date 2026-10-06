@@ -9,10 +9,13 @@ import { validateCreateDeckInput, validateUpdateDeckInput, validateSizes, valida
 import { readPresentationFiles, EditorInputError, type SelectedInput } from './input';
 import { metadataErrors, validOriginalMetadata, type FieldErrors } from './validation';
 import type { EditorContent, EditorService } from './types';
+import { useToast } from '../../components/toastContext';
 
 class PayloadError extends Error {}
 
 export function useEditor({ deck, service, content, onComplete }: { deck?: Deck; service: EditorService; content: EditorContent; onComplete?: (deck: Deck) => void }) {
+  const toast = useToast();
+  const feedback = useRef<string | null>(null);
   const [title, setTitle] = useState(deck?.title ?? '');
   const titleRef = useRef(title);
   const touched = useRef(!!deck);
@@ -21,7 +24,6 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
   const [tags, setTags] = useState(deck?.tags?.join(', ') ?? '');
   const [links, setLinks] = useState<DeckLink[]>(deck?.links.map(link => ({ ...link })) ?? []);
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [message, setMessage] = useState('');
   const [fileError, setFileError] = useState('');
   const [coverError, setCoverError] = useState('');
   const [phase, setPhase] = useState('');
@@ -36,8 +38,11 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
   const previewGeneration = useRef(0);
   const lastFiles = useRef<{ files: File[]; directory: boolean } | undefined>(undefined);
   const coverRef = useRef<CoverDescriptor | undefined>(undefined);
+  function notifyError(message: string) { feedback.current = toast.notify({ message, kind: 'error', key: 'editor-feedback' }); }
+  function fileFailure(message: string) { setFileError(message); notifyError(message); }
+  function coverFailure(message: string) { setCoverError(message); notifyError(message); }
   useLayoutEffect(() => { const operations = generation, previews = previewGeneration; alive.current = true; return () => { alive.current = false; operations.current++; previews.current++; }; }, []);
-  function begin(label: string) { if (lock.current || saved || !alive.current) return null; lock.current = true; setPhase(label); return ++generation.current; }
+  function begin(label: string) { if (lock.current || saved || !alive.current) return null; lock.current = true; if (feedback.current) toast.dismiss(feedback.current); setPhase(label); return ++generation.current; }
   function current(token: number) { return alive.current && generation.current === token; }
   function finish(token: number) { if (current(token)) { lock.current = false; setPhase(''); } }
   function changeTitle(value: string) { touched.current = true; titleRef.current = value; setTitle(value); }
@@ -58,22 +63,22 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
   }
   async function selectFiles(files: File[], directory = false) {
     const token = begin('Dosyalar okunuyor…'); if (token === null) return;
-    setHasInput(true); lastFiles.current = { files, directory }; setFileError(''); setMessage(''); setPrepared(undefined); setSelected(undefined); setPreview(undefined); previewGeneration.current++;
+    setHasInput(true); lastFiles.current = { files, directory }; setFileError(''); setPrepared(undefined); setSelected(undefined); setPreview(undefined); previewGeneration.current++;
     try {
       const value = await readPresentationFiles(files, directory, () => current(token));
       if (!current(token)) return;
       if (deck && (value.input.kind === 'pptx' ? 'pptx' : 'html') !== deck.kind) throw new PayloadError(`Bu sunum için yalnızca ${deck.kind === 'html' ? 'HTML / ZIP / klasör' : 'PPTX'} seçebilirsiniz.`);
       setSelected(value); await prepareInput(value, token);
-    } catch (error) { if (current(token)) setFileError(error instanceof PayloadError || error instanceof EditorInputError ? error.message : 'Dosyalar hazırlanamadı. Yeniden deneyin.'); }
+    } catch (error) { if (current(token)) fileFailure(error instanceof PayloadError || error instanceof EditorInputError ? error.message : 'Dosyalar hazırlanamadı. Yeniden deneyin.'); }
     finally { finish(token); }
   }
   async function chooseEntry(entry: string) {
     if (!selected || !selected.candidates.includes(entry)) return;
     const token = begin('Giriş dosyası hazırlanıyor…'); if (token === null) return;
     const value = { ...selected, entry }; setSelected(value); setPrepared(undefined); setPreview(undefined); setFileError(''); previewGeneration.current++;
-    try { await prepareInput(value, token); } catch (error) { if (current(token)) setFileError(error instanceof PayloadError || error instanceof EditorInputError ? error.message : 'Sunum hazırlanamadı.'); } finally { finish(token); }
+    try { await prepareInput(value, token); } catch (error) { if (current(token)) fileFailure(error instanceof PayloadError || error instanceof EditorInputError ? error.message : 'Sunum hazırlanamadı.'); } finally { finish(token); }
   }
-  async function retryFile() { if (selected && (!selected.candidates.length || selected.entry)) { const token = begin('Sunum yeniden hazırlanıyor…'); if (token === null) return; setFileError(''); try { await prepareInput(selected, token); } catch (error) { if (current(token)) setFileError(error instanceof PayloadError || error instanceof EditorInputError ? error.message : 'Sunum hazırlanamadı.'); } finally { finish(token); } } else if (lastFiles.current) await selectFiles(lastFiles.current.files, lastFiles.current.directory); }
+  async function retryFile() { if (selected && (!selected.candidates.length || selected.entry)) { const token = begin('Sunum yeniden hazırlanıyor…'); if (token === null) return; setFileError(''); try { await prepareInput(selected, token); } catch (error) { if (current(token)) fileFailure(error instanceof PayloadError || error instanceof EditorInputError ? error.message : 'Sunum hazırlanamadı.'); } finally { finish(token); } } else if (lastFiles.current) await selectFiles(lastFiles.current.files, lastFiles.current.directory); }
   async function chooseCover(file: File) {
     const token = begin('Kapak görseli işleniyor…'); if (token === null) return; setCoverError('');
     try {
@@ -82,7 +87,7 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
       if (!current(token)) return;
       if (!result.ok) throw new PayloadError(result.error.message);
       assignCover(result.value);
-    } catch (error) { if (current(token)) setCoverError(error instanceof PayloadError || error instanceof EditorInputError ? error.message : 'Kapak işlenemedi. Önceki kapak korundu.'); } finally { finish(token); }
+    } catch (error) { if (current(token)) coverFailure(error instanceof PayloadError || error instanceof EditorInputError ? error.message : 'Kapak işlenemedi. Önceki kapak korundu.'); } finally { finish(token); }
   }
   async function resetCover(source: 'default' | 'auto' | 'original') {
     if (source === 'original') { if (!lock.current) { assignCover(undefined); setCoverError(''); } return; }
@@ -93,7 +98,7 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
       if (!current(token)) return;
       if (!result.ok) throw new PayloadError(result.error.message);
       assignCover(result.value); setCoverError('');
-    } catch { if (current(token)) setCoverError('Varsayılan kapak hazırlanamadı. Yeniden deneyin.'); } finally { finish(token); }
+    } catch { if (current(token)) coverFailure('Varsayılan kapak hazırlanamadı. Yeniden deneyin.'); } finally { finish(token); }
   }
   async function openPreview() {
     const token = begin('Önizleme hazırlanıyor…'); if (token === null) return;
@@ -112,7 +117,7 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
       if (!current(token) || previewGeneration.current !== previewToken) return;
       if (!result.ok || !result.value.html) throw new PayloadError(result.ok ? 'HTML önizlemesi bulunamadı.' : result.error.message);
       setPreview({ kind: 'html', html: result.value.html });
-    } catch (error) { if (current(token) && previewGeneration.current === previewToken) setPreviewError(error instanceof PayloadError ? error.message : 'Önizleme yüklenemedi. Yeniden deneyin.'); }
+    } catch (error) { if (current(token) && previewGeneration.current === previewToken) { const message = error instanceof PayloadError ? error.message : 'Önizleme yüklenemedi. Yeniden deneyin.'; setPreviewError(message); notifyError(message); } }
     finally { finish(token); }
   }
   function closePreview() { previewGeneration.current++; setPreview(undefined); setPreviewError(''); }
@@ -126,7 +131,7 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
     if (!deck && !prepared) next.file = 'Önce bir sunum dosyası hazırlayın.';
     if (fileError || (selected && !prepared)) next.file = 'Seçilen dosya henüz hazır değil. Giriş dosyasını seçin veya hazırlamayı yeniden deneyin.';
     if (Object.keys(next).length) { setErrors({ ...next }); return 'invalid'; }
-    const token = begin('Sunum onaya gönderiliyor…'); if (token === null) return 'ignored'; setMessage('');
+    const token = begin('Sunum onaya gönderiliyor…'); if (token === null) return 'ignored';
     try {
       const metadata = { title: title.trim(), description, category, tags: tags.split(',').map(tag => tag.trim()).filter(Boolean), links: links.filter(link => link.label.trim() || link.url.trim()).map(link => ({ label: link.label.trim(), url: link.url.trim() })) };
       let result;
@@ -148,12 +153,12 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
       }
       if (!current(token)) return 'sent';
       if (!result.ok) {
-        setMessage(result.error.code === AppErrorCode.QUOTA_EXCEEDED ? 'En fazla 5 sunum onay bekleyebilir. Bir sunumun incelemesi tamamlandıktan sonra yeniden deneyin.' : result.error.code === AppErrorCode.PERMISSION_DENIED ? 'İşlem için izniniz yok. Oturumunuzu kontrol edip yeniden deneyin.' : 'Sunum kaydedilemedi. Bağlantınızı kontrol edip yeniden deneyin.');
-      } else { clearDeckPageCache(); setSaved(true); setMessage('Sunum onaya gönderildi.'); onComplete?.(result.value); }
-    } catch (error) { if (current(token)) setMessage(error instanceof PayloadError ? error.message : 'Sunum kaydedilemedi. Yeniden deneyin.'); }
+        notifyError(result.error.code === AppErrorCode.QUOTA_EXCEEDED ? 'En fazla 5 sunum onay bekleyebilir. Benim Sunumlarım sayfasından bekleyen sunumlarınızı kontrol edin; inceleme tamamlanınca veya bir bekleyen sunumu silince yeniden deneyin.' : result.error.code === AppErrorCode.PERMISSION_DENIED ? 'İşlem için izniniz yok. Oturumunuzu kontrol edip yeniden deneyin.' : 'Sunum kaydedilemedi. Bağlantınızı kontrol edip yeniden deneyin.');
+      } else { clearDeckPageCache(); setSaved(true); feedback.current = toast.notify({ message: 'Sunum onaya gönderildi.', kind: 'success', key: 'editor-feedback' }); onComplete?.(result.value); }
+    } catch (error) { if (current(token)) notifyError(error instanceof PayloadError ? error.message : 'Sunum kaydedilemedi. Yeniden deneyin.'); }
     finally { finish(token); }
     return 'sent';
   }
   const dirty = !saved && (hasInput || !!selected || !!cover || title !== (deck?.title ?? '') || description !== (deck?.description ?? '') || category !== (deck?.category ?? '') || tags !== (deck?.tags?.join(', ') ?? '') || JSON.stringify(links.filter(link => link.label.trim() || link.url.trim())) !== JSON.stringify(deck?.links ?? []));
-  return { dirty, category, setCategory, tags, setTags, title, changeTitle, description, setDescription, links, setLinks, errors, validateFields, validateField, clearError, message, fileError, coverError, phase, prepared, selected, cover, preview, previewError, saved, selectFiles, chooseEntry, retryFile, chooseCover, resetCover, openPreview, closePreview, clearReplacement, submit };
+  return { dirty, category, setCategory, tags, setTags, title, changeTitle, description, setDescription, links, setLinks, errors, validateFields, validateField, clearError, fileError, coverError, phase, prepared, selected, cover, preview, previewError, saved, selectFiles, chooseEntry, retryFile, chooseCover, resetCover, openPreview, closePreview, clearReplacement, submit };
 }

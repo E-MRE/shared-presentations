@@ -1,0 +1,240 @@
+{
+  "passed": 46,
+  "failed": 0,
+  "skipped": 0,
+  "flaky": 0,
+  "retries": 0,
+  "durationMs": 112968.776,
+  "tests": [
+    {
+      "name": "application.pw.ts > visitor and unverified gates keep all six routes free of feature calls; ordinary member cannot enter admin",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > composed direct routes and reload show actual library, own list, editor, admin and HTML/PPTX viewer",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > unknown and missing IDs recover visibly, foreign owner edit and private viewer read no chunks",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > Google and verified-email actions open member features; errors/signup/reset remain recoverable",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > unverified resend/reload/token failures remain visible and verification enables the real upload route",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > route navigation and role/logout transitions dispose and reopen one admin count with error retry",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > late metadata and own-list reads cannot restore signed-out or replaced sessions",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > real HTML file preparation persists pending chunks, preview and viewer, then admin approval enters feed",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > real PPTX upload uses identity chunks and actual viewer download preserves bytes",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > review rejection note, owner published edit, unpublish/reapprove and delete use typed feature payloads",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "application.pw.ts > delayed auth admin, reload and login completions never revive a signed-out account",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > preview opens in a visible modal on desktop and phone, isolates HTML and restores focus on Escape",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > quota failure stays visible at any scroll position, preserves the form, replaces repeats and allows retry",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > cover picker separates upload and ready covers with keyboard tabs and a real image drop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > authentication failure is visible and dismissible above its active native dialog",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "editor-feedback.pw.ts > download failures remain visible and dismissible inside native fullscreen",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "keyboard.pw.ts > keyboard auth and admin dialogs contain focus, validate, close and restore triggers",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "keyboard.pw.ts > viewer native fullscreen, close controls and opaque frame keyboard isolation",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "production-entry.pw.ts > built production entry loads emitted SDK app assets and visitor gates on direct links/reload",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "refresh.pw.ts > signup keeps dispatch failure visible; resend recovers without recreating the account",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "refresh.pw.ts > dirty editor protects links, browser back and close; saved metadata includes category and tags",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "refresh.pw.ts > viewer closes to the originating own list and admin tab",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "refresh.pw.ts > initial feed requests one page; complete category and tag search is explicit and filters survive viewing",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "refresh.pw.ts > local state animation loads when motion is allowed and pauses for reduced motion",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "theme.pw.ts > production prepaint light system and explicit storage before module execution",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "theme.pw.ts > production prepaint light system and unset storage before module execution",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "theme.pw.ts > production prepaint light system and denied storage before module execution",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "theme.pw.ts > production prepaint dark system and explicit storage before module execution",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "theme.pw.ts > production prepaint dark system and unset storage before module execution",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "theme.pw.ts > production prepaint dark system and denied storage before module execution",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "theme.pw.ts > theme provider persists, reloads and responds to real cross-page storage and system changes",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "theme.pw.ts > theme provider keeps in-memory controls usable when storage reads and writes fail",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "ui-fixes.pw.ts > header has one active route; theme changes directly and visitor has one login action",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "ui-fixes.pw.ts > deletion gives a temporary toast; signout leaves no stale text after another login",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "ui-fixes.pw.ts > archive keeps accessible search but removes visible redundant text and empty count",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "ui-fixes.pw.ts > upload tabs have keyboard navigation and format-specific controls; optional sources start visible",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "ui-fixes.pw.ts > unavailable lazy preparation module reports refresh guidance instead of generic file failure",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "ui-fixes.pw.ts > auth has one introductory message, eye control and a separate recovery link",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "visual.pw.ts > normal screenshot and overflow matrix 375px light",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "visual.pw.ts > long metadata stress overflow 375px light",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "visual.pw.ts > normal screenshot and overflow matrix 375px dark",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "visual.pw.ts > long metadata stress overflow 375px dark",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "visual.pw.ts > normal screenshot and overflow matrix 1280px light",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "visual.pw.ts > long metadata stress overflow 1280px light",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "visual.pw.ts > normal screenshot and overflow matrix 1280px dark",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "name": "visual.pw.ts > long metadata stress overflow 1280px dark",
+      "status": "passed",
+      "attempts": 1
+    }
+  ]
+}
