@@ -1,5 +1,7 @@
 # Vektör
 
+The [development-to-production summary](docs/SUREC-OZETI-2026-10-06.md) brings together the project history, UI changes, test evidence, secret review and Firebase release.
+
 A Turkish team presentation library built with React, Vite and modular Firebase Auth/Firestore. Members upload HTML bundles or PPTX files; administrators review submissions. HTML runs inside an opaque sandbox, and PPTX is downloaded without conversion. Firestore holds metadata and bounded binary chunks; Firebase Storage is not used.
 
 Use Node 24 LTS (or Node 22.12+) and `npm ci` with the committed lockfile. This run uses Node 24 and Java 21. `npm run dev` starts local development against the real `shared-presentations` Firebase project by default. Copy `.env.example` to `.env.local` and set `VITE_USE_EMULATORS=true` only when deliberately testing local emulators. Localhost does not silently select emulators. Start them with `npx firebase emulators:start --project shared-presentations --only auth,firestore`.
