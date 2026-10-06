@@ -1,8 +1,10 @@
 # UI düzeltme teslimi — 6 Ekim 2026
 
+**Güncel durum:** Son kart/editör/admin düzenlemeleri `d5bc1b3` ile teslim edildi; kullanıcı tarayıcıda teyit etti. Firestore kuralları 6 Ekim 14:24'te yayımlandı ve birebir karşılaştırıldı. Hosting yayını bekliyor, localhost önizlemesi durduruldu. [Son düzenleme, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md).
+
 Son kullanıcı geri bildirimiyle önizleme penceresi, kapak seçimi ve ortak geçici işlem bildirimleri eklendi: [güncel değişiklik raporu](ONIZLEME-VE-BILDIRIM-RAPORU.md). Aşağıdaki UI davranışları ilk teslimi anlatır.
 
-Kullanıcının toplu ekran görüntüleri ile önceki I01–I04 incelemesi birlikte ele alındı. UI değişiklikleri, liste izolasyonu/okuma azaltma ve kota kuralı düzeltmesi uygulandı. **Canlı yayın yapılmadı; kullanıcının hatalı HTML dosyasıyla tekrar kontrolü açık.** Ağ erişimi açılınca değişen kuralların backend kabulü **174/174, sıfır skip** tamamlandı; devam doğrulaması [emülatör tamamlama raporunda](EMULATOR-TAMAMLAMA-RAPORU.md). Aşağıdaki tablo ilk UI tesliminin tarihsel sonuçlarını korur.
+Kullanıcının toplu ekran görüntüleri ile önceki I01–I04 incelemesi birlikte ele alındı. UI değişiklikleri, liste izolasyonu/okuma azaltma ve kota kuralı düzeltmesi uygulandı. **Bu ilk UI tesliminde canlı yayın yapılmamıştı; kullanıcının hatalı HTML dosyasının kök nedeni bağımsız doğrulanmadı.** Ağ erişimi açılınca değişen kuralların backend kabulü **174/174, sıfır skip** tamamlandı; devam doğrulaması [emülatör tamamlama raporunda](EMULATOR-TAMAMLAMA-RAPORU.md). Aşağıdaki tablo ilk UI tesliminin tarihsel sonuçlarını korur.
 
 ## Değişen davranış
 
@@ -40,4 +42,4 @@ Lazy hazırlama modülü indirilemezse eskiden genel “Dosyalar hazırlanamadı
 
 [Öncelikli iş listesi](UI-DUZELTME-PLANI.md) ve [kullanıcı/ortam dosyası](KULLANICI-BAGIMLILIKLARI.md) güncel. Admin belgesi `admins/{UID}` / boolean active=true; canlı kaydın varlığı bu ortamdan doğrulanamadı. Console adımları dosyada.
 
-GitHub commit/push yapılır; kaynak, test, kurallar ve belgeler birlikte teslim edilir. Dist izlenmeyen build çıktısıdır; kendi ortamında npm ci / npm run build ile yeniden üretilir. Gerçek Firebase kuralları ve Hosting değiştirilmedi. Bu ortamdan kullanıcıya erişilebilir tünel yok; GitHub'dan alınan sürüm kendi cihazında localhost:4175 ile denenebilir.
+İlk UI tesliminin kaynak, test, kural ve belgeleri GitHub'a gönderildi; son UI kodu `d5bc1b3` içinde. Dist izlenmeyen build çıktısıdır; kendi ortamında npm ci / npm run build ile yeniden üretilir. İlk teslimde kurallar ve Hosting değiştirilmemişti; daha sonra yalnız kurallar yayımlandı. Önizleme yeniden başlatıldığında kendi cihazında localhost:4175 ile denenebilir.

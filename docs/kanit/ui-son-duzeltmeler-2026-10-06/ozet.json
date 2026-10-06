@@ -1,0 +1,309 @@
+{
+  "date": "2026-10-06",
+  "timezone": "Europe/Istanbul",
+  "sourceCommit": "d5bc1b33c7bea45b2692c6037984cc2b97630e49",
+  "verification": {
+    "lint": "passed",
+    "build": "passed",
+    "diffCheck": "passed",
+    "targetedE2E": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "durationMs": 10856.89,
+      "startTime": "2026-10-06T11:39:27.190Z",
+      "scope": "Four existing keyboard, return-navigation, paginated-search and archive UI scenarios; local controlled services"
+    },
+    "fullSuitesRerun": false
+  },
+  "visual": {
+    "cards": [
+      {
+        "theme": "light",
+        "width": 1280,
+        "state": "normal",
+        "height": 455.328125,
+        "titleHeight": 25.1875,
+        "titleLineHeight": 25.2,
+        "descriptionHeight": 44.78125,
+        "descriptionLineHeight": 22.4,
+        "overflow": false
+      },
+      {
+        "theme": "light",
+        "width": 1280,
+        "state": "long",
+        "titleHeight": 50.375,
+        "titleLineHeight": 25.2,
+        "overflow": false
+      },
+      {
+        "theme": "light",
+        "width": 768,
+        "state": "normal",
+        "height": 429.09375,
+        "titleHeight": 25.1875,
+        "titleLineHeight": 25.2,
+        "descriptionHeight": 44.78125,
+        "descriptionLineHeight": 22.4,
+        "overflow": false
+      },
+      {
+        "theme": "light",
+        "width": 768,
+        "state": "long",
+        "titleHeight": 50.375,
+        "titleLineHeight": 25.2,
+        "overflow": false
+      },
+      {
+        "theme": "light",
+        "width": 375,
+        "state": "normal",
+        "height": 408.28125,
+        "titleHeight": 25.1875,
+        "titleLineHeight": 25.2,
+        "descriptionHeight": 44.78125,
+        "descriptionLineHeight": 22.4,
+        "overflow": false
+      },
+      {
+        "theme": "light",
+        "width": 375,
+        "state": "long",
+        "titleHeight": 50.375,
+        "titleLineHeight": 25.2,
+        "overflow": false
+      },
+      {
+        "theme": "dark",
+        "width": 1280,
+        "state": "normal",
+        "height": 455.328125,
+        "titleHeight": 25.1875,
+        "titleLineHeight": 25.2,
+        "descriptionHeight": 44.78125,
+        "descriptionLineHeight": 22.4,
+        "overflow": false
+      },
+      {
+        "theme": "dark",
+        "width": 1280,
+        "state": "long",
+        "titleHeight": 50.375,
+        "titleLineHeight": 25.2,
+        "overflow": false
+      },
+      {
+        "theme": "dark",
+        "width": 768,
+        "state": "normal",
+        "height": 429.09375,
+        "titleHeight": 25.1875,
+        "titleLineHeight": 25.2,
+        "descriptionHeight": 44.78125,
+        "descriptionLineHeight": 22.4,
+        "overflow": false
+      },
+      {
+        "theme": "dark",
+        "width": 768,
+        "state": "long",
+        "titleHeight": 50.375,
+        "titleLineHeight": 25.2,
+        "overflow": false
+      },
+      {
+        "theme": "dark",
+        "width": 375,
+        "state": "normal",
+        "height": 408.28125,
+        "titleHeight": 25.1875,
+        "titleLineHeight": 25.2,
+        "descriptionHeight": 44.78125,
+        "descriptionLineHeight": 22.4,
+        "overflow": false
+      },
+      {
+        "theme": "dark",
+        "width": 375,
+        "state": "long",
+        "titleHeight": 50.375,
+        "titleLineHeight": 25.2,
+        "overflow": false
+      }
+    ],
+    "adminButtons": [
+      {
+        "theme": "light",
+        "width": 1280,
+        "buttons": [
+          {
+            "label": "Reddet",
+            "background": "rgb(241, 245, 249)",
+            "border": "rgb(148, 163, 184)",
+            "contrast": 16.295987899750777,
+            "height": 45,
+            "fits": true
+          },
+          {
+            "label": "Sil",
+            "background": "rgb(255, 241, 242)",
+            "border": "rgb(225, 29, 72)",
+            "contrast": 5.394837523163877,
+            "height": 45,
+            "fits": true
+          }
+        ]
+      },
+      {
+        "theme": "light",
+        "width": 375,
+        "buttons": [
+          {
+            "label": "Reddet",
+            "background": "rgb(241, 245, 249)",
+            "border": "rgb(148, 163, 184)",
+            "contrast": 16.295987899750777,
+            "height": 45,
+            "fits": true
+          },
+          {
+            "label": "Sil",
+            "background": "rgb(255, 241, 242)",
+            "border": "rgb(225, 29, 72)",
+            "contrast": 5.394837523163877,
+            "height": 44,
+            "fits": true
+          }
+        ]
+      },
+      {
+        "theme": "dark",
+        "width": 1280,
+        "buttons": [
+          {
+            "label": "Reddet",
+            "background": "rgb(20, 28, 51)",
+            "border": "rgba(255, 255, 255, 0.28)",
+            "contrast": 16.138946248765834,
+            "height": 45,
+            "fits": true
+          },
+          {
+            "label": "Sil",
+            "background": "rgba(244, 63, 94, 0.12)",
+            "border": "rgb(251, 113, 133)",
+            "contrast": 6.984973875976011,
+            "height": 45,
+            "fits": true
+          }
+        ]
+      },
+      {
+        "theme": "dark",
+        "width": 375,
+        "buttons": [
+          {
+            "label": "Reddet",
+            "background": "rgb(20, 28, 51)",
+            "border": "rgba(255, 255, 255, 0.28)",
+            "contrast": 16.138946248765834,
+            "height": 45,
+            "fits": true
+          },
+          {
+            "label": "Sil",
+            "background": "rgba(244, 63, 94, 0.12)",
+            "border": "rgb(251, 113, 133)",
+            "contrast": 6.984973875976011,
+            "height": 44,
+            "fits": true
+          }
+        ]
+      }
+    ],
+    "editorSpacing": [
+      {
+        "theme": "light",
+        "width": 1280,
+        "uploadGap": 16,
+        "coverGap": 36,
+        "buttonBackground": "rgb(255, 255, 255)",
+        "panelBackground": "rgb(241, 245, 249)",
+        "buttonBorder": "rgb(148, 163, 184)",
+        "buttonHeight": 44,
+        "overflow": false
+      },
+      {
+        "theme": "light",
+        "width": 375,
+        "uploadGap": 16,
+        "coverGap": 36,
+        "buttonBackground": "rgb(255, 255, 255)",
+        "panelBackground": "rgb(241, 245, 249)",
+        "buttonBorder": "rgb(148, 163, 184)",
+        "buttonHeight": 44,
+        "overflow": false
+      },
+      {
+        "theme": "dark",
+        "width": 1280,
+        "uploadGap": 16,
+        "coverGap": 36,
+        "buttonBackground": "rgb(14, 21, 38)",
+        "panelBackground": "rgb(20, 28, 51)",
+        "buttonBorder": "rgba(255, 255, 255, 0.28)",
+        "buttonHeight": 44,
+        "overflow": false
+      },
+      {
+        "theme": "dark",
+        "width": 375,
+        "uploadGap": 16,
+        "coverGap": 36,
+        "buttonBackground": "rgb(14, 21, 38)",
+        "panelBackground": "rgb(20, 28, 51)",
+        "buttonBorder": "rgba(255, 255, 255, 0.28)",
+        "buttonHeight": 44,
+        "overflow": false
+      }
+    ]
+  },
+  "firestore": {
+    "project": "shared-presentations",
+    "deployed": true,
+    "releaseUpdatedAt": "2026-10-06T11:24:21.854713Z",
+    "exactReadbackMatch": true,
+    "rulesSha256": "a9eefa6914251260b18dd1a8167053aeed6f75b659729edff35cdf19b6884869",
+    "previousAcceptance": {
+      "backendPassed": 174,
+      "prototypePassed": 27,
+      "skipped": 0
+    }
+  },
+  "hostingDeployed": false,
+  "previewRunning": false,
+  "userConfirmedUI": true,
+  "adminMarkerChangedByAgent": false,
+  "secretScan": {
+    "tool": "Gitleaks",
+    "version": "8.30.1",
+    "releaseChecksumVerified": true,
+    "historyScope": "--all",
+    "workingTreeScope": "git-tracked files",
+    "workingTreeFindings": 2,
+    "historyFindings": 2,
+    "uiDiffFindings": 0,
+    "stagedUiDiffFindings": 0,
+    "classification": "Same public Firebase Browser key in src/firebase.ts and docs/BRIEF.md; existing API restrictions verified; Generative Language API not allowed",
+    "rawReportsCommitted": false
+  },
+  "remaining": [
+    "Hosting release and deployed-origin checks",
+    "Original failing HTML root cause not independently reproduced",
+    "Live account quota counter not inspected"
+  ]
+}

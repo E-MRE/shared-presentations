@@ -2,6 +2,8 @@
 
 UI düzeltmeleri için başka tasarım kararı gerekmiyor. Bu dosya önceki bağımlılık listesinin güncel karşılığıdır; tarihsel test sonuçları SON-KONTROL-RAPORU.md ve Git geçmişinde korunuyor.
 
+**Son durum:** `d5bc1b3` UI düzenlemeleri kullanıcı tarafından tarayıcıda teyit edildi ve `main` dalına gönderildi. Güncel Firestore kuralları 6 Ekim 14:24'te canlıya yayımlandı; Hosting yayını bekliyor. Yerel 4175 önizlemesi kullanıcı isteğiyle durduruldu. [Son UI, doğrulama ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md).
+
 Gerçek doğrulama e-postası, şifre sıfırlama/yeni şifre, Google hesap seçimi/iptal/giriş, 60 saniyelik yeniden gönderme ve fiziksel telefonda giriş kullanıcı tarafından önceki sürümde test edildi. Bunlar yeniden bekleyen iş olarak listelenmiyor. Firebase bağlı; Firestore ve e-posta/Google sağlayıcıları etkin. Test sunumu için içerik koruma bağımlılığı yok.
 
 ## 1. Yeni kuralların emülatör doğrulaması — burada tamamlandı
@@ -24,7 +26,7 @@ Backend/prototip için skip başarı sayılmaz. Testler yalnız demo projeleri v
 
 ## 2. Admin hesabını Console'da belirle
 
-**Neden sende:** Public Firebase web config yönetim yetkisi vermez; bu ortamda Console/Admin SDK kimliği yok. Şu anda canlı admin belgesi var mı doğrulanamadı.
+Public Firebase web config yönetim yetkisi vermez. Bu oturumda mevcut Firebase CLI kimliğiyle kurallar yayımlandı; uygulamada admin olacak hesabı seçmek ayrı işlemdir. Aşağıdaki Console adımları kullanıcıya iletildi; kullanıcı Onay Masası kartının ekranını paylaştı. Admin belgesinin içeriği veya kullanıcı UID'si ajan tarafından okunmadı/değiştirilmedi.
 
 1. Firebase Console → `shared-presentations` → Authentication → Users. Yönetici olacak hesabı bul; UID'yi kopyala. Google hesabı veya doğrulanmış e-posta hesabı kullan.
 2. Firestore Database → Data → `admins` koleksiyonu. Belge kimliği **bu UID** olmalı; otomatik belge kimliği kullanma. Koleksiyon yoksa oluştur.
@@ -49,6 +51,8 @@ Eski önizlemeyi kapat, yeni build'i aç, sayfayı yenile. Yeni Sunum → **Tek 
 
 ## 4. Güncel UI'ı tarayıcıda kontrol et
 
+Kullanıcı son UI'ın çalıştığını teyit etti; kart/editör/admin düzenlemeleri kapandı. Aşağıdaki liste sonraki kontroller için korunuyor; genel teyit, tüm cihaz/işlem kombinasyonlarının ayrı kabulü olarak sayılmadı.
+
 3. bölümdeki yeni build/preview ile masaüstünde ve telefonda şu noktaları kontrol et:
 
 - Arşivde arama, kategori ve sunum kartları; yalnız mevcut sayfanın seçili navigasyonu; açık/koyu tema ve yenilemede tercihin korunması.
@@ -59,15 +63,15 @@ Eski önizlemeyi kapat, yeni build'i aç, sayfayı yenile. Yeni Sunum → **Tek 
 - Aynı hatalı HTML dosyasıyla “Sunum hazır” ve önizleme. Ayrıca kendi kullandığın ZIP/klasör ve PPTX dosyalarının hazırlama/önizlemesi.
 - Benim Sunumlarım'da uygun bir test kaydını silince geçici bildirim ve boş listede gereksiz “0 sunum” yazısının olmaması. Silme gerçek veriyi değiştirir; yalnız silinebilecek test kaydını kullan.
 
-Hazırlama/önizleme sunum kaydetmez. Kaydetme, admin onay/ret, yeniden onay, yayından kaldırma ve kota davranışının canlı kabulü için güncel Firestore kurallarının ayrıca yayımlanması gerekir. Yerel `npm run build` canlı kuralları değiştirmez.
+Hazırlama/önizleme sunum kaydetmez. Kaydetme ve yönetim işlemleri için gerekli güncel Firestore kuralları artık canlıda; gerçek hesapla ayrıntılı kabul sonuçları ayrıca değerlendirilir. Yerel `npm run build` canlı kuralları değiştirmez.
 
 ## 5. Canlıya geçiş — kullanıcı yayın kararıyla
 
-**Bu çalışmada deploy yapılmadı.** 1. bölümdeki yeni kuralların backend kabulü tamamlandı. Hedef hostname ve yayın penceresi belirlenmeli. V2 uyumlu kurallar önce, yeni Hosting sonra yayımlanmalı. Eski açık v1 sekmeleri yenilenmeli. Tam yükleme/onay kabulünü güncel kurallar canlıya alındıktan sonra yap; yalnız yerel build canlı kuralları değiştirmez.
+**Firestore kural yayını tamamlandı.** 1. bölümde kabulü geçen dosya kullanıcı talimatıyla 6 Ekim 14:24'te `shared-presentations` projesine yayımlandı; canlı içerik yerel dosyayla birebir doğrulandı. Hosting yayını yapılmadı. Hedef hostname ve yayın penceresi belirlenip güncel v2 uyumlu uygulama Hosting'e yayımlanmalı; eski açık v1 sekmeleri bu sürüme geçmeli. Yerel önizleme kullanıcının kendi Mac'inde çalıştı ve talebiyle durduruldu.
 
 [Mevcut operasyon ve geri dönüş talimatları](TESLIM-VE-CALISTIRMA.md) ve [v2 uyumluluk planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md) geçerli. Eski Hosting paketine tek başına geri dönmek v2 içeriği okuyamaz; v2 okuyabilen geri dönüş paketi ve güvenli uyumlu kurallar gerekir.
 
-Bu ortamda dışarıdan erişilebilir önizleme paylaşım aracı yok. Buradaki 127.0.0.1 adresleri kullanıcı cihazından erişilebilir sunucu değildir; GitHub'dan çekip kendi önizlemeni açabilirsin.
+Genel internet erişimi sağlayan bir önizleme tüneli açılmadı. Bu Mac'te önizleme yeniden başlatılırsa localhost:4175; aynı Wi-Fi'deki telefonda Mac'in güncel IP'si/4175 portu kullanılabilir.
 
 ## Açık teknik iş — CLI bağımlılığı
 

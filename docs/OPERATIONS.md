@@ -1,10 +1,12 @@
 # Operations
 
+Current October 6 state: UI source `d5bc1b3` is on `main`, Firestore rules were deployed at `2026-10-06T11:24:21.854713Z` and read back exactly matching the tested local file. Hosting is pending. Local previews on 4175/4173 were stopped. See the [latest verification and secret-scan record](UI-SON-DUZELTMELER-2026-10-06.md); earlier lane-specific test counts below are historical.
+
 All Firebase CLI commands must include `--project shared-presentations`, in addition to the committed `.firebaserc` selection. Public Firebase web configuration is committed; it is not an administrator credential. No credentials, real administrator identities, email addresses or UID values should be copied into logs or committed documentation.
 
 Google and Email/Password providers and Firestore were confirmed active by the user; no enablement action is pending. Configure the production Hosting hostname in Authentication authorized domains. Google OAuth popup, provider consent, account selection, verification mail delivery, password-reset mail delivery and mobile popup behavior require human acceptance using the approved project. Production tests in this lane do not contact live Firebase.
 
-After first successful sign-in, the operator creates a Firestore document at `admins/{uid}` in the Firebase Console using their own Auth UID. Client writes to that collection are forbidden. An empty marker or `active: true` grants the role to a verified member. `active: false` and malformed nonboolean active fields deny authority in both client and updated backend rules. These rules must be deployed before relying on this policy in production. Sign out/in or use the verification reload control to force refreshed role resolution. No email-based role assignment exists.
+After first successful sign-in, the operator creates a Firestore document at `admins/{uid}` in the Firebase Console using their own Auth UID. Client writes to that collection are forbidden. An empty marker or `active: true` grants the role to a verified member. `active: false` and malformed nonboolean active fields deny authority in both client and deployed backend rules. Sign out/in or use the verification reload control to force refreshed role resolution. No email-based role assignment exists. The agent did not select a user or create an admin marker.
 
 Use a locally installed Java 21 and Playwright Chromium. This managed workspace uses `/usr/bin/java` and an npm-provided Chromium at `/tmp/chromium`; these temporary paths are not portable. Use a bounded Java heap and single browser/test worker. Do not kill unrelated processes or run multiple heavy suites simultaneously. Auth 9099, Firestore 8080, emulator hub 4400 and preview 4173 must be free before claiming them.
 
@@ -18,7 +20,7 @@ npm run build
 node scripts/check-release.mjs
 ```
 
-No live Firebase deployment was performed in this refresh. Published metadata and chunks now require membership in the supplied rules; the old rules allowed anonymous published reads. A new release requires a separately approved exact commit, fresh local gates, external verification and a secret scan. Do not infer permission to push or deploy from local test results. Deploy rules first, then approved indexes, then Hosting, using separate approval gates. The following commands are reviewable release instructions, not commands executed in this lane:
+The original refresh did not deploy live Firebase; a later explicit user instruction authorized the Firestore-only deployment recorded above. Published metadata and chunks require membership in the deployed rules; the old rules allowed anonymous published reads. Future releases require user authorization, local gates, external verification and a secret scan. Do not infer publication permission from passing tests. The following commands describe the deployment order; only the Firestore rules step has been executed in this session:
 
 ```sh
 npx -y --engine-strict=false firebase-tools deploy --project shared-presentations --only firestore:rules

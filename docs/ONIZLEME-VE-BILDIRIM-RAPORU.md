@@ -1,5 +1,7 @@
 # Önizleme, kapak ve işlem bildirimleri — 6 Ekim 2026
 
+Bu rapor `aeb50f5` teslimini ve o sürümün tam testlerini kaydeder. Sonraki `d5bc1b3` kart/editör/admin düzenlemeleri, dört ilgili E2E sonucu, kullanıcı teyidi, canlı Firestore kural yayını ve kapatılan önizleme [son düzenleme raporunda](UI-SON-DUZELTMELER-2026-10-06.md).
+
 “Sunumu önizle” artık formun sonunda içerik açmak yerine görünür bir pencere açar. Kapak kartı, sunum dosyası seçimiyle aynı görsel düzeni kullanır. Geçici işlem sonuçları sayfanın altında kalan metinlerden ortak, ekranda sabit bildirimlere taşındı.
 
 ## Değişen davranış
@@ -33,7 +35,7 @@ npm run preview -- --host 0.0.0.0 --port 4175
 3. Tekrar onaya gönder; kota/hata bildirimi bulunduğun kaydırma konumunda görünmeli. Başarısız gönderimde başlık ve dosya korunmalı. Bekleyenlerin sayısını Benim Sunumlarım'dan kontrol et.
 4. Giriş/çıkış, kendi test sunumunu silme ve yönetici işlem bildirimlerini kontrol et. Silme/onay gerçek veriyi değiştirir; yalnız test kayıtları kullan.
 
-Canlı Hosting/Firestore yayını yapılmadı. Yerel build canlı kuralları değiştirmez. Admin ataması, aynı hatalı dosyayla kullanıcı kabulü ve yayın sırası [kullanıcı adımlarında](KULLANICI-BAGIMLILIKLARI.md).
+Bu raporun ilk tesliminde canlı Hosting/Firestore yayını yapılmamıştı. Daha sonra 6 Ekim 14:24'te yalnız Firestore kuralları yayımlandı; Hosting hâlâ bekliyor. Yerel build canlı kuralları veya Hosting'i değiştirmez. Admin ataması ve kalan kabul/yayın adımları [kullanıcı adımlarında](KULLANICI-BAGIMLILIKLARI.md).
 
 ## Doğrulama ve kanıt
 
