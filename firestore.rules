@@ -150,11 +150,13 @@ service cloud.firestore {
         deckAfter.quotaMarker == request.resource.data.pendingDeckId;
     }
 
-    function checkUserDecrement() {
+    function checkUserDecrement(uid) {
       let deckPath = presentationPath(request.resource.data.pendingDeckId);
       return request.resource.data.pendingCount == resource.data.pendingCount - 1 &&
         request.resource.data.pendingCount >= 0 &&
         request.resource.data.pendingDeckId != null &&
+        exists(deckPath) && get(deckPath).data.ownerUid == uid &&
+        get(deckPath).data.status == 'pending' &&
         (
           !existsAfter(deckPath) ||
           getAfter(deckPath).data.status != 'pending'
@@ -231,7 +233,7 @@ service cloud.firestore {
         link.keys().hasOnly(['index', 'label', 'url']) &&
         link.index is int && link.index == int(linkIdx) && linkIdx == string(link.index) &&
         link.index >= 0 && link.index < deckAfter.linkCount &&
-        link.label.size() <= 100 && link.label.matches('(?s).+') && isHttpsUrl(link.url);
+        link.label.size() <= 100 && link.label.matches('(?s).*[^\\s\\p{Z}\\x{000B}\\x{FEFF}].*') && isHttpsUrl(link.url);
     }
 
     function canDeleteLink(deckId, linkIdx) {
@@ -345,13 +347,14 @@ service cloud.firestore {
           // Slot increment (+1): bound to presentation moving/entering pending
           checkUserIncrement(uid) ||
           // Slot decrement (-1): bound to presentation leaving pending or deleted
-          checkUserDecrement() ||
+          checkUserDecrement(uid) ||
           // No slot change: profile edit or pending->pending deck update
           (request.resource.data.pendingCount == resource.data.pendingCount)
         )
       ) || (
         // Admin decrement when approving/rejecting/deleting pending deck
-        isAdmin() && checkUserDecrement()
+        isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pendingCount', 'pendingDeckId']) &&
+          request.resource.data.pendingCount is int && checkUserDecrement(uid)
       );
 
       allow delete: if false;

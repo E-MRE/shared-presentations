@@ -114,6 +114,7 @@ export interface PresentationDataService {
   getAllChunks(deckId: string, chunkCount: number): Promise<Result<DeckChunk[]>>;
 
   /** Query published feed ordered by publishedAt DESC */
+  /** Metadata only; v2 external sources are resolved by getDeck when opened. */
   getPublishedFeed(input: PaginatedQueryInput): Promise<Result<PaginatedResult<Deck>>>;
 
   /** Query user's own decks ordered by updatedAt DESC */

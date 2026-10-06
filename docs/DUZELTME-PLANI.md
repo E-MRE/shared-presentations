@@ -1,12 +1,16 @@
 # Vektör — Öncelik sıralı düzeltme planı
 
-Tarih: 6 Ekim 2026 · Durum: v2 yerelde tamamlandı; backend 160/160, yayın kabulü açık · Sorumlu: Codex
+Tarih: 6 Ekim 2026 · Durum: UI ve inceleme düzeltmeleri uygulandı; değişen kuralların emülatör kabulü açık · Sorumlu: Codex
 
 Bu plan, inceleme raporundaki F01–F16 bulgularının tamamını ve bunları kapatmak için gereken hazırlık, doğrulama ve teslim işlerini kapsar. Kullanıcı bağımlılıkları netleştirildi ve yerel ürün düzeltmeleri uygulandı. Güncel uygulama, test sonuçları ve dış ortamda kalan kontroller [teslim belgesinde](TESLIM-VE-CALISTIRMA.md) kayıtlı. İşaretler yerel uygulama adımlarını gösterir; aşağıdaki emülatör/canlı kabul notları tam yayın kabulü yerine geçmez.
 
+## Kullanıcı ekran görüntüleri sonrası güncel devam noktası
+
+[Öncelik sıralı UI ve inceleme işleri](UI-DUZELTME-PLANI.md), [güncel kullanıcı/ortam bağımlılıkları](KULLANICI-BAGIMLILIKLARI.md) ve [teslim raporu](UI-TESLIM-RAPORU.md) son durumun kaynağıdır. Aşağıdaki 160/160 backend sonucu önceki `ee4f5c0` kuralları içindir; bu turda değişen kurallar yeniden emülatörde doğrulanmalıdır.
+
 ## 6 Ekim son kontrol güncellemesi — devam noktası
 
-[SON-KONTROL-RAPORU](SON-KONTROL-RAPORU.md) güncel durumun kaynağıdır; aşağıdaki 5 Ekim sonuçları tarihsel uygulama kaydıdır.
+[SON-KONTROL-RAPORU](SON-KONTROL-RAPORU.md) önceki v2 tesliminin kaydıdır; aşağıdaki 5 Ekim sonuçları tarihsel uygulama kaydıdır.
 
 - [x] Node 24, Java 21, kilit dosyası kurulumu ve resmi Chromium indirimi.
 - [x] Önceki 47 backend kontrolü gerçekten çalıştı; demo proje ve SDK socket guard ile canlı bağlantı engellendi.

@@ -294,7 +294,10 @@ export class FirestorePresentationDataService implements PresentationDataService
       const hasMore = docs.length > pageSize;
       const pageDocs = hasMore ? docs.slice(0, pageSize) : docs;
 
-      const items = await Promise.all(pageDocs.map((d: DocumentSnapshot) => this.hydrateDeck(d.id, d.data()!)));
+      // Cards and moderation need metadata only. An incomplete optional link must
+      // not hide the whole page or trigger up to 120 extra reads per page.
+      // Viewer and editor resolve links through getDeck instead.
+      const items = pageDocs.map((d: DocumentSnapshot) => deckFromDoc(d.id, d.data()!));
 
       let nextCursor: PaginationCursor | null = null;
       if (hasMore && pageDocs.length > 0) {
@@ -678,7 +681,7 @@ export class FirestorePresentationDataService implements PresentationDataService
       });
 
       const updatedSnap = await getDoc(deckRef);
-      return ok(await this.hydrateDeck(input.id, updatedSnap.data()!));
+      return ok(deckFromDoc(input.id, updatedSnap.data()!));
     } catch (error) {
       return err(mapFirestoreError(error, 'İnceleme işlemi sırasında hata oluştu.'));
     }

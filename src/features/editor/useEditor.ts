@@ -128,7 +128,7 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
     if (Object.keys(next).length) { setErrors({ ...next }); return 'invalid'; }
     const token = begin('Sunum onaya gönderiliyor…'); if (token === null) return 'ignored'; setMessage('');
     try {
-      const metadata = { title: title.trim(), description, category, tags: tags.split(',').map(tag => tag.trim()).filter(Boolean), links: links.map(link => ({ label: link.label.trim(), url: link.url.trim() })) };
+      const metadata = { title: title.trim(), description, category, tags: tags.split(',').map(tag => tag.trim()).filter(Boolean), links: links.filter(link => link.label.trim() || link.url.trim()).map(link => ({ label: link.label.trim(), url: link.url.trim() })) };
       let result;
       if (deck) {
         const input: UpdateDeckInput = { id: deck.id, ...metadata };
@@ -154,6 +154,6 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
     finally { finish(token); }
     return 'sent';
   }
-  const dirty = !saved && (hasInput || !!selected || !!cover || title !== (deck?.title ?? '') || description !== (deck?.description ?? '') || category !== (deck?.category ?? '') || tags !== (deck?.tags?.join(', ') ?? '') || JSON.stringify(links) !== JSON.stringify(deck?.links ?? []));
+  const dirty = !saved && (hasInput || !!selected || !!cover || title !== (deck?.title ?? '') || description !== (deck?.description ?? '') || category !== (deck?.category ?? '') || tags !== (deck?.tags?.join(', ') ?? '') || JSON.stringify(links.filter(link => link.label.trim() || link.url.trim())) !== JSON.stringify(deck?.links ?? []));
   return { dirty, category, setCategory, tags, setTags, title, changeTitle, description, setDescription, links, setLinks, errors, validateFields, validateField, clearError, message, fileError, coverError, phase, prepared, selected, cover, preview, previewError, saved, selectFiles, chooseEntry, retryFile, chooseCover, resetCover, openPreview, closePreview, clearReplacement, submit };
 }

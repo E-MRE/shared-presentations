@@ -42,3 +42,24 @@
 .editor-notice { padding: var(--space-12) 0; max-width: 640px; }
 @media (max-width: 740px) { .vektor-editor { padding: var(--space-6) var(--space-4) var(--space-8); } .editor-columns { grid-template-columns: minmax(0, 1fr); gap: 0; } .editor-section { padding: var(--space-5); } .editor-header { flex-wrap: wrap; } .editor-header h1 { font-size: var(--text-2xl); } .editor-preview { padding: var(--space-3); } .editor-section-heading { flex-wrap: wrap; } .editor-footer { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { .vektor-editor *, .vektor-editor *::before, .vektor-editor *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+.upload-tabs { display: flex; gap: 4px; padding: 4px; margin-bottom: 20px; border-radius: 12px; background: var(--bg-surface-raised); }
+.upload-tabs button { flex: 1; min-height: 44px; padding: 10px 12px; border-radius: 8px; font-size: .8125rem; color: var(--text-secondary); }
+.upload-tabs button[aria-selected="true"] { color: var(--brand-primary); background: var(--bg-surface); box-shadow: var(--shadow-card); font-weight: 600; }
+.upload-picker .editor-dropzone h3 { margin-bottom: 8px; font-size: 1rem; }
+.upload-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-block: 24px; }
+.vektor-editor input[hidden] { display: none; }
+.upload-limits { border-top: 1px solid var(--border-subtle); padding-top: 16px; margin-bottom: 0; font-size: .75rem; }
+.editor-sources .editor-section-heading h2 { margin: 0; }
+.editor-sources h2 span { display: block; margin-top: 4px; font-weight: 400; }
+.editor-sources > .editor-hint { margin-block: 12px 20px; }
+.editor-sources .editor-link { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: 12px; align-items: start; }
+.editor-sources .editor-link .form-group { margin-bottom: 0; }
+.editor-sources .editor-link > button { align-self: start; margin-top: 28px; }
+@media (max-width: 900px) { .editor-columns { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 620px) {
+  .upload-tabs button { padding-inline: 6px; font-size: .75rem; }
+  .upload-actions .btn { flex: 1; }
+  .editor-sources .editor-link { grid-template-columns: minmax(0, 1fr); }
+  .editor-sources .editor-link > button { margin-top: 0; justify-self: end; }
+}

@@ -1,0 +1,61 @@
+
+> vektor-presentations@0.1.0 test:e2e
+> playwright test
+
+[WebServer] (node:16604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:16617) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 41 tests using 1 worker
+
+(node:16680) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/application.pw.ts:4:1 › visitor and unverified gates keep all six routes free of feature calls; ordinary member cannot enter admin (1.9s)
+  ✓   2 tests/e2e/application.pw.ts:24:1 › composed direct routes and reload show actual library, own list, editor, admin and HTML/PPTX viewer (15.1s)
+  ✓   3 tests/e2e/application.pw.ts:43:1 › unknown and missing IDs recover visibly, foreign owner edit and private viewer read no chunks (1.9s)
+  ✓   4 tests/e2e/application.pw.ts:59:1 › Google and verified-email actions open member features; errors/signup/reset remain recoverable (2.3s)
+  ✓   5 tests/e2e/application.pw.ts:93:1 › unverified resend/reload/token failures remain visible and verification enables the real upload route (1.5s)
+  ✓   6 tests/e2e/application.pw.ts:113:1 › route navigation and role/logout transitions dispose and reopen one admin count with error retry (1.5s)
+  ✓   7 tests/e2e/application.pw.ts:138:1 › late metadata and own-list reads cannot restore signed-out or replaced sessions (1.8s)
+  ✓   8 tests/e2e/application.pw.ts:154:1 › real HTML file preparation persists pending chunks, preview and viewer, then admin approval enters feed (3.0s)
+  ✓   9 tests/e2e/application.pw.ts:186:1 › real PPTX upload uses identity chunks and actual viewer download preserves bytes (2.3s)
+  ✓  10 tests/e2e/application.pw.ts:203:1 › review rejection note, owner published edit, unpublish/reapprove and delete use typed feature payloads (2.5s)
+  ✓  11 tests/e2e/application.pw.ts:224:1 › delayed auth admin, reload and login completions never revive a signed-out account (1.2s)
+  ✓  12 tests/e2e/keyboard.pw.ts:25:1 › keyboard auth and admin dialogs contain focus, validate, close and restore triggers (2.7s)
+  ✓  13 tests/e2e/keyboard.pw.ts:55:1 › viewer native fullscreen, close controls and opaque frame keyboard isolation (2.0s)
+  ✓  14 tests/e2e/production-entry.pw.ts:12:1 › built production entry loads emitted SDK app assets and visitor gates on direct links/reload (2.1s)
+  ✓  15 tests/e2e/refresh.pw.ts:3:1 › signup keeps dispatch failure visible; resend recovers without recreating the account (2.9s)
+  ✓  16 tests/e2e/refresh.pw.ts:25:1 › dirty editor protects links, browser back and close; saved metadata includes category and tags (1.6s)
+  ✓  17 tests/e2e/refresh.pw.ts:39:1 › viewer closes to the originating own list and admin tab (3.9s)
+  ✓  18 tests/e2e/refresh.pw.ts:47:1 › initial feed requests one page; complete category and tag search is explicit and filters survive viewing (2.4s)
+  ✓  19 tests/e2e/refresh.pw.ts:56:1 › local state animation loads when motion is allowed and pauses for reduced motion (918ms)
+  ✓  20 tests/e2e/theme.pw.ts:16:3 › production prepaint light system and explicit storage before module execution (414ms)
+  ✓  21 tests/e2e/theme.pw.ts:16:3 › production prepaint light system and unset storage before module execution (408ms)
+  ✓  22 tests/e2e/theme.pw.ts:16:3 › production prepaint light system and denied storage before module execution (375ms)
+  ✓  23 tests/e2e/theme.pw.ts:16:3 › production prepaint dark system and explicit storage before module execution (368ms)
+  ✓  24 tests/e2e/theme.pw.ts:16:3 › production prepaint dark system and unset storage before module execution (382ms)
+  ✓  25 tests/e2e/theme.pw.ts:16:3 › production prepaint dark system and denied storage before module execution (392ms)
+  ✓  26 tests/e2e/theme.pw.ts:39:1 › theme provider persists, reloads and responds to real cross-page storage and system changes (2.2s)
+  ✓  27 tests/e2e/theme.pw.ts:55:1 › theme provider keeps in-memory controls usable when storage reads and writes fail (1.5s)
+  ✓  28 tests/e2e/ui-fixes.pw.ts:4:1 › header has one active route; theme changes directly and visitor has one login action (1.6s)
+  ✓  29 tests/e2e/ui-fixes.pw.ts:22:1 › deletion gives a temporary toast; signout leaves no stale text after another login (1.5s)
+  ✓  30 tests/e2e/ui-fixes.pw.ts:36:1 › archive keeps accessible search but removes visible redundant text and empty count (1.2s)
+  ✓  31 tests/e2e/ui-fixes.pw.ts:46:1 › upload tabs have keyboard navigation and format-specific controls; optional sources start visible (1.6s)
+  ✓  32 tests/e2e/ui-fixes.pw.ts:64:1 › unavailable lazy preparation module reports refresh guidance instead of generic file failure (1.1s)
+  ✓  33 tests/e2e/ui-fixes.pw.ts:72:1 › auth has one introductory message, eye control and a separate recovery link (1.1s)
+  ✓  34 tests/e2e/visual.pw.ts:22:3 › normal screenshot and overflow matrix 375px light (4.5s)
+  ✓  35 tests/e2e/visual.pw.ts:60:3 › long metadata stress overflow 375px light (2.5s)
+  ✓  36 tests/e2e/visual.pw.ts:22:3 › normal screenshot and overflow matrix 375px dark (4.6s)
+  ✓  37 tests/e2e/visual.pw.ts:60:3 › long metadata stress overflow 375px dark (2.6s)
+  ✓  38 tests/e2e/visual.pw.ts:22:3 › normal screenshot and overflow matrix 1280px light (5.4s)
+  ✓  39 tests/e2e/visual.pw.ts:60:3 › long metadata stress overflow 1280px light (2.6s)
+  ✓  40 tests/e2e/visual.pw.ts:22:3 › normal screenshot and overflow matrix 1280px dark (5.5s)
+  ✓  41 tests/e2e/visual.pw.ts:60:3 › long metadata stress overflow 1280px dark (2.7s)
+
+  41 passed (1.7m)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

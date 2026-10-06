@@ -6,6 +6,38 @@ import { MAX_HTML_FILE_COUNT, MAX_HTML_UNPACKED_BYTES, MAX_PPTX_BYTES } from '..
 export class EditorInputError extends Error {}
 export interface SelectedInput { input: PipelineInput; candidates: string[]; entry: string; }
 
+/** Drain directory batches (browsers often return 100 entries at a time). */
+export async function readDroppedFiles(transfer: DataTransfer): Promise<{ files: File[]; directory: boolean }> {
+  const entries = Array.from(transfer.items).filter(item => item.kind === 'file').map(item => item.webkitGetAsEntry?.());
+  if (!entries.some(entry => entry?.isDirectory)) {
+    const files = Array.from(transfer.files);
+    if (files.length > MAX_HTML_FILE_COUNT) throw new EditorInputError('En fazla 300 dosya seçebilirsiniz.');
+    if (files.reduce((sum, file) => sum + file.size, 0) > MAX_HTML_UNPACKED_BYTES) throw new EditorInputError('Dosyaların toplam boyutu en fazla 25 MB olabilir.');
+    return { files, directory: files.length > 1 };
+  }
+  const files: File[] = [];
+  let bytes = 0;
+  async function visit(entry: FileSystemEntry, parent = '', depth = 0): Promise<void> {
+    if (depth > 100) throw new EditorInputError('Klasör yapısı çok derin. ZIP olarak seçmeyi deneyin.');
+    const path = parent + entry.name;
+    if (entry.isFile) {
+      const file = await new Promise<File>((resolve, reject) => (entry as FileSystemFileEntry).file(resolve, reject));
+      bytes += file.size;
+      if (files.length >= MAX_HTML_FILE_COUNT || bytes > MAX_HTML_UNPACKED_BYTES) throw new EditorInputError('Klasör en fazla 300 dosya ve toplam 25 MB olabilir.');
+      Object.defineProperty(file, 'webkitRelativePath', { value: path }); files.push(file);
+    } else {
+      const reader = (entry as FileSystemDirectoryEntry).createReader();
+      for (;;) {
+        const batch = await new Promise<FileSystemEntry[]>((resolve, reject) => reader.readEntries(resolve, reject));
+        if (!batch.length) break;
+        for (const child of batch) await visit(child, path + '/', depth + 1);
+      }
+    }
+  }
+  for (const entry of entries) if (entry) await visit(entry);
+  return { files, directory: true };
+}
+
 /** Size and path guards run before allocating file buffers. Archive extraction is owned by content. */
 export async function readPresentationFiles(files: File[], directory: boolean, current: () => boolean): Promise<SelectedInput> {
   if (!files.length) throw new EditorInputError('Sunum dosyası seçin.');
@@ -22,7 +54,9 @@ export async function readPresentationFiles(files: File[], directory: boolean, c
   const bundle: BundleFile[] = [];
   for (let index = 0; index < files.length; index++) {
     if (!current()) throw new EditorInputError('Oturum değişti.');
-    const data = new Uint8Array(await files[index].arrayBuffer());
+    let data: Uint8Array;
+    try { data = new Uint8Array(await files[index].arrayBuffer()); }
+    catch { throw new EditorInputError('Seçilen dosya okunamadı. Dosyanın cihazınızda bulunduğunu kontrol edip yeniden seçin.'); }
     if (!current()) throw new EditorInputError('Oturum değişti.');
     bundle.push({ path: normalized[index], data, size: data.length, name: files[index].name });
   }

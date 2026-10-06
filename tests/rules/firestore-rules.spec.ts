@@ -255,6 +255,9 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
       ['maximum label', { label: 'x'.repeat(100) }, true],
       ['long label', { label: 'x'.repeat(101) }, false],
       ['empty label', { label: '' }, false], ['numeric label', { label: 1 }, false],
+      ['spaces only', { label: '   ' }, false],
+      ['control whitespace only', { label: '\t\r\n\v\f' }, false],
+      ['Unicode whitespace only', { label: '\u00a0\u2003\u202f\ufeff' }, false],
       ['list label', { label: ['a'] }, false], ['map label', { label: { a: 1 } }, false],
       ['null label', { label: null }, false], ['http URL', { url: 'http://example.com' }, false],
       ['bare https prefix', { url: 'https://' }, false], ['numeric URL', { url: 1 }, false],
@@ -503,6 +506,31 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
   // =========================================================================
 
   describe('3. Quota Transaction Binding and Manifest Integrity', () => {
+    it.each(['own-published', 'foreign-published', 'foreign-pending', 'missing'])('rejects standalone owner decrement bound to %s', async id => {
+      await seedUser('alice', 5);
+      if (id !== 'missing') await seedDeck(id, id.startsWith('foreign') ? 'bob' : 'alice', {
+        status: id.endsWith('published') ? 'published' : 'pending',
+      });
+      const db = testEnv.authenticatedContext('alice', { email_verified: true }).firestore();
+      await assertFails(updateDoc(doc(db, 'users', 'alice'), { pendingCount: 4, pendingDeckId: id }));
+    });
+    it('rejects deletion of a foreign pending deck used to decrement the wrong profile', async () => {
+      await seedUser('alice', 1); await seedUser('bob', 1); await seedAdmin('quota-admin');
+      await seedDeck('foreign-decrement', 'bob');
+      const db = testEnv.authenticatedContext('quota-admin', { email_verified: true }).firestore();
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'presentations', 'foreign-decrement'));
+      batch.update(doc(db, 'users', 'bob'), { pendingCount: 0, pendingDeckId: 'foreign-decrement' });
+      batch.update(doc(db, 'users', 'alice'), { pendingCount: 0, pendingDeckId: 'foreign-decrement' });
+      await assertFails(batch.commit());
+    });
+    it('rejects admin decrement with unrelated profile mutations', async () => {
+      await seedUser('alice', 1); await seedAdmin('quota-admin'); await seedDeck('admin-decrement', 'alice');
+      const db = testEnv.authenticatedContext('quota-admin', { email_verified: true }).firestore();
+      const batch = writeBatch(db); batch.delete(doc(db, 'presentations', 'admin-decrement'));
+      batch.update(doc(db, 'users', 'alice'), { pendingCount: 0, pendingDeckId: 'admin-decrement', email: 'changed@example.invalid' });
+      await assertFails(batch.commit());
+    });
     it('member increments users/{self}.pendingCount outside bound transaction → DENIED', async () => {
       await seedUser('alice', 0);
 

@@ -1,0 +1,24 @@
+[WebServer] (node:16149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:16162) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 5 tests using 1 worker
+
+(node:16189) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/application.pw.ts:203:1 › review rejection note, owner published edit, unpublish/reapprove and delete use typed feature payloads (3.1s)
+(node:16263) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/e2e/application.pw.ts:203:1 › review rejection note, owner published edit, unpublish/reapprove and delete use typed feature payloads (2.7s)
+(node:16336) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 tests/e2e/application.pw.ts:203:1 › review rejection note, owner published edit, unpublish/reapprove and delete use typed feature payloads (2.6s)
+(node:16409) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 tests/e2e/application.pw.ts:203:1 › review rejection note, owner published edit, unpublish/reapprove and delete use typed feature payloads (2.6s)
+(node:16484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 tests/e2e/application.pw.ts:203:1 › review rejection note, owner published edit, unpublish/reapprove and delete use typed feature payloads (2.7s)
+
+  5 passed (17.5s)

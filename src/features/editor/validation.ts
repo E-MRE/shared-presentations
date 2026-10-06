@@ -11,6 +11,7 @@ export function metadataErrors(title: string, description: string, links: DeckLi
   if (links.length > MAX_LINKS_COUNT) errors.links = `En fazla ${MAX_LINKS_COUNT} bağlantı ekleyebilirsiniz.`;
   links.forEach((link, index) => {
     const clean = { label: link.label.trim(), url: link.url.trim() };
+    if (!clean.label && !clean.url) return;
     const result = validateLink(clean);
     if (!result.ok) errors[`link-${index}-${result.error.message.includes('etiketi') ? 'label' : 'url'}`] = result.error.message;
     try {

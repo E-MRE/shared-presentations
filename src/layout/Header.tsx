@@ -6,7 +6,7 @@ import type { AuthState } from '../contracts/auth';
 import './layout.css';
 export interface HeaderProps {
   auth: AuthState;
-  onSignIn: () => void;
+  onSignIn?: () => void;
   onSignOut: () => void;
   pendingCount?: number;
   actions?: ReactNode;
@@ -22,7 +22,7 @@ export function Header({ auth, onSignIn, onSignOut, pendingCount = 0, actions }:
       {member && <nav className="vektor-navigation" aria-label="Ana gezinme">
         <NavLink to="/" end className="btn btn-ghost">Sunum Arşivi</NavLink>
         <NavLink to="/benim" className="btn btn-ghost">Benim Sunumlarım</NavLink>
-        <NavLink to="/yeni" className="btn btn-secondary">Yeni Sunum</NavLink>
+        <NavLink to="/yeni" className="btn btn-ghost">Yeni Sunum</NavLink>
         {admin && <NavLink to="/admin" className="btn btn-ghost">Onay Masası <span className="card-status-badge status-pending" aria-hidden="true">{count}</span></NavLink>}
       </nav>}
       <div className="header-actions">
@@ -30,7 +30,7 @@ export function Header({ auth, onSignIn, onSignOut, pendingCount = 0, actions }:
         {auth.status === 'loading' ? <span role="status">Oturum yükleniyor…</span> : auth.user ? <>
           <details ref={menu} className="account-menu"><summary aria-label="Hesap menüsü"><span className="account-avatar">{(auth.user.displayName || auth.user.email).slice(0, 1).toLocaleUpperCase('tr-TR')}</span></summary><div className="account-menu-panel"><span className="vektor-user" title={auth.user.displayName || auth.user.email}>{auth.user.displayName || auth.user.email}</span>
           <button type="button" className="btn btn-ghost" onClick={onSignOut}>Çıkış Yap</button></div></details>
-        </> : <button type="button" className="btn btn-secondary" onClick={onSignIn}>Giriş Yap</button>}
+        </> : onSignIn ? <button type="button" className="btn btn-secondary" onClick={onSignIn}>Giriş Yap</button> : null}
       </div>
       {admin && <span className="vektor-sr-only" role="status" aria-live="polite" aria-atomic="true">Onay bekleyen {count} sunum var.</span>}
     </div>

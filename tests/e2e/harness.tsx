@@ -2,6 +2,7 @@
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import type { User } from 'firebase/auth';
 import { App, ApplicationAuthStore, type ApplicationAuthDependencies } from '../../src/App';
 import { ThemeProvider } from '../../src/theme';
@@ -91,5 +92,5 @@ const adapter = {
 const api = { seedFeed: () => { const base = decks.get('html')!; for (let index = 0; index < 20; index++) decks.set(`extra-${index}`, { ...base, id: `extra-${index}`, title: `Ek Sunum ${index}`, category: 'AI & LLM', tags: ['öğrenme'] }); }, registryCount: getActiveListenerCount, auth: setAuth, navigate: (_: string) => {}, flags: (value: Partial<typeof flags>) => Object.assign(flags, value), metrics, store, release: () => held.splice(0).forEach(resolve => resolve()), countError: () => listeners.forEach(listener => listener.error()), long: () => decks.forEach(deck => { deck.title = 'UzunBaşlık'.repeat(12); deck.description = 'UzunAçıklama'.repeat(150); deck.ownerName = 'UzunYazar'.repeat(15); }), summaries: () => [...decks.values()].map(deck => ({ id: deck.id, status: deck.status, title: deck.title, rejectNote: deck.rejectNote })) };
 declare global { interface Window { e2e: typeof api; prepaintTheme: string; } }
 window.e2e = api;
-function Harness() { const navigate = useNavigate(); useEffect(() => { api.navigate = path => navigate(path); }, [navigate]); return <App dependencies={{ auth: store, service, adapter }}/>; }
+function Harness() { const navigate = useNavigate(); useEffect(() => { api.navigate = path => flushSync(() => navigate(path)); }, [navigate]); return <App dependencies={{ auth: store, service, adapter }}/>; }
 createRoot(document.getElementById('root')!).render(<BrowserRouter><ThemeProvider><ToastProvider><Harness/></ToastProvider></ThemeProvider></BrowserRouter>);

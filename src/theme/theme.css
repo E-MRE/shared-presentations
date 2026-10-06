@@ -1,2 +1,1 @@
-.vektor-theme-controls { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.vektor-theme-controls .btn { min-height: 44px; }
+.theme-toggle { width: 44px; height: 44px; min-height: 44px; padding: 0; flex-shrink: 0; }

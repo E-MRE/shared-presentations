@@ -1,89 +1,59 @@
-# Vektör — Kullanıcı kararları ve kalan bağımlılıklar
+# Kullanıcı ve ortam bağımlılıkları — 6 Ekim 2026
 
-5 Ekim 2026 · Başlangıç bağımlılıkları kapandı; yerel uygulama ve teslim tamamlandı. Canlı kabul ve yayın ayrı aşama.
+UI düzeltmeleri için başka tasarım kararı gerekmiyor. Bu dosya önceki bağımlılık listesinin güncel karşılığıdır; tarihsel test sonuçları SON-KONTROL-RAPORU.md ve Git geçmişinde korunuyor.
 
-[Düzeltme planı](DUZELTME-PLANI.md) uygulandı. Aşağıdaki kararlar için yeniden yanıt vermen gerekmiyor. Proje `shared-presentations`, Firestore ve e-posta/Google sağlayıcıları etkin. Korunacak üretim içeriği yok; test sunumu var. Canlı veri ve hesaplar değiştirilmedi.
+Gerçek doğrulama e-postası, şifre sıfırlama/yeni şifre, Google hesap seçimi/iptal/giriş, 60 saniyelik yeniden gönderme ve fiziksel telefonda giriş kullanıcı tarafından önceki sürümde test edildi. Bunlar yeniden bekleyen iş olarak listelenmiyor. Firebase bağlı; Firestore ve e-posta/Google sağlayıcıları etkin. Test sunumu için içerik koruma bağımlılığı yok.
 
-## 6 Ekim güncel kabul ve kalan işler
+## 1. Yeni kuralları emülatörde doğrula — yayın öncesi gerekli
 
-Ön/son regex ölçümü ve v2 ürün geçişi yerelde tamamlandı; push/deploy yapılmadı. [Son kontrol raporu](SON-KONTROL-RAPORU.md) güncel durumdur; aşağıdaki önceki ortam notları tarihsel kayıttır.
+**Neden sende:** Bu çalışma ortamı Firestore JAR indirmesinin `storage.googleapis.com` hedefine erişemiyor. Yeni kota/bağlantı kuralları burada gerçek emülatörde çalıştırılamadı. Önceki 160/160 backend sonucu eski `ee4f5c0` kuralları içindir; yeni kuralları kanıtlamaz.
 
-| Kontrol | Güncel sonuç |
-|---|---|
-| Yeni hesap, gelen ileti, doğrulama ve üyelikle giriş | Kullanıcı teyidiyle geçti; inbox teslimi SDK sonucundan ayrı |
-| Gerçek 60 saniye bekleme ve yeniden gönderme | Kullanıcı teyidiyle geçti |
-| Şifre sıfırlama ve yeni şifreyle giriş | Kullanıcı teyidiyle geçti |
-| Masaüstü Google seçim/iptal/giriş | Kullanıcı “tüm akış çalışıyor” teyidiyle geçti |
-| Fiziksel telefonda giriş ve Google | Geçti; kullanıcı Console Authorized domains’e `192.168.1.150` ekledi |
-| Backend emülatör indirme engeli | Kapandı; önceki 47 test çalıştı |
-| Genişletilmiş backend sınır kabulü | Kapandı: v2 160/160 geçti, sıfır skip; eski sekiz limit hatası ve test API hatası düzeltildi |
-| Yapısal manifest prototipi | 27/27, sıfır skip; 12 parça + sekiz etiket + on bağlantı geçti; [v2 kaydı](MANIFEST-ALT-KOLEKSIYON-PLANI.md) |
-| Yayın ve gerçek origin CSP/cache | Açık; deploy yetkisi verilmedi |
+Node 24 LTS ve Java 21 bulunan, indirme erişimi olan ortamda depoyu güncelle:
 
-Önizleme bu Mac’te `http://localhost:4175`, aynı Wi-Fi’da `http://192.168.1.150:4175`. Varsayılan gerçek Firebase; emülatör yalnız açık `VITE_USE_EMULATORS=true` seçimiyle kullanılır. IP değişirse Console yetkisi ve URL yeniden kontrol edilir. Mevcut canlı kurallar v2 ve kategori/etiket yazımlarını reddedebilir; yeni kurallar henüz yayınlanmadı.
+```bash
+git pull --ff-only
+node --version
+java --version
+npm ci
+npm run test:backend
+npm run test:manifest-prototype
+```
 
-Kullanıcıdan şu anda parola/token veya yeni hesap ayarı gerekmiyor. Yerel teknik geçiş tamamlandı. Somut sürümün incelemesi, hedef hostname, ayrı üye/yöneticiyle gerçek sunum kabulü v2 uyumlu rollback paketi ve yayın kararı kalır. Mobil klavye/görünüm ayrıntıları ile Safari/Firefox kabulü yalnız giriş teyidiyle kapanmış sayılmadı.
+Her komut başarılı çıkmalı; backend/prototip için skip olmamalı. Kota geçişlerinin olumlu senaryoları, yeni bağımsız sayaç azaltma retleri, Unicode boş bağlantı etiketi retleri ve 12 parça + 8 etiket + 10 bağlantı sınırı birlikte doğrulanmalı. Çıktıyı dosyaya kaydet; başarısız senaryo adını ve hassas olmayan hata metnini ilet. Testler yalnız `demo-shared-presentations` ve yerel emülatörleri kullanır, canlı proje üzerinde deney yapmaz.
 
-## Kapanmış kararlar
+## 2. Admin hesabını Console'da belirle
 
-| ID | Kullanıcının kararı ve uygulanan sonuç |
-|---|---|
-| K01 | Ekli zip'in güncel kök tasarımı: indigo/lacivert, Plus Jakarta Sans, Vektör. Giriş ve yükleme aynı tasarım diliyle yenilendi. |
-| K02 | Yalnız giriş yapan üyeler. Google girişi veya doğrulanmış e-posta; sahiplik/yönetici sınırları korunuyor. Yayımlanmış sunumların anonim SDK okuma açığı da yerel kurallarda kapatıldı. |
-| K03 | Kategori ve etiket dahil. Eski kayıtlar Kategorisiz/boş etiketlerle uyumlu; toplu veri dönüşümü gerekmiyor. |
-| K04 | HTML'in kendi buton ve tuşları kullanılıyor. Uygulama ekstra ileri/geri slayt butonu eklemiyor. Kapat, bilgi, odak ve tam ekran var. |
-| K05 | Düzeltme, test, çalışır yerel önizleme ve yayına hazır paket. Bu çalışmada deploy yapılmadı. |
+**Neden sende:** Public Firebase web config yönetim yetkisi vermez; bu ortamda Console/Admin SDK kimliği yok. Şu anda canlı admin belgesi var mı doğrulanamadı.
 
-## Teslim sonrası işler — öncelik sırasıyla
+1. Firebase Console → `shared-presentations` → Authentication → Users. Yönetici olacak hesabı bul; UID'yi kopyala. Google hesabı veya doğrulanmış e-posta hesabı kullan.
+2. Firestore Database → Data → `admins` koleksiyonu. Belge kimliği **bu UID** olmalı; otomatik belge kimliği kullanma. Koleksiyon yoksa oluştur.
+3. Belgede `active` alanını **boolean**, değerini **true** olarak kaydet. String `"true"` kullanma. Başka zorunlu alan yok.
+4. Uygulamayı yenile veya çıkış/giriş yap; “Onay Masası” bağlantısını kontrol et. Normal test hesabında admin belgesi olmasın.
+5. Ayrı test sunumlarıyla onay/ret, yeniden onay, yayından kaldırma ve silmeyi dene. Normal üye başka kullanıcının özel sunumuna veya yönetim ekranına erişememeli.
 
-| Sıra | İş | Sorumlu | Kapanma kanıtı |
-|---|---|---|---|
-| 1 | Paketi çalıştır; gerçek e-posta, doğrulama, reset ve Google kabulü (U04) | Kullanıcı; sorun kodunun tanısı Codex | Senaryo başına başarılı/başarısız ve varsa hassas olmayan hata kodu |
-| 2 | Atlanan 47 Auth/Firestore backend kontrolünü ağ erişimi olan ortamda çalıştır | Yayını uygulayacak teknik kişi veya erişim sağlanırsa Codex | `npm run test:backend` sonucu; skip başarı değildir |
-| 3 | Gerçek cihaz ve iki hesaplı yönetim kabulü | Kullanıcı | Üye/yönetici, mobil klavye ve Google akış sonuçları |
-| 4 | Hazır sürümü inceleyip hedef ortamda yayın kararını ver (U05) | Kullanıcı | Somut sürüm ve hedef; sonra kurallar → Hosting, ardından canlı kabul |
+Kodda e-posta listesi veya `users` belgesinde isAdmin alanı ekleme gerekmiyor. Admin belgesine istemciden yazılamaz; Console yetkisi gerekir. Yetkiyi kaldırmak için active=false yap; yönetim işlemlerinin engellendiğini kontrol et. UID veya yönetim anahtarını sohbet içinde paylaşmana gerek yok.
 
-## U01 — Ortam ve erişim
+## 3. Aynı HTML dosyasını yeni sürümde yeniden dene
 
-Eski sorun uzak sunucudan tünelle denenmiş; sunucu kapalı. Console'da oluşturulan e-posta hesabı doğrulanmamış görünmüş ve ileti gelmemiş; Google çalışmış. Eski sürümün gerçek Auth/emülatör hedefi kesinleşmedi. Bu belirsizlik tarihsel sorunun kök nedeni olarak sunulmuyor; eski sunucuyu yeniden açman gerekmiyor.
+**Durum:** Tek .html seçimi olduğu kullanıcı tarafından belirtildi. Basit HTML ve dört tasarım HTML'i burada başarılı. Kullanıcının hataya yol açan dosyası üzerinde kök neden doğrulanamadı; “tamamen düzeldi” kabulü verilmedi.
 
-Bu ortamda dış port paylaşımı/tünel aracı bulunmadı. Üretim önizlemesi burada çalıştırılıp kontrol edildi; `127.0.0.1` adresi kendi cihazından bu çalışma alanına erişim sağlamaz. Paketle kendi cihazında/sunucunda açabileceğin önizleme ve çevrimdışı ekran galerisi teslim edildi.
+```bash
+npm run build
+npm run preview -- --host 0.0.0.0 --port 4175
+```
 
-[Çalıştırma adımları](TESLIM-VE-CALISTIRMA.md): kaynak klasöründe `npm ci`, `npm run build`, `npm run preview -- --host 127.0.0.1 --port 4173`; kendi cihazında `http://localhost:4173`. Varsayılan gerçek Firebase bağlantısıdır. Canlı kurallar bu çalışmada güncellenmedi: giriş denemesi yapılabilir; yeni kategori/etiket yazımları için güncel kurallar gerekir. Tam sunum kabulünü önce emülatörde, sonra kural yayını sonrasında yap. Yerel uygulama emülatörü yalnız açık `VITE_USE_EMULATORS=true` seçimiyle kullanır.
+Kendi makinenizde `http://localhost:4175`, aynı ağdaki telefonda makinenizin güncel IP'si ve 4175 portu kullanılabilir. `192.168.1.150` önceki test IP'sidir; hâlâ geçerli olduğunu varsayma. Üretim önizlemesi varsayılan gerçek Firebase'i kullanır.
 
-## U02 — Gerekirse Console ayarı
+Eski önizlemeyi kapat, yeni build'i aç, sayfayı yenile. Yeni Sunum → **Tek HTML** → aynı dosya. “Sunum hazır” ve önizlemeyi kontrol et. Hazırlama bileşeni yüklenemedi mesajı varsa sayfayı yenileyip tekrar seç. Sorun sürerse hataya yol açan HTML dosyasını ve tarayıcı adı/sürümünü ilet; e-posta/şifre/token gerekmez. Bu hazırlama adımı canlıya sunum kaydetmez; gönderim ayrı işlemdir.
 
-Sağlayıcıları yeniden açman veya hesabı elle doğrulanmış işaretlemen gerekmiyor.
+## 4. Canlıya geçiş — kullanıcı yayın kararıyla
 
-- Google için `auth/unauthorized-domain` varsa: Authentication → Settings → Authorized domains → Add domain. Önizlemenin hostname'ini gir; örneğin `localhost`. `http://`, port veya yol ekleme.
-- Gönderim isteği kabul edildiği hâlde ileti gelmiyorsa spam klasörünü ve Authentication → Templates doğrulama/sıfırlama ayarlarını kontrol et. Varsayılan Firebase action handler'ı kullanılabilir.
-- Başarısız istekte yalnız ekrandaki hata kodu/metni ve hangi senaryoda olduğunu ilet. SDK kabulü gelen kutusuna teslimi kanıtlamaz.
+**Bu çalışmada deploy yapılmadı.** Önce 1. bölümdeki yeni kuralların testleri geçmeli. Ardından hedef hostname ve yayın penceresi belirlenmeli. V2 uyumlu kurallar önce, yeni Hosting sonra yayımlanmalı. Eski açık v1 sekmeleri yenilenmeli. Tam yükleme/onay kabulünü güncel kurallar canlıya alındıktan sonra yap; yalnız yerel build canlı kuralları değiştirmez.
 
-Public Firebase web config yönetim/yayın kimliği değildir. Console işlemleri için hazır yönetim erişimi bulunmadı; parola, token veya service-account JSON'u paylaşman istenmiyor.
+[Mevcut operasyon ve geri dönüş talimatları](TESLIM-VE-CALISTIRMA.md) ve [v2 uyumluluk planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md) geçerli. Eski Hosting paketine tek başına geri dönmek v2 içeriği okuyamaz; v2 okuyabilen geri dönüş paketi ve güvenli uyumlu kurallar gerekir.
 
-## U03 — Yönetim ve gerçek cihaz kabulü
+Bu ortamda dışarıdan erişilebilir önizleme paylaşım aracı yok. Buradaki 127.0.0.1 adresleri kullanıcı cihazından erişilebilir sunucu değildir; GitHub'dan çekip kendi önizlemeni açabilirsin.
 
-Yönetim kabulü için normal hesap ve ayrı test yöneticisi kullan. Console → Authentication'dan kendi yönetici hesabının UID'sini bul; Firestore'da `admins/{uid}` belgesini `active: true` ile oluştur/teyit et. Normal hesapta bu belge bulunmasın. UID'yi burada paylaşma. Ayrılmış test sunumunda onay, ret, yeniden onay ve silme akışını dene.
+## Açık teknik iş — CLI bağımlılığı
 
-375/1280 px açık/koyu Chromium senaryoları otomatik test edildi. Fiziksel mobil klavye, Safari/Firefox ve gerçek origin kabulü ayrıca yapılmalı; viewport testi gerçek cihaz kanıtı değildir.
-
-## U04 — Gerçek e-posta ve OAuth kontrol listesi
-
-- [ ] Yeni e-posta hesabı oluştur → ileti/spam kontrolü → doğrulama bağlantısını aç → “Doğruladım, yeniden kontrol et”.
-- [ ] Gönderim hatası görünür; hesap yeniden oluşturulmadan tekrar gönderme çalışır. Kabul edilen gönderimden sonra 60 saniye bekleme var.
-- [ ] Şifre sıfırlama bağlantısı ve eski/geçersiz bağlantı davranışı.
-- [ ] Google hesabı seçimi, iptal ve gerçek mobil cihazda giriş.
-
-Hata sürerse istek hedef hostname'i ve HTTP durumu tanıya yardımcı olur. E-posta adresi, request body, token, parola veya doğrulama bağlantısını paylaşma. Auth emülatörü gerçek e-posta göndermez; gerçek Firebase'e bağlı geliştirme uygulaması gönderebilir.
-
-## U05 — Yayın öncesi teknik kontroller ve yayın kararı
-
-- [ ] Ağ erişimi olan ortamda Java 21 ile `npm run test:backend`. Bu ortamın izin listesinde `storage.googleapis.com` olmadığı için Firestore emülatör JAR'ı indirilemedi; 47 test atlandı. Bu iş sağlayıcı veya hesap ayarından bağımsızdır.
-- [ ] U04 ve gerekiyorsa U03 tamamlandı; hedef hostname belli.
-- [ ] Paketin diff'i, kuralları ve [geri dönüş talimatları](TESLIM-VE-CALISTIRMA.md) incelendi; somut yayın kararı verildi.
-- [ ] Kurallar önce, Hosting sonra uygulandı. İndeks dosyası değişmedi; toplu veri dönüşümü gerekmedi.
-- [ ] Yayın sonrası CSP/cache, derin link, sunum kontrolleri, fullscreen/indirme, üyelik ve yönetim gerçek origin'de denendi.
-
-Eski kurallara dönmek anonim okuma açığını ve yönetici iptal sorununu geri getirir. Kural geri dönüşü bu sınırları koruyan uyumlu sürümle yapılmalı. Bu teslim mevcut canlı kuralların değiştiği anlamına gelmez.
-
-Rutin tasarım/kod/test işleri için ek onay veya bilgi gerekmiyor. Kalan kontroller sonuç hazır olduktan sonra yapılabilen dış ortam kontrolleridir.
+Firebase CLI 15.32.1 → chokidar → braces 3.0.3 zincirinde bir advisory üç high paket girdisi oluşturuyor. Production bağımlılıklarında audit sıfır. Registry'de uyumlu düzeltilmiş sürüm yok; CLI'yi eski 6.x sürüme indirmek veya chokidar major sürümünü zorla değiştirmek güvenilir çözüm değil. Uyumlu upstream düzeltme geldiğinde güncelleme ve backend/release kontrolleri yapılmalı. Bu iş kullanıcıdan Firebase ayarı değiştirmesini gerektirmiyor ve kapatılmış sayılmadı.

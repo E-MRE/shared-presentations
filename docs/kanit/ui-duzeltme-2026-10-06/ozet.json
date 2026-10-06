@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-06",
+  "timezone": "Europe/Istanbul",
+  "baseCommit": "8aa2390417d4cc89aaa06db3dc19780344835c51",
+  "rulesSha256": "a9eefa6914251260b18dd1a8167053aeed6f75b659729edff35cdf19b6884869",
+  "unit": {
+    "passed": 200,
+    "skipped": 139,
+    "failed": 0,
+    "backendCasesRunHere": false
+  },
+  "e2e": {
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "backend": "DI service transport; not live Firebase"
+  },
+  "lint": "passed",
+  "build": "passed",
+  "release": "passed",
+  "metadataListReads": {
+    "cards": 12,
+    "linksPerCard": 10,
+    "extraLinkReadsBefore": 120,
+    "extraLinkReadsAfter": 0,
+    "evidence": "mocked SDK with real service"
+  },
+  "visual": {
+    "widths": [
+      375,
+      1280
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "horizontalOverflow": false,
+    "themeIcon": [
+      22,
+      22
+    ]
+  },
+  "backend": {
+    "state": "blocked-before-tests",
+    "reason": "Firestore JAR download network policy",
+    "changedRulesNotEmulatorVerified": true
+  },
+  "htmlUserIssue": {
+    "mode": "single-html",
+    "exactUserFileReproduced": false,
+    "basicAndFourDesignFilesPass": true,
+    "missingLazyModuleMessageTested": true
+  },
+  "audit": {
+    "production": 0,
+    "devHighPackageEntries": 3,
+    "chain": [
+      "firebase-tools",
+      "chokidar",
+      "braces"
+    ],
+    "upstreamFixAvailable": false
+  },
+  "liveAdminExists": "unknown: no management identity",
+  "deployed": false
+}

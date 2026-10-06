@@ -155,7 +155,8 @@ test('real HTML file preparation persists pending chunks, preview and viewer, th
   await mount(page, '/yeni'); await expect(page.getByRole('heading', { name: 'Yeni Sunum Yükle' })).toBeVisible();
   await page.getByLabel('Sunum başlığı (zorunlu)').fill('Yüklenen HTML Sunumu');
   await page.getByLabel('Açıklama', { exact: true }).fill('Gerçek dosya girdisinden hazırlanan sunum.');
-  await page.getByLabel('HTML, ZIP veya PPTX seç', { exact: true }).setInputFiles({ name: 'upload.html', mimeType: 'text/html', buffer: Buffer.from(smallHtml) });
+  await page.getByRole('tab', { name: 'PowerPoint', exact: true }).click();
+  await page.locator('#editor-file').setInputFiles({ name: 'upload.html', mimeType: 'text/html', buffer: Buffer.from(smallHtml) });
   await expect(page.getByText('Sunum hazır', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sunumu önizle', exact: true }).click();
   const preview = page.locator('iframe'); await expect(preview).toHaveAttribute('sandbox', 'allow-scripts'); await expect(preview).toHaveAttribute('allow', 'fullscreen');
@@ -185,7 +186,8 @@ test('real HTML file preparation persists pending chunks, preview and viewer, th
 test('real PPTX upload uses identity chunks and actual viewer download preserves bytes', async ({ page }) => {
   await mount(page, '/yeni'); await expect(page.getByRole('heading', { name: 'Yeni Sunum Yükle' })).toBeVisible();
   await page.getByLabel('Sunum başlığı (zorunlu)').fill('Yüklenen PowerPoint');
-  await page.getByLabel('HTML, ZIP veya PPTX seç', { exact: true }).setInputFiles({ name: 'upload.pptx', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', buffer: pptx });
+  await page.getByRole('tab', { name: 'PowerPoint', exact: true }).click();
+  await page.locator('#editor-file').setInputFiles({ name: 'upload.pptx', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', buffer: pptx });
   await expect(page.getByText('Sunum hazır', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Onaya gönder', exact: true }).click();
   await expect(page).toHaveURL(/\/s\/created-1/); await expect(page.getByRole('heading', { name: 'Yüklenen PowerPoint', exact: true }).first()).toBeVisible();
