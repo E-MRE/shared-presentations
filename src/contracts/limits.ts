@@ -49,16 +49,14 @@ export const MAX_HTML_ENCODED_BYTES = 5 * 1024 * 1024; // 5,242,880 bytes
 export const MAX_PPTX_BYTES = 8 * 1024 * 1024; // 8,388,608 bytes
 
 /**
- * Browser-only limit: maximum unpacked size for HTML bundle (25 MB).
- * Enforced in the browser before upload; rules do NOT validate unpacked size.
- * (Operator Decision 3)
+ * Maximum unpacked size for HTML bundle (25 MB). The browser inspects the
+ * actual archive; Firestore also bounds its declared size metadata.
  */
 export const MAX_HTML_UNPACKED_BYTES = 25 * 1024 * 1024; // 26,214,400 bytes
 
 /**
- * Browser-only limit: maximum total file count inside an HTML bundle.
- * Enforced in the browser before upload; rules do NOT validate file count.
- * (Operator Decision 3)
+ * Maximum total file count inside an HTML bundle. The browser inspects the
+ * actual archive; Firestore also bounds its declared count metadata.
  */
 export const MAX_HTML_FILE_COUNT = 300;
 

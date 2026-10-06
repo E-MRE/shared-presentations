@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-10-06T00:31:14.387Z",
+  "localUrl": "http://localhost:4175",
+  "lanUrl": "http://192.168.1.150:4175",
+  "httpStatus": 200,
+  "realProject": true,
+  "explicitEmulatorSwitch": true,
+  "envFiles": [],
+  "requestOrigins": [
+    "http://localhost:4175"
+  ],
+  "noEmulatorRequests": true,
+  "visitorGate": true,
+  "lanHttpStatus": 200
+}

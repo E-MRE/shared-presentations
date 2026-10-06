@@ -14,6 +14,8 @@ import {
   MAX_CHUNK_BYTES,
   MAX_HTML_ENCODED_BYTES,
   MAX_PPTX_BYTES,
+  MAX_HTML_UNPACKED_BYTES,
+  MAX_HTML_FILE_COUNT,
   MANIFEST_VERSION,
 } from '../../src/contracts/limits';
 
@@ -81,5 +83,9 @@ describe('Limits Agreement (TypeScript Contracts vs firestore.rules)', () => {
   it('matches MANIFEST_VERSION (1)', () => {
     expect(MANIFEST_VERSION).toBe(1);
     expect(rulesContent).toContain(`manifestVersion == ${MANIFEST_VERSION}`);
+  });
+  it('bounds declared HTML unpacked size and file count in rules', () => {
+    expect(rulesContent).toContain(`sizes.unpacked <= ${MAX_HTML_UNPACKED_BYTES}`);
+    expect(rulesContent).toContain(`sizes.fileCount <= ${MAX_HTML_FILE_COUNT}`);
   });
 });

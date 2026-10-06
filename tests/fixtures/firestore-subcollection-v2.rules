@@ -1,3 +1,4 @@
+// TEST PROTOTYPE ONLY — not configured for deployment.
 rules_version = '2';
 
 service cloud.firestore {
@@ -68,46 +69,6 @@ service cloud.firestore {
         (count < 10 || isValidLink(links[9]));
     }
 
-    function isValidChunkEntry(entry, idx) {
-      let index = entry.index;
-      let size = entry.size;
-      return entry.keys().hasOnly(['index', 'size']) &&
-        index is int && index == idx &&
-        size is int && size > 0 && size <= 900000;
-    }
-
-    function areValidManifestEntries(input, inputCount) {
-      let chunks = input;
-      let count = inputCount;
-      return (count < 1 || isValidChunkEntry(chunks[0], 0)) &&
-             (count < 2 || isValidChunkEntry(chunks[1], 1)) &&
-             (count < 3 || isValidChunkEntry(chunks[2], 2)) &&
-             (count < 4 || isValidChunkEntry(chunks[3], 3)) &&
-             (count < 5 || isValidChunkEntry(chunks[4], 4)) &&
-             (count < 6 || isValidChunkEntry(chunks[5], 5)) &&
-             (count < 7 || isValidChunkEntry(chunks[6], 6)) &&
-             (count < 8 || isValidChunkEntry(chunks[7], 7)) &&
-             (count < 9 || isValidChunkEntry(chunks[8], 8)) &&
-             (count < 10 || isValidChunkEntry(chunks[9], 9)) &&
-             (count < 11 || isValidChunkEntry(chunks[10], 10)) &&
-             (count < 12 || isValidChunkEntry(chunks[11], 11));
-    }
-
-    function sumChunkSizes(chunks, count) {
-      return count == 1 ? chunks[0].size :
-             count == 2 ? chunks[0].size + chunks[1].size :
-             count == 3 ? chunks[0].size + chunks[1].size + chunks[2].size :
-             count == 4 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size :
-             count == 5 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size :
-             count == 6 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size :
-             count == 7 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size :
-             count == 8 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size :
-             count == 9 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size :
-             count == 10 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size :
-             count == 11 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size + chunks[10].size :
-             count == 12 ? chunks[0].size + chunks[1].size + chunks[2].size + chunks[3].size + chunks[4].size + chunks[5].size + chunks[6].size + chunks[7].size + chunks[8].size + chunks[9].size + chunks[10].size + chunks[11].size : 0;
-    }
-
     function validateSizes(sizes, kind) {
       return sizes.keys().hasOnly(['encoded', 'unpacked', 'fileCount']) &&
         sizes.encoded is int && sizes.encoded > 0 &&
@@ -117,13 +78,9 @@ service cloud.firestore {
         (kind != 'html' || (sizes.unpacked <= 26214400 && sizes.fileCount <= 300));
     }
 
-    function validateManifest(input) {
-      let data = input;
-      return data.chunks is list &&
-        data.chunks.size() == data.chunkCount &&
-        data.chunkCount >= 1 && data.chunkCount <= 12 &&
-        areValidManifestEntries(data.chunks, data.chunkCount) &&
-        sumChunkSizes(data.chunks, data.chunkCount) == data.sizes.encoded;
+    function validateManifest(data) {
+      return data.chunkCount is int && data.chunkCount >= 1 && data.chunkCount <= 12 &&
+        data.sizes.encoded >= data.chunkCount && data.sizes.encoded <= 900000 * data.chunkCount;
     }
 
     function isValidTag(input) {
@@ -150,14 +107,14 @@ service cloud.firestore {
       let allowedKeys = [
         'ownerUid', 'ownerName', 'ownerPhotoURL', 'title', 'description',
         'links', 'kind', 'fileName', 'status', 'rejectNote', 'cover',
-        'coverSource', 'sizes', 'chunkCount', 'chunks', 'createdAt',
+        'coverSource', 'sizes', 'chunkCount', 'createdAt',
         'updatedAt', 'publishedAt', 'reviewedBy', 'reviewedAt',
         'manifestVersion', 'quotaMarker', 'category', 'tags'
       ];
       let requiredKeys = [
         'ownerUid', 'title', 'description', 'links', 'kind', 'fileName',
         'status', 'rejectNote', 'cover', 'coverSource', 'sizes',
-        'chunkCount', 'chunks', 'createdAt', 'updatedAt',
+        'chunkCount', 'createdAt', 'updatedAt',
         'manifestVersion', 'quotaMarker'
       ];
 
@@ -176,7 +133,7 @@ service cloud.firestore {
         data.coverSource in ['auto', 'upload', 'default'] &&
         validateSizes(data.sizes, data.kind) &&
         data.chunkCount is int && data.chunkCount >= 1 && data.chunkCount <= 12 &&
-        data.manifestVersion is int && data.manifestVersion == 1 &&
+        data.manifestVersion is int && data.manifestVersion == 2 &&
         data.quotaMarker is string &&
         data.createdAt is timestamp &&
         data.updatedAt is timestamp;
@@ -262,18 +219,20 @@ service cloud.firestore {
       return isMember() && (deck.status == 'published' || deck.ownerUid == request.auth.uid || isAdmin());
     }
 
+    // Prototype v2: balanced deterministic sizes bind each chunk to the total, without a parent array.
     function canWriteChunk(deckId, chunkIdx) {
-      let deckPath = presentationPath(deckId);
-      let deckAfter = getAfter(deckPath).data;
-      let index = request.resource.data.index;
-      let size = request.resource.data.data.size();
-      return (isMember() && (deckAfter.ownerUid == request.auth.uid || isAdmin())) &&
-        deckAfter.status == 'pending' &&
-        request.resource.data.keys().hasOnly(['index', 'data']) &&
-        index is int && index == int(chunkIdx) &&
-        index >= 0 && index < deckAfter.chunkCount &&
-        request.resource.data.data is bytes &&
-        size == deckAfter.chunks[index].size && size <= 900000;
+      let deckAfter = getAfter(presentationPath(deckId)).data;
+      let chunk = request.resource.data;
+      let baseSize = int(deckAfter.sizes.encoded / deckAfter.chunkCount);
+      let remainder = deckAfter.sizes.encoded % deckAfter.chunkCount;
+      let expectedSize = baseSize + (chunk.index < remainder ? 1 : 0);
+      return isMember() && (deckAfter.ownerUid == request.auth.uid || isAdmin()) &&
+        deckAfter.status == 'pending' && deckAfter.manifestVersion == 2 &&
+        chunk.keys().hasOnly(['index', 'size', 'data']) &&
+        chunk.index is int && chunk.index == int(chunkIdx) &&
+        chunk.index >= 0 && chunk.index < deckAfter.chunkCount &&
+        chunk.size is int && chunk.size > 0 && chunk.size <= 900000 &&
+        chunk.data is bytes && chunk.data.size() == chunk.size && chunk.size == expectedSize;
     }
 
     function canDeleteChunkTail(deckId, chunkIdx) {

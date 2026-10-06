@@ -1,0 +1,100 @@
+{
+  "passed": 22,
+  "failed": 1,
+  "skipped": 0,
+  "total": 23,
+  "cases": [
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 1 chunks with 8 tags in single transactions",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 6 chunks with 8 tags in single transactions",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 12 chunks with 8 tags in single transactions",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves maximum html payload with 8 tags and maximum cover",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves maximum pptx payload with 8 tags and maximum cover",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype supports 12 chunks, 8 tags and 10 links together",
+      "status": "failed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-size and rolls back the complete transaction",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-index and rolls back the complete transaction",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-data and rolls back the complete transaction",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects foreign-field and rolls back the complete transaction",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects missing-quota and rolls back the complete transaction",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 0",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 1",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 2",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 3",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 4",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 5",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 6",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 7",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 8",
+      "status": "passed"
+    },
+    {
+      "name": "Manifest v2 isolated prototype binds root ownership to the authenticated caller",
+      "status": "passed"
+    },
+    {
+      "name": "Expression budget scope controls one transaction of 12 individually costly writes passes",
+      "status": "passed"
+    },
+    {
+      "name": "Expression budget scope controls one over-budget document fails with the actual 1000-expression diagnostic",
+      "status": "passed"
+    }
+  ]
+}

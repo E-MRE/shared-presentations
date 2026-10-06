@@ -93,7 +93,9 @@ describe('Real-Browser CSP / srcdoc Sandbox Proof of Concept', () => {
       await browser.close();
     }
     if (server) {
-      await new Promise<void>((resolve) => server.close(() => resolve()));
+      const closed = new Promise<void>((resolve) => server.close(() => resolve()));
+      server.closeAllConnections();
+      await closed;
     }
   });
 

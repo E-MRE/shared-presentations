@@ -1,0 +1,20 @@
+
+> vektor-presentations@0.1.0 check:release
+> node scripts/check-release.mjs
+
+PASS Firebase project is pinned to shared-presentations
+PASS Firestore rules and indexes are configured
+PASS SPA rewrite and dist target
+PASS HTML no-cache and immutable hashed assets
+PASS Shell CSP, frame isolation and nosniff
+PASS Source HTML loads the real entry
+PASS Built HTML references emitted JavaScript
+PASS Built application contains six frozen route paths
+PASS Built output includes application gates, not foundation placeholder
+PASS Production main uses real App without fixture switches
+PASS Release documentation exists: README.md
+PASS Release documentation exists: docs/OPERATIONS.md
+PASS Release documentation exists: docs/ACCEPTANCE.md
+PASS Manual OAuth/mail/domain/CSP/Hosting and approval limitations documented
+PASS Rules-first release order and explicit project commands documented
+PASS local release checks (0 failures). Live release acceptance remains manual.

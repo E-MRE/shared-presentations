@@ -1,0 +1,36 @@
+{
+  "sourceSha256": "e6731a1932007306f9b1fb67e9dc5fe43bec65db2c4f799e0edccbb15d96f068",
+  "scope": "Recorded AST evaluations across the trial; NOT exact per-document budget charge. Helpers exclusive, unexecuted markers excluded.",
+  "functions": {
+    "isMember": {
+      "recorded": 234,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "budgetSegment": {
+      "recorded": 8448,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "withinBudget": {
+      "recorded": 120,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "overBudgetSegment": {
+      "recorded": 1238,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "overBudget": {
+      "recorded": 16,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "matchStatements": {
+      "recorded": 74,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    }
+  }
+}

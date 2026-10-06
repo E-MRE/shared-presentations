@@ -1,0 +1,564 @@
+{
+  "passed": 131,
+  "failed": 8,
+  "skipped": 0,
+  "total": 139,
+  "cases": [
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants unverified email user is NOT a member (isMember === false)",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants verified email user IS a member (isMember === true)",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Membership Logic Invariants Google signed-in user IS a member regardless of emailVerified flag",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants throws error when non-member attempts to open a Firestore listener",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants registers listener when user is a confirmed member",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Listener Lifecycle Invariants sign-out closes all active listeners",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) a raw Firestore call from a non-admin client attempting a client-side admin grant is DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) resolves isAdmin: true when Console admin doc exists in admins/{uid}",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) resolves isAdmin: false cleanly without throwing when user is not an admin",
+      "status": "passed"
+    },
+    {
+      "name": "Authentication & Membership Invariants Admin Resolution & Security Rules Invariants (Real Emulator) caches admin verification to minimize read calls",
+      "status": "passed"
+    },
+    {
+      "name": "Real Auth tokens with Firestore emulator blocks a live SDK hostname before opening a socket",
+      "status": "passed"
+    },
+    {
+      "name": "Real Auth tokens with Firestore emulator signup, resend, verification/token refresh, membership, reset and signout use only local SDK endpoints",
+      "status": "passed"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation reports a dispatch failure while retaining the newly created unverified account",
+      "status": "passed"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation reports an accepted dispatch without promising inbox delivery",
+      "status": "passed"
+    },
+    {
+      "name": "Verification dispatch is independent from account creation preserves resend failures and supports retry using the same account",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags reads legacy documents as uncategorized without changing stored data",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags accepts supported categories and bounded tags",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"category\":\"unsupported\"}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"a\",\"a\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\" \"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Backward compatible category and tags rejects invalid metadata {\"tags\":[\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"]}",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 2 chunks with 8 tags",
+      "status": "failed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 6 chunks with 8 tags",
+      "status": "failed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 10 chunks with 8 tags",
+      "status": "failed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 8 tags",
+      "status": "failed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) accepts 12 chunks with 0 tags",
+      "status": "failed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves html at encoded, cover and catalog limits",
+      "status": "failed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) creates and approves pptx at encoded, cover and catalog limits",
+      "status": "failed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 1. unverified e-mail user is NOT a member: no listener, upload denied",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 2. Google-signed-in member creates a deck → pendingCount becomes 1 (assert read back from emulator)",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 3. 6th pending deck is rejected by the quota rule → service returns typed Turkish error",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 4. pending → pending edit leaves pendingCount unchanged (assert counter value)",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 5. editing a published deck returns it to pending and increments counter by 1",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 6. admin approve sets status, publishedAt, reviewedBy, reviewedAt and decrements the counter",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 7. admin reject without a note is refused; with a note it succeeds",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 8. owner delete of a pending deck removes chunks and decrements counter; zero orphan chunks remain",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 9. owner CANNOT delete a published deck; a non-owner CANNOT delete anything",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 10. member cannot read another member's pending deck or its chunks",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 11. published feed, own-decks and review-queue queries return correct order, and cursor pagination returns next page without duplicates or gaps",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 12. sign-out closes listeners",
+      "status": "passed"
+    },
+    {
+      "name": "Presentation Data Service Integration Suite (Real Emulator) 13. a raw Firestore call from a non-admin client attempting a client-side admin grant is DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation accepts valid titles within limits",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation rejects empty or whitespace-only titles",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Title validation rejects titles exceeding MAX_TITLE_LENGTH (120)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Description validation accepts valid descriptions",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Description validation rejects descriptions exceeding MAX_DESCRIPTION_LENGTH (2000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation accepts valid HTTPS links array up to MAX_LINKS_COUNT",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects links array exceeding MAX_LINKS_COUNT (10)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects insecure HTTP links",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Links validation rejects links with empty labels",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation accepts valid cover payloads",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation rejects empty cover payload",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Cover validation rejects cover exceeding MAX_COVER_BYTES (150000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants accepts sizes within HTML compressed and unpacked limits",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants rejects HTML encoded size exceeding MAX_HTML_ENCODED_BYTES (5242880)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants rejects PPTX encoded size exceeding MAX_PPTX_BYTES (8388608)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants enforces browser-only unpacked size MAX_HTML_UNPACKED_BYTES (26214400)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Sizes validation & Operator Decision 3 invariants enforces browser-only file count limit MAX_HTML_FILE_COUNT (300)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation accepts valid chunk manifest with matching sizes",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects chunk exceeding MAX_CHUNK_BYTES (900000)",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects manifest where sum of chunks does not equal encoded size",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite Manifest and Chunk validation rejects mismatch between binary chunk byteLength and manifest size",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite CreateDeckInput and UpdateDeckInput validation validates a complete valid CreateDeckInput payload",
+      "status": "passed"
+    },
+    {
+      "name": "Data Limits Validation Unit Suite CreateDeckInput and UpdateDeckInput validation rejects invalid UpdateDeckInput missing id",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 1. Sandboxed srcdoc iframe executes inline JS and applies CSS under real app CSP",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 2. Data-URI script execution works in sandboxed child under real app CSP",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 3. Blob URL script execution works in child iframe under real app CSP",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 4. Insecure external script (http://) is blocked in child iframe",
+      "status": "passed"
+    },
+    {
+      "name": "Real-Browser CSP / srcdoc Sandbox Proof of Concept 5. Negative Control: parent CSP with script-src none blocks child script inside srcdoc",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions unverified users cannot read published metadata or chunks",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions inactive or malformed admin markers grant no private read access",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions anonymous user cannot read published or pending decks",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions member reads another member's pending deck → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions member reads another member's deck chunks → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions member reads their own pending deck and chunks → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions admin reads any pending deck and its chunks → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 1. Read Permissions user profile documents are not listable by members → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit HTML archive bounds",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit HTML archive overflow",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit HTML file count overflow",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit chunk byte overflow",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit HTML encoded overflow",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy declared upload limit PPTX encoded overflow",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active missing controls private read and approval",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active true controls private read and approval",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active false controls private read and approval",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active string controls private read and approval",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active number controls private read and approval",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active null controls private read and approval",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active list controls private read and approval",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy admin active map controls private read and approval",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog legacy validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog new fields validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog maximum tags validates atomic create and owner update",
+      "status": "failed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog unsupported category validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog category type validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog tags type validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog duplicate tags validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog too many tags validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog long tag validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog empty tag validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog space tag validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite Catalog compatibility and admin active policy catalog nonstring tag validates atomic create and owner update",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants member creates a deck and tries to set status: published directly → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants member writes a non-whitelisted field → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants member writes a field of the wrong type → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants member creates an admins/{uid} doc → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants links with non-https scheme or more than 10 links → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 2. Create Validation and Schema Invariants cover exceeding 150,000 bytes hard cap → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity member increments users/{self}.pendingCount outside bound transaction → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity member creates valid pending deck + chunks + counter increment (+1) in atomic batch → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity member forges a manifest byte total that disagrees with real chunk bytes → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity manifest chunk sizes sum does not equal sizes.encoded → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity creating several decks with a single counter increment → REJECTED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 3. Quota Transaction Binding and Manifest Integrity concurrent double-increment / 6th pending deck exceeding quota (5) → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 4. Update Permissions and Immutability member tries to change ownerUid → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 4. Update Permissions and Immutability member updates their own pending deck (pending → pending) without changing counter → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 4. Update Permissions and Immutability member edits a published deck back to pending → requires new pending slot (+1) → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 5. Admin Review Actions admin approves pending deck (published) and decrements owner pendingCount → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 5. Admin Review Actions admin rejects pending deck with required rejectNote and decrements pendingCount → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 5. Admin Review Actions admin rejects without rejectNote → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 6. Deletion and Cleanup Invariants non-admin deletes a published deck → DENIED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 6. Deletion and Cleanup Invariants owner deletes their own pending deck and decrements counter → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 6. Deletion and Cleanup Invariants admin deletes a published deck and its chunks → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Firestore Security Rules Suite 6. Deletion and Cleanup Invariants replacement tail chunk cleanup on update → ALLOWED",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_PENDING_PER_USER (5)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_TITLE_LENGTH (120)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_DESCRIPTION_LENGTH (2000)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_LINKS_COUNT (10)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_LINK_LABEL_LENGTH (100)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_LINK_URL_LENGTH (1000)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_COVER_BYTES (150000)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_CHUNKS_COUNT (12) and MIN_CHUNKS_COUNT (1)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_CHUNK_BYTES (900000)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_HTML_ENCODED_BYTES (5242880)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MAX_PPTX_BYTES (8388608)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) matches MANIFEST_VERSION (1)",
+      "status": "passed"
+    },
+    {
+      "name": "Limits Agreement (TypeScript Contracts vs firestore.rules) bounds declared HTML unpacked size and file count in rules",
+      "status": "passed"
+    }
+  ]
+}

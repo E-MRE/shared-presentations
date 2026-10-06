@@ -44,11 +44,7 @@ import { AppErrorCode } from '../../src/contracts/errors';
 import type { AuthUser } from '../../src/contracts/auth';
 import type { CreateDeckInput } from '../../src/contracts/services';
 
-const PROJECT_ID = 'shared-presentations';
-const hasEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
-const emulatorHostEnv = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
-const [emuHost, emuPortStr] = emulatorHostEnv.split(':');
-const emuPort = parseInt(emuPortStr, 10);
+import { PROJECT_ID, hasEmulator, emuHost, emuPort } from '../emulator-config';
 
 describe.skipIf(!hasEmulator)('Presentation Data Service Integration Suite (Real Emulator)', () => {
   let testEnv: RulesTestEnvironment;
@@ -128,6 +124,36 @@ describe.skipIf(!hasEmulator)('Presentation Data Service Integration Suite (Real
   // =========================================================================
   // 1. Unverified email user is NOT a member: no listener, upload denied
   // =========================================================================
+  it.each([
+    { count: 2, tagCount: 8 }, { count: 6, tagCount: 8 },
+    { count: 10, tagCount: 8 }, { count: 12, tagCount: 8 },
+    { count: 12, tagCount: 0 },
+  ])('accepts $count chunks with $tagCount tags', async ({ count, tagCount }) => {
+    const user = makeUser('manifest-owner', true);
+    const db = testEnv.authenticatedContext(user.uid, { email_verified: true }).firestore();
+    const service = new FirestorePresentationDataService({ db, getCurrentUser: () => user });
+    const result = await service.createDeck({ ...makeDeckInput('Manifest', Array(count).fill(100)), tags: Array.from({ length: tagCount }, (_, index) => `tag-${index}`) });
+    expect(result.ok, String(result.error?.details ?? result.error?.message)).toBe(true);
+  });
+  it.each(['html', 'pptx'] as const)('creates and approves %s at encoded, cover and catalog limits', async kind => {
+    const user = makeUser('boundary-owner', true);
+    const ownerDb = testEnv.authenticatedContext(user.uid, { email_verified: true }).firestore();
+    const service = new FirestorePresentationDataService({ db: ownerDb, getCurrentUser: () => user });
+    const total = kind === 'html' ? 5242880 : 8388608;
+    const count = Math.ceil(total / 900000);
+    const sizes = Array.from({ length: count }, (_, index) => Math.min(900000, total - index * 900000));
+    const input = { ...makeDeckInput('Boundary deck', sizes), kind, fileName: `deck.${kind}`,
+      category: 'AI & LLM', tags: Array.from({ length: 8 }, (_, index) => `tag-${index}`),
+      cover: new Uint8Array(150000), sizes: { encoded: total, unpacked: kind === 'html' ? 26214400 : total, fileCount: kind === 'html' ? 300 : 1 },
+    };
+    const created = await service.createDeck(input);
+    expect(created.ok, String(created.error?.details ?? created.error?.message)).toBe(true);
+    if (!created.ok) throw new Error('Boundary creation failed.');
+    await testEnv.withSecurityRulesDisabled(context => setDoc(doc(context.firestore(), 'admins', 'boundary-admin'), { active: true }));
+    const adminDb = testEnv.authenticatedContext('boundary-admin', { email_verified: true }).firestore();
+    const admin = new FirestorePresentationDataService({ db: adminDb, getCurrentUser: () => makeUser('boundary-admin', true, true) });
+    expect((await admin.approveDeck(created.value.id)).ok).toBe(true);
+  }, 30_000);
   it('1. unverified e-mail user is NOT a member: no listener, upload denied', async () => {
     const unverifiedUser = makeUser('unverified-alice', false, false, false);
     const unverifiedDb = testEnv.authenticatedContext('unverified-alice', {

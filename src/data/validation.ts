@@ -2,8 +2,8 @@
  * Data Validation Functions
  *
  * Client-side validation enforcing single source of truth limits from
- * src/contracts/limits.ts. Enforces both rules-backed limits and browser-only
- * limits (unpacked size and file count per Operator Decision 3).
+ * src/contracts/limits.ts. The browser inspects archive contents while rules
+ * also bound the declared sizes and file count.
  *
  * References:
  * - src/contracts/limits.ts
@@ -155,7 +155,7 @@ export function validateCover(cover: Uint8Array): Result<void> {
   return ok(undefined);
 }
 
-/** Validates sizes including browser-only constraints (Operator Decision 3) */
+/** Validates storage sizes and HTML archive bounds. */
 export function validateSizes(sizes: DeckSizes, kind: DeckKind): Result<void> {
   if (!sizes || typeof sizes !== 'object') {
     return err({
@@ -186,7 +186,7 @@ export function validateSizes(sizes: DeckSizes, kind: DeckKind): Result<void> {
     });
   }
 
-  // Browser-only limits: unpacked size and file count (Operator Decision 3)
+  // Archive limits: validate actual browser preparation and declared metadata.
   if (kind === 'html') {
     if (typeof sizes.unpacked !== 'number' || sizes.unpacked < 0) {
       return err({

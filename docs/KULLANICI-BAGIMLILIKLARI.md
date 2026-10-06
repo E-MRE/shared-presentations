@@ -4,6 +4,26 @@
 
 [Düzeltme planı](DUZELTME-PLANI.md) uygulandı. Aşağıdaki kararlar için yeniden yanıt vermen gerekmiyor. Proje `shared-presentations`, Firestore ve e-posta/Google sağlayıcıları etkin. Korunacak üretim içeriği yok; test sunumu var. Canlı veri ve hesaplar değiştirilmedi.
 
+## 6 Ekim güncel kabul ve kalan işler
+
+Çalışma kaldığı yerden sürdürüldü; istenen ölçüm ve izole prototip tamamlandı. [Son kontrol raporu](SON-KONTROL-RAPORU.md) güncel durumdur; aşağıdaki önceki ortam notları tarihsel kayıttır.
+
+| Kontrol | Güncel sonuç |
+|---|---|
+| Yeni hesap, gelen ileti, doğrulama ve üyelikle giriş | Kullanıcı teyidiyle geçti; inbox teslimi SDK sonucundan ayrı |
+| Gerçek 60 saniye bekleme ve yeniden gönderme | Kullanıcı teyidiyle geçti |
+| Şifre sıfırlama ve yeni şifreyle giriş | Kullanıcı teyidiyle geçti |
+| Masaüstü Google seçim/iptal/giriş | Kullanıcı “tüm akış çalışıyor” teyidiyle geçti |
+| Fiziksel telefonda giriş ve Google | Geçti; kullanıcı Console Authorized domains’e `192.168.1.150` ekledi |
+| Backend emülatör indirme engeli | Kapandı; önceki 47 test çalıştı |
+| Genişletilmiş backend sınır kabulü | Açık: v1 131 geçti, 8 başarısız; teknik geçiş Codex işi |
+| Yapısal manifest prototipi | 1/6/12 parça + sekiz etiket geçti; toplam 22 geçti/1 başarısız (sekiz etiket + on bağlantı); [geçiş planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md) hazır |
+| Yayın ve gerçek origin CSP/cache | Açık; deploy yetkisi verilmedi |
+
+Önizleme bu Mac’te `http://localhost:4175`, aynı Wi-Fi’da `http://192.168.1.150:4175`. Varsayılan gerçek Firebase; emülatör yalnız açık `VITE_USE_EMULATORS=true` seçimiyle kullanılır. IP değişirse Console yetkisi ve URL yeniden kontrol edilir. Mevcut canlı kurallar kategori/etiket yazımlarını reddedebilir; yeni kurallar henüz yayınlanmadı.
+
+Kullanıcıdan şu anda parola/token veya yeni hesap ayarı gerekmiyor. Teknik hata çözüldükten sonra somut sürümün incelemesi, hedef hostname, ayrı üye/yöneticiyle gerçek sunum kabulü ve yayın kararı kalır. Mobil klavye/görünüm ayrıntıları ile Safari/Firefox kabulü yalnız giriş teyidiyle kapanmış sayılmadı.
+
 ## Kapanmış kararlar
 
 | ID | Kullanıcının kararı ve uygulanan sonuç |

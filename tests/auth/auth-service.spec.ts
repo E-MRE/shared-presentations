@@ -31,11 +31,7 @@ import {
 } from '../../src/auth/listenerManager';
 import type { User } from 'firebase/auth';
 
-const PROJECT_ID = 'shared-presentations';
-const hasEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
-const emulatorHostEnv = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
-const [emuHost, emuPortStr] = emulatorHostEnv.split(':');
-const emuPort = parseInt(emuPortStr, 10);
+import { PROJECT_ID, hasEmulator, emuHost, emuPort } from '../emulator-config';
 
 describe('Authentication & Membership Invariants', () => {
   describe('Membership Logic Invariants', () => {

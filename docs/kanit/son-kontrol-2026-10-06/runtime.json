@@ -1,0 +1,10 @@
+{
+  "node": "v24.21.0",
+  "java21": "openjdk version \"21.0.12.1\" 2026-08-18 LTS\nOpenJDK Runtime Environment Corretto-21.0.12.12.1 (build 21.0.12.1+12-LTS)\nOpenJDK 64-Bit Server VM Corretto-21.0.12.12.1 (build 21.0.12.1+12-LTS, mixed mode, sharing)",
+  "baseCommit": "4e85348950127888cf0bd2045555061ee1294f56",
+  "status": "measurement and isolated prototype complete; application v1 not release ready",
+  "firestoreEmulator": "1.22.0",
+  "applicationRulesSha256": "013f031e4c192bdfd5f8cc8d8bbfa6092e0b6c02d08362f9b6dc6ac61e7c189f",
+  "prototypeRulesSha256": "d9dafdc4498236cecfd5b02b28ffd5a7a1c235ee4295a07ccf0cd4959001aaf7",
+  "budgetRulesSha256": "e6731a1932007306f9b1fb67e9dc5fe43bec65db2c4f799e0edccbb15d96f068"
+}

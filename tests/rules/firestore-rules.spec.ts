@@ -31,11 +31,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 
-const PROJECT_ID = 'shared-presentations';
-const hasEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
-const emulatorHostEnv = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
-const [emuHost, emuPortStr] = emulatorHostEnv.split(':');
-const emuPort = parseInt(emuPortStr, 10);
+import { PROJECT_ID, hasEmulator, emuHost, emuPort } from '../emulator-config';
 
 describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
   let testEnv: RulesTestEnvironment;
@@ -178,6 +174,7 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
 
       // Published deck: DENIED
       await assertFails(getDoc(doc(anonDb, 'presentations', 'pub-deck')));
+      await assertFails(getDoc(doc(anonDb, 'presentations', 'pub-deck', 'chunks', '0')));
 
       // Non-published deck: DENIED
       await assertFails(getDoc(doc(anonDb, 'presentations', 'pend-deck')));
@@ -247,6 +244,66 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
 
       // Get other member's profile: DENIED
       await assertFails(getDoc(doc(aliceDb, 'users', 'bob')));
+    });
+  });
+
+  describe('Catalog compatibility and admin active policy', () => {
+    it.each([
+      ['HTML archive bounds', { kind: 'html', sizes: { encoded: 1000, unpacked: 26214400, fileCount: 300 } }, true],
+      ['HTML archive overflow', { sizes: { encoded: 1000, unpacked: 26214401, fileCount: 1 } }, false],
+      ['HTML file count overflow', { sizes: { encoded: 1000, unpacked: 2000, fileCount: 301 } }, false],
+      ['chunk byte overflow', { chunks: [{ index: 0, size: 900001 }], chunkCount: 1, sizes: { encoded: 900001, unpacked: 900001, fileCount: 1 } }, false],
+      ['HTML encoded overflow', { chunks: Array.from({ length: 6 }, (_, index) => ({ index, size: 900000 })), chunkCount: 6, sizes: { encoded: 5400000, unpacked: 5400000, fileCount: 1 } }, false],
+      ['PPTX encoded overflow', { kind: 'pptx', chunks: Array.from({ length: 10 }, (_, index) => ({ index, size: 900000 })), chunkCount: 10, sizes: { encoded: 9000000, unpacked: 9000000, fileCount: 1 } }, false],
+    ])('declared upload limit %s', async (_name, changes, allowed) => {
+      await seedUser('alice', 1, 'limit-edit');
+      await seedDeck('limit-edit', 'alice');
+      const db = testEnv.authenticatedContext('alice', { email_verified: true }).firestore();
+      await (allowed ? assertSucceeds : assertFails)(updateDoc(doc(db, 'presentations', 'limit-edit'), changes));
+    });
+    it.each([
+      ['missing', {}, true], ['true', { active: true }, true],
+      ['false', { active: false }, false], ['string', { active: 'true' }, false],
+      ['number', { active: 1 }, false], ['null', { active: null }, false],
+      ['list', { active: [] }, false], ['map', { active: {} }, false],
+    ])('admin active %s controls private read and approval', async (_name, marker, allowed) => {
+      await seedUser('alice', 1, 'active-policy');
+      await seedDeck('active-policy', 'alice');
+      await testEnv.withSecurityRulesDisabled(context => setDoc(doc(context.firestore(), 'admins', 'policy-admin'), marker));
+      const db = testEnv.authenticatedContext('policy-admin', { email_verified: true }).firestore();
+      const assertAccess = allowed ? assertSucceeds : assertFails;
+      await assertAccess(getDoc(doc(db, 'presentations', 'active-policy')));
+      await assertAccess(getDoc(doc(db, 'presentations', 'active-policy', 'chunks', '0')));
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'presentations', 'active-policy'), {
+        status: 'published', publishedAt: Timestamp.now(), reviewedBy: 'policy-admin', reviewedAt: Timestamp.now(),
+      });
+      batch.update(doc(db, 'users', 'alice'), { pendingCount: 0, pendingDeckId: 'active-policy' });
+      await assertAccess(batch.commit());
+    });
+
+    it.each([
+      ['legacy', {}, true], ['new fields', { category: 'AI & LLM', tags: ['öğrenme', 'LLM'] }, true],
+      ['maximum tags', { tags: Array.from({ length: 8 }, (_, i) => `tag-${i}`) }, true],
+      ['unsupported category', { category: 'unknown' }, false], ['category type', { category: 3 }, false],
+      ['tags type', { tags: 'LLM' }, false], ['duplicate tags', { tags: ['a', 'a'] }, false],
+      ['too many tags', { tags: Array.from({ length: 9 }, (_, i) => String(i)) }, false],
+      ['long tag', { tags: ['x'.repeat(33)] }, false], ['empty tag', { tags: [''] }, false],
+      ['space tag', { tags: [' '] }, false], ['nonstring tag', { tags: [1] }, false],
+    ])('catalog %s validates atomic create and owner update', async (_name, catalog, allowed) => {
+      await seedUser('alice');
+      const db = testEnv.authenticatedContext('alice', { email_verified: true }).firestore();
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'presentations', 'catalog-create'), createValidDeckData('catalog-create', 'alice', catalog));
+      for (const index of [0, 1]) batch.set(doc(db, 'presentations', 'catalog-create', 'chunks', String(index)), {
+        index, data: Bytes.fromUint8Array(new Uint8Array(500)),
+      });
+      batch.update(doc(db, 'users', 'alice'), { pendingCount: 1, pendingDeckId: 'catalog-create' });
+      const assertWrite = allowed ? assertSucceeds : assertFails;
+      await assertWrite(batch.commit());
+      await seedUser('alice', 1, 'catalog-edit');
+      await seedDeck('catalog-edit', 'alice');
+      await assertWrite(updateDoc(doc(db, 'presentations', 'catalog-edit'), { title: 'Updated legacy deck', ...catalog }));
     });
   });
 

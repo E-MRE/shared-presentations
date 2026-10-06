@@ -1,6 +1,6 @@
 # Vektör — Teslim ve çalıştırma
 
-5 Ekim 2026. Yerel düzeltmeler tamamlandı. Canlı Firebase'e deploy, veri silme veya kullanıcı hesabı değiştirme yapılmadı. Kaynak kod, üretim derlemesi, kurallar, testler ve ekran kanıtları birlikte teslim edilir.
+6 Ekim 2026. Son kontrol çalışması devam ediyor; güncel sonuçlar [son kontrol raporunda](SON-KONTROL-RAPORU.md). Canlı Firebase'e deploy, veri silme veya kullanıcı hesabı değiştirme yapılmadı. Kaynak kod, üretim derlemesi, kurallar, testler ve ekran kanıtları birlikte teslim edilir.
 
 ## Değişen davranış
 
@@ -16,9 +16,9 @@ Arşiv sayfalı yüklenir. Arama başlık/açıklama/yazar/etiketleri kapsar; ka
 
 ## Çalışan önizleme
 
-Bu çalışma alanında üretim derlemesi `http://127.0.0.1:4175` adresinde çalıştırıldı; derin bağlantılar ve ziyaretçi giriş ekranı Chromium ile kontrol edildi. Bu adres bu çalışma alanına aittir; kullanıcının cihazından buraya erişim sağlamaz. Ortamda dış erişime açılmış port/tünel aracı yok. Dış URL doğrulanmadığı için paylaşılmıyor. `yeni-ekranlar.html` tek başına açılabilen görsel galeridir; gerçek giriş uygulamasının yerine geçmez.
+Bu Mac üzerinde üretim önizlemesi `http://localhost:4175` adresinde açık. Aynı Wi-Fi üzerindeki fiziksel telefon için `http://192.168.1.150:4175`. Her iki adres HTTP 200 ile kontrol edildi; kullanıcı telefondan girişi teyit etti. Bunlar yerel önizleme adresleridir, yayın sonrası HTTPS/origin kabulünü karşılamaz. E2E için 4173 ayrı tutulur.
 
-GitHub deposunda veya kaynak pakette Node 20.19+ (bu çalışmada 24) kullanın. Zip gerekmez; depoyu klonlayın veya mevcut kopyada `main` dalını güncelleyin:
+GitHub deposunda veya kaynak pakette Node 24 LTS (veya Node 22.12+) kullanın. Kilitli Vitest 5 Node 20/23 desteklemiyor; `.nvmrc` Node 24 seçer. Zip gerekmez; depoyu klonlayın veya mevcut kopyada `main` dalını güncelleyin:
 
 ```sh
 git clone https://github.com/E-MRE/shared-presentations.git
@@ -64,9 +64,7 @@ npm run check:release
 npm run test:backend
 ```
 
-Bu ortam standart Playwright CDN indirmesine izin vermedi. Chromium npm üzerinden geçici dizine kuruldu ve gerçek tarayıcı testlerinde kullanıldı; paketin normal komutları bu geçici yola bağımlı değildir.
-
-Firestore emülatör JAR'ı `storage.googleapis.com/firebase-preview-drop/...` üzerinden indiriliyor. Bu domain ortamın ağ izin listesinde bulunmadığı için emülatör başlatılamadı. Backend kuralları/gerçek Firestore işlem testleri atlandı; bu testler geçmiş sonuçlara dayanarak başarılı gösterilmez. Yayın öncesinde `npm run test:backend` ağ erişimi olan ortamda çalıştırılmalı ve sonuçlar incelenmelidir. Tarayıcıdaki kontrollü servis testleri gerçek backend yetkisini veya inbox teslimini kanıtlamaz.
+6 Ekim kontrolünde resmi Playwright Chromium ve Firestore JAR indirmeleri tamamlandı; Java 21 hazırlandı. `npm run test:backend` artık yalnız `demo-shared-presentations` ve yerel Auth/Firestore adresleriyle çalışır. SDK socket hedefleri kaydedilir, yerel dışı bağlantılar engellenir; emülatör yokluğu veya skip sonucu başarısızlık üretir. Birim paketinde atlanan backend testleri bu ayrı komutla gerçekten çalıştırılır.
 
 Emülatörle geliştirme için `.env.example` → `.env.local`, `VITE_USE_EMULATORS=true`, ardından `npx firebase emulators:start --project shared-presentations --only auth,firestore` ve `npm run dev`. Gerçek projeye dönmek için değişkeni `false` yapıp Vite'ı yeniden başlatın. Localhost ve `DEV` tek başına emülatörü seçmez. Tünelde emülatör adresleri tarayıcıdan erişilebilir olmalıdır; `localhost` kullanıcının kendi cihazını gösterir. Emülatör gerçek e-posta göndermez.
 
@@ -84,4 +82,8 @@ Kurallar yeni kategori/etiket alanlarını opsiyonel kabul eder; eski kayıtlar 
 
 Yayın sonrası gerçek origin'de derin link, giriş, CSP, cache, HTML kendi kontrolleri, fullscreen, PPTX indirme, üyelik ve iki hesaplı yönetim kontrol edilir. Paket veya yerel PASS sonucu canlı deployment onayı sayılmaz.
 
-Son yerel sonuçlar: 191 test ve 35 e2e başarılı; 47 backend kontrolü atlandı. Build, lint ve yerel release checker geçti. Ayrıntılı iş durumu [düzeltme planında](DUZELTME-PLANI.md), kalan kontroller [bağımlılık dosyasında](KULLANICI-BAGIMLILIKLARI.md). Kaynak değişiklikleri GitHub commit diff'inden incelenebilir. Önceki pakette ayrıca ölçümler, ham test kanıtları ve çevrimdışı ekran galerisi bulunur; uygulamayı çalıştırmak için paket gerekmez.
+Güncel komut sonuçları, başarısız ilk denemeler, düzeltmeler, kullanıcı teyitleri ve yayına kalan koşullar [son kontrol raporunda](SON-KONTROL-RAPORU.md) ve kalıcı kanıt dizininde bulunur.
+
+## 6 Ekim yapısal kural ölçümü
+
+[Manifest alt koleksiyon geçiş planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md) ve `npm run test:manifest-prototype` izole deneydir. 1/6/12 parça + sekiz etiket geçti; tam prototip 22 geçti/1 başarısız/0 skip (sekiz etiket + on bağlantı). Uygulama hâlâ v1 kullanıyor, güncel backend 131 geçti/8 başarısız/0 skip. Yayına hazır değildir. Üretim yapılandırması test kurallarını kullanmaz.

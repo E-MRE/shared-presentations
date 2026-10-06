@@ -1,0 +1,362 @@
+{
+  "stats": {
+    "startTime": "2026-10-06T00:36:47.549Z",
+    "duration": 81765.361,
+    "expected": 35,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "name": "visitor and unverified gates keep all six routes free of feature calls; ordinary member cannot enter admin",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 956
+        }
+      ]
+    },
+    {
+      "name": "composed direct routes and reload show actual library, own list, editor, admin and HTML/PPTX viewer",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 11266
+        }
+      ]
+    },
+    {
+      "name": "unknown and missing IDs recover visibly, foreign owner edit and private viewer read no chunks",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1752
+        }
+      ]
+    },
+    {
+      "name": "Google and verified-email actions open member features; errors/signup/reset remain recoverable",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2151
+        }
+      ]
+    },
+    {
+      "name": "unverified resend/reload/token failures remain visible and verification enables the real upload route",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1582
+        }
+      ]
+    },
+    {
+      "name": "route navigation and role/logout transitions dispose and reopen one admin count with error retry",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1112
+        }
+      ]
+    },
+    {
+      "name": "late metadata and own-list reads cannot restore signed-out or replaced sessions",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1373
+        }
+      ]
+    },
+    {
+      "name": "real HTML file preparation persists pending chunks, preview and viewer, then admin approval enters feed",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3916
+        }
+      ]
+    },
+    {
+      "name": "real PPTX upload uses identity chunks and actual viewer download preserves bytes",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1838
+        }
+      ]
+    },
+    {
+      "name": "review rejection note, owner published edit, unpublish/reapprove and delete use typed feature payloads",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2263
+        }
+      ]
+    },
+    {
+      "name": "delayed auth admin, reload and login completions never revive a signed-out account",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 750
+        }
+      ]
+    },
+    {
+      "name": "keyboard auth and admin dialogs contain focus, validate, close and restore triggers",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2158
+        }
+      ]
+    },
+    {
+      "name": "viewer native fullscreen, close controls and opaque frame keyboard isolation",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2844
+        }
+      ]
+    },
+    {
+      "name": "built production entry loads emitted SDK app assets and visitor gates on direct links/reload",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 978
+        }
+      ]
+    },
+    {
+      "name": "signup keeps dispatch failure visible; resend recovers without recreating the account",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2618
+        }
+      ]
+    },
+    {
+      "name": "dirty editor protects links, browser back and close; saved metadata includes category and tags",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1234
+        }
+      ]
+    },
+    {
+      "name": "viewer closes to the originating own list and admin tab",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3871
+        }
+      ]
+    },
+    {
+      "name": "initial feed requests one page; complete category and tag search is explicit and filters survive viewing",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2413
+        }
+      ]
+    },
+    {
+      "name": "local state animation loads when motion is allowed and pauses for reduced motion",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 613
+        }
+      ]
+    },
+    {
+      "name": "production prepaint light system and explicit storage before module execution",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 307
+        }
+      ]
+    },
+    {
+      "name": "production prepaint light system and unset storage before module execution",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 324
+        }
+      ]
+    },
+    {
+      "name": "production prepaint light system and denied storage before module execution",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 328
+        }
+      ]
+    },
+    {
+      "name": "production prepaint dark system and explicit storage before module execution",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 328
+        }
+      ]
+    },
+    {
+      "name": "production prepaint dark system and unset storage before module execution",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 329
+        }
+      ]
+    },
+    {
+      "name": "production prepaint dark system and denied storage before module execution",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 330
+        }
+      ]
+    },
+    {
+      "name": "theme provider persists, reloads and responds to real cross-page storage and system changes",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1715
+        }
+      ]
+    },
+    {
+      "name": "theme provider keeps in-memory controls usable when storage reads and writes fail",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1162
+        }
+      ]
+    },
+    {
+      "name": "normal screenshot and overflow matrix 375px light",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4356
+        }
+      ]
+    },
+    {
+      "name": "long metadata stress overflow 375px light",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2366
+        }
+      ]
+    },
+    {
+      "name": "normal screenshot and overflow matrix 375px dark",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4754
+        }
+      ]
+    },
+    {
+      "name": "long metadata stress overflow 375px dark",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2530
+        }
+      ]
+    },
+    {
+      "name": "normal screenshot and overflow matrix 1280px light",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 6132
+        }
+      ]
+    },
+    {
+      "name": "long metadata stress overflow 1280px light",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2253
+        }
+      ]
+    },
+    {
+      "name": "normal screenshot and overflow matrix 1280px dark",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4940
+        }
+      ]
+    },
+    {
+      "name": "long metadata stress overflow 1280px dark",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2366
+        }
+      ]
+    }
+  ]
+}

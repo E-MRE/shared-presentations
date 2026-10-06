@@ -1,8 +1,26 @@
 # Vektör — Öncelik sıralı düzeltme planı
 
-Tarih: 5 Ekim 2026 · Durum: yerel uygulama ve tarayıcı kabulü tamamlandı; dış backend/canlı kabulü açık · Sorumlu: Codex
+Tarih: 6 Ekim 2026 · Durum: devam edildi; yapısal prototip ölçüldü, ürün geçişi açık; yayına hazır değil · Sorumlu: Codex
 
 Bu plan, inceleme raporundaki F01–F16 bulgularının tamamını ve bunları kapatmak için gereken hazırlık, doğrulama ve teslim işlerini kapsar. Kullanıcı bağımlılıkları netleştirildi ve yerel ürün düzeltmeleri uygulandı. Güncel uygulama, test sonuçları ve dış ortamda kalan kontroller [teslim belgesinde](TESLIM-VE-CALISTIRMA.md) kayıtlı. İşaretler yerel uygulama adımlarını gösterir; aşağıdaki emülatör/canlı kabul notları tam yayın kabulü yerine geçmez.
+
+## 6 Ekim son kontrol güncellemesi — devam noktası
+
+[SON-KONTROL-RAPORU](SON-KONTROL-RAPORU.md) güncel durumun kaynağıdır; aşağıdaki 5 Ekim sonuçları tarihsel uygulama kaydıdır.
+
+- [x] Node 24, Java 21, kilit dosyası kurulumu ve resmi Chromium indirimi.
+- [x] Önceki 47 backend kontrolü gerçekten çalıştı; demo proje ve SDK socket guard ile canlı bağlantı engellendi.
+- [x] Gerçek hesap/e-posta/doğrulama, 60 saniye bekleme/yeniden gönderme, reset ve Google; fiziksel telefonda e-posta ve Google girişi kullanıcı tarafından teyit edildi.
+- [x] Profil oluşturmanın opsiyonel `pendingDeckId` alanı düzeltildi; HTML boyut/dosya beyanları kurallarda sınırlandı. İki test altyapısı hatası giderildi.
+- [x] Başarısız 12 parça coverage HTML/JSON/ekranı kaydedildi; fonksiyon sayımları çalışmamış dallardan ayrıldı.
+- [x] İzole alt koleksiyon prototipi: 1/6/12 parça + sekiz etiket ve azami HTML/PPTX oluşturma/onay geçti. 12 maliyetli yazım transaction’ında 8448 değerlendirme; tek belgenin 1000 sınırı ayrı doğrulandı.
+- [ ] [Ölçülmüş geçiş planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md): uygulama/servis v1→v2, eski kayıt uyumluluğu, replacement/metadata edit ve tam kota/yönetim kabulü. Ek sekiz etiket + on bağlantı kombinasyonu prototipte başarısız: 22 geçti/1 başarısız/0 skip. Kurallar gevşetilmedi; deploy yok.
+- [ ] Korunan v1 kurallarıyla tam backend 131 geçti/8 başarısız/0 skip. Bu oturumdaki başarısız mikro değişiklikler oturum başındaki çalışma kopyasına alındı; önceki düzeltmeler korunuyor.
+- [ ] Ürün geçişi sonrası tam backend sıfır skip ve gereken diğer kontroller. Devamda lint/build/release tekrar geçti; E2E önceki 35 geçti. Birim sayımı son kontrol raporunda.
+- [ ] Geliştirme CLI bağımlılığındaki npm audit bulgusu: 3 high, üretim bağımlılıkları 0. Güvenli yamalı sürüm/çözüm değerlendirmesi açık.
+- [ ] Gerçek hedef origin, iki hesaplı yönetim kabulü, mobil klavye/görünüm ayrıntıları ve yayın sonrası CSP/cache kontrolleri açık.
+
+Son kural yeniden yazım denemesi otomatik onay incelemesinde güvenlik sınırını zayıflatma riskiyle reddedildi; uygulanmadı. Devamda daha dar ve kanıtlanabilir bir düzeltme hazırlanmalı; reddedilen işlem dolaylı yoldan tekrarlanmamalı.
 
 ## Kapsam ve çalışma ilkeleri
 

@@ -99,7 +99,11 @@ describe('shared UI in real Chromium',{timeout:20_000},()=>{
     await cards.first().locator('h2').getByRole('link').focus();expect(await cards.first().locator('h2').getByRole('link').evaluate(node=>getComputedStyle(node).outlineWidth)).toBe('2px');await page.keyboard.press('Enter');await browserExpect(page).toHaveURL(/\/s\/test-deck$/);
     await browserExpect(cards.first().getByRole('img')).toHaveAttribute('src',/^data:image/);
     const binary=cards.last();const height=await binary.locator('.card-stage').evaluate(node=>node.getBoundingClientRect().height);
-    await page.evaluate(()=>(window as unknown as HarnessWindow).ui.setBytes([1,2,3]));await browserExpect(binary.getByRole('img',{name:/kapak görseli yok/})).toBeVisible();
+    await page.evaluate(()=>(window as unknown as HarnessWindow).ui.setBytes([1,2,3]));
+    // Wait for the effect to actually attempt the corrupt binary, rather than
+    // accepting a transient fallback before React commits the object URL.
+    await browserExpect.poll(()=>page.evaluate(()=>(window as unknown as HarnessWindow).metrics.urls.length)).toBe(1);
+    await browserExpect(binary.getByRole('img',{name:/kapak görseli yok/})).toBeVisible();
     await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=10;canvas.height=10;const ctx=canvas.getContext('2d')!;ctx.fillStyle='blue';ctx.fillRect(0,0,10,10);const raw=atob(canvas.toDataURL('image/webp').split(',')[1]);(window as unknown as HarnessWindow).ui.setBytes(Array.from(raw,c=>c.charCodeAt(0)));});
     await browserExpect(binary.locator('img')).toBeVisible();await browserExpect(binary.locator('img')).not.toHaveAttribute('aria-hidden','true');
     expect(await binary.locator('img').evaluate(node=>(node as HTMLImageElement).naturalWidth)).toBe(10);

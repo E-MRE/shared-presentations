@@ -1,0 +1,176 @@
+{
+  "sourceSha256": "753e3eb115e3f01acc9bed3bfb0c7c4e864af3261818f7ce26f09425100bc7c2",
+  "scope": "Recorded AST evaluations across the trial; NOT exact per-document budget charge. Helpers exclusive, unexecuted markers excluded.",
+  "functions": {
+    "userPath": {
+      "recorded": 18,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "adminPath": {
+      "recorded": 300,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "presentationPath": {
+      "recorded": 150,
+      "undefined": 4,
+      "unexecutedMarkers": 0
+    },
+    "isSignedIn": {
+      "recorded": 324,
+      "undefined": 8,
+      "unexecutedMarkers": 0
+    },
+    "isMember": {
+      "recorded": 832,
+      "undefined": 6,
+      "unexecutedMarkers": 624
+    },
+    "isAdmin": {
+      "recorded": 800,
+      "undefined": 354,
+      "unexecutedMarkers": 0
+    },
+    "isOwner": {
+      "recorded": 28,
+      "undefined": 2,
+      "unexecutedMarkers": 0
+    },
+    "isHttpsUrl": {
+      "recorded": 18,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isValidLink": {
+      "recorded": 32,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidLinks": {
+      "recorded": 104,
+      "undefined": 0,
+      "unexecutedMarkers": 54
+    },
+    "isValidChunkEntry": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidManifestEntries": {
+      "recorded": 288,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "sumChunkSizes": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "validateSizes": {
+      "recorded": 92,
+      "undefined": 0,
+      "unexecutedMarkers": 6
+    },
+    "validateManifest": {
+      "recorded": 40,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isValidTag": {
+      "recorded": 144,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidTags": {
+      "recorded": 150,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidCatalog": {
+      "recorded": 28,
+      "undefined": 0,
+      "unexecutedMarkers": 8
+    },
+    "validateDeckFields": {
+      "recorded": 216,
+      "undefined": 0,
+      "unexecutedMarkers": 6
+    },
+    "checkUserCreateWithDeck": {
+      "recorded": 76,
+      "undefined": 74,
+      "unexecutedMarkers": 0
+    },
+    "checkUserIncrement": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "checkUserDecrement": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "checkUserQuotaOnDeckCreate": {
+      "recorded": 110,
+      "undefined": 42,
+      "unexecutedMarkers": 14
+    },
+    "checkOwnerQuotaOnDeckUpdate": {
+      "recorded": 36,
+      "undefined": 26,
+      "unexecutedMarkers": 40
+    },
+    "checkAdminQuotaOnDeckUpdate": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "checkQuotaOnDeckDelete": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "canReadChunk": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "canWriteChunk": {
+      "recorded": 3456,
+      "undefined": 1536,
+      "unexecutedMarkers": 0
+    },
+    "canDeleteChunkTail": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "canDeleteChunkParentDeleted": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "canDeleteChunk": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "canCreateDeck": {
+      "recorded": 210,
+      "undefined": 96,
+      "unexecutedMarkers": 6
+    },
+    "canUpdateDeck": {
+      "recorded": 174,
+      "undefined": 164,
+      "unexecutedMarkers": 80
+    },
+    "matchStatements": {
+      "recorded": 282,
+      "undefined": 166,
+      "unexecutedMarkers": 2
+    }
+  }
+}
