@@ -5,3 +5,7 @@
 .vektor-admin-note { width: 100%; min-height: 140px; font-size: var(--text-base); }
 .vektor-admin-hint { color: var(--text-secondary); }
 .vektor-review-control { min-height: 44px; }
+.vektor-admin .vektor-admin-reject { background: var(--bg-surface-raised); color: var(--text-primary); border-color: var(--border-strong); }
+.vektor-admin .vektor-admin-reject:hover:not(:disabled) { background: var(--bg-surface-hover); border-color: var(--text-secondary); }
+.vektor-admin .vektor-admin-delete { background: var(--status-rejected-bg); color: color-mix(in srgb, var(--status-rejected) 85%, var(--text-primary)); border-color: var(--status-rejected); }
+.vektor-admin .vektor-admin-delete:hover:not(:disabled) { background: color-mix(in srgb, var(--status-rejected) 12%, var(--bg-surface)); border-color: currentColor; }

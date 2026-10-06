@@ -8,6 +8,7 @@
 .editor-header > div > p:last-child, .editor-hint { color: var(--text-secondary); font-size: var(--text-sm); }
 .editor-eyebrow { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: var(--tracking-wide); color: var(--text-secondary); margin-bottom: var(--space-3); }
 .editor-review, .editor-summary, .editor-ready { padding: var(--space-4); border: 1px solid var(--border-medium); border-radius: var(--radius-md); background: var(--bg-surface-raised); margin-bottom: var(--space-6); }
+.editor-ready { margin-top: var(--space-4); }
 .editor-review p { margin: var(--space-2) 0 0; font-size: var(--text-sm); color: var(--text-secondary); }
 .editor-columns { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: var(--space-6); }
 .editor-section { padding: var(--space-6); border: 1px solid var(--border-medium); background: var(--bg-surface); border-radius: var(--radius-lg); margin-bottom: var(--space-6); }
@@ -38,10 +39,14 @@
 .editor-preview iframe { display: block; width: 100%; height: min(65dvh, 630px); min-height: 240px; border: 0; background: var(--primitive-white); }
 .editor-preview .editor-pptx { padding: var(--space-4); }
 .editor-cover-section > .editor-hint { margin-block: var(--space-3) var(--space-5); }
+.cover-picker { padding-top: var(--space-4); }
 .cover-picker .editor-dropzone h3 { margin-block: var(--space-3) var(--space-2); font-size: var(--text-base); }
 .cover-ready-panel { padding: var(--space-4); border: 1px solid var(--border-medium); border-radius: var(--radius-md); background: var(--bg-surface-raised); }
+.cover-ready-panel > .editor-hint { margin-bottom: var(--space-3); }
 .cover-picker [hidden] { display: none; }
 .cover-ready-panel .editor-cover-actions { flex-direction: column; }
+.cover-ready-panel .btn-secondary { background: var(--bg-surface); border-color: var(--border-strong); font-weight: var(--font-semibold); }
+.cover-ready-panel .btn-secondary:hover:not(:disabled) { background: var(--brand-primary-subtle); border-color: var(--brand-primary); }
 .editor-content-note { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-4); }
 .editor-progress { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-4); }
 .editor-progress progress { width: 120px; max-width: 30%; accent-color: var(--brand-accent); }

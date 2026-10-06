@@ -16,7 +16,6 @@
 .vektor-library button:disabled { opacity: .6; cursor: wait; }
 .vektor-library .card-status-badge { white-space: normal; }
 .vektor-library .deck-grid { align-items: stretch; }
-.vektor-library .vektor-card-title { margin-bottom: var(--space-3); }
 .vektor-library .vektor-reject-note { margin-top: var(--space-3); font-size: var(--text-sm); color: var(--text-secondary); }
 .vektor-library .vektor-card-actions { margin-top: auto; }
 @media (max-width: 480px) { .vektor-library .main-content, .vektor-library .page-intro { padding-left: var(--space-4); padding-right: var(--space-4); } .vektor-search-row { flex-wrap: wrap; } .vektor-search-row input { flex: 1; } }
