@@ -1,6 +1,6 @@
 # Vektör — Teslim ve çalıştırma
 
-6 Ekim 2026. Son UI kodu `d5bc1b3` ile GitHub `main` dalında; kullanıcı tarayıcıda çalıştığını teyit etti. Güncel Firestore kuralları kullanıcı talimatıyla canlıya yayımlandı ve birebir doğrulandı; Hosting yayını da tamamlandı: **https://shared-presentations.web.app**. [Canlı yayın doğrulaması](HOSTING-YAYINI-2026-10-06.md). [Son UI, test, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md), [önceki tam kabul raporu](EMULATOR-TAMAMLAMA-RAPORU.md). Bu oturumda kullanıcı hesabı veya admin belgesi değiştirilmedi.
+6 Ekim 2026. Son UI kodu `d5bc1b3` ile GitHub `main` dalında; kullanıcı tarayıcıda çalıştığını teyit etti. Güncel Firestore kuralları kullanıcı talimatıyla canlıya yayımlandı ve birebir doğrulandı; Hosting yayını da tamamlandı. Sonrasında kullanıcı seçimiyle güncel adres **https://vektor-sunum.web.app** oldu; aynı paket 16:35'te yeni siteye kopyalandı. [Alan adı geçişi ve deploy hedefi](DOMAIN-GECISI-2026-10-06.md). [Canlı yayın doğrulaması](HOSTING-YAYINI-2026-10-06.md). [Son UI, test, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md), [önceki tam kabul raporu](EMULATOR-TAMAMLAMA-RAPORU.md). Bu oturumda kullanıcı hesabı veya admin belgesi değiştirilmedi.
 
 ## Değişen davranış
 
@@ -75,7 +75,7 @@ Firestore kuralları sıfır-skip backend/prototip kabulü sonrasında kullanıc
 ```sh
 npx firebase deploy --project shared-presentations --only firestore:rules
 # İndeks dosyası değişmedi; gerekiyorsa ayrıca kontrol edip uygulayın.
-npx firebase deploy --project shared-presentations --only hosting
+npx firebase deploy --project shared-presentations --only hosting:vektor
 ```
 
 Kurallar yeni kategori/etiket alanlarını opsiyonel kabul eder; eski kayıtlar `Kategorisiz` ve boş etiketlerle okunur. Toplu veri dönüşümü gerekmez. V1 kayıtların okunması ve onayı korunur; yeni oluşturma yalnız v2 kabul edilir. Eski Hosting derlemesine tek başına dönüş v2 kayıtlarla uyumlu değildir. V2 okuyabilen geri dönüş bundle’ı ve uyumlu kurallar birlikte hazırlanmalıdır. Kurallar → Hosting aralığında eski sekmelerin v1 yazımları reddedileceği için yazım geçişi/istemci yenilemesi planlanmalıdır. Eski kurallara körlemesine dönmek anonim yayın okuma açığını ve yönetici iptal sorununu geri getirir. Kural geri dönüşü gerekiyorsa bu iki sınırı koruyan uyumlu sürüm hazırlanmalıdır.

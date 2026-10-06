@@ -1,6 +1,6 @@
 # UI düzeltme teslimi — 6 Ekim 2026
 
-**Güncel durum:** Son kart/editör/admin düzenlemeleri `d5bc1b3` ile teslim edildi; kullanıcı tarayıcıda teyit etti. Firestore kuralları 6 Ekim 14:24'te yayımlandı ve birebir karşılaştırıldı. Hosting 6 Ekim 16:07'de yayımlandı; [canlı doğrulama kaydı](HOSTING-YAYINI-2026-10-06.md). Localhost önizlemesi durduruldu. [Son düzenleme, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md).
+**Güncel durum:** Son kart/editör/admin düzenlemeleri `d5bc1b3` ile teslim edildi; kullanıcı tarayıcıda teyit etti. Firestore kuralları 6 Ekim 14:24'te yayımlandı ve birebir karşılaştırıldı. Hosting 6 Ekim 16:07'de yayımlandı; aynı paket 16:35'te kullanıcı seçimiyle **https://vektor-sunum.web.app** adresine kopyalandı ([alan adı geçişi](DOMAIN-GECISI-2026-10-06.md)); [canlı doğrulama kaydı](HOSTING-YAYINI-2026-10-06.md). Localhost önizlemesi durduruldu. [Son düzenleme, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md).
 
 Son kullanıcı geri bildirimiyle önizleme penceresi, kapak seçimi ve ortak geçici işlem bildirimleri eklendi: [güncel değişiklik raporu](ONIZLEME-VE-BILDIRIM-RAPORU.md). Aşağıdaki UI davranışları ilk teslimi anlatır.
 

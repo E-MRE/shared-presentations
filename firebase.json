@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "target": "vektor",
     "public": "dist",
     "ignore": [
       "firebase.json",

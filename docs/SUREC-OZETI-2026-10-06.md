@@ -6,13 +6,15 @@
 
 Vektör, Firebase `shared-presentations` projesinde canlıya yayımlandı:
 
-- **Uygulama:** https://shared-presentations.web.app
-- **Alternatif adres:** https://shared-presentations.firebaseapp.com
+- **Uygulama:** https://vektor-sunum.web.app
+- **Alternatif adres:** https://vektor-sunum.firebaseapp.com
 - **Depo:** https://github.com/E-MRE/shared-presentations — `main`
 - **Firestore kural yayını:** 6 Ekim 2026, 14:24:21.
-- **Hosting yayını:** 6 Ekim 2026, 16:07:57.
+- **İlk Hosting yayını:** 6 Ekim 2026, 16:07:57; önceki `shared-presentations.web.app` adresinde.
+- **Yeni adrese yayın:** 6 Ekim 2026, 16:35:10. Kullanıcı `vektor-sunum.web.app` adını seçti.
 - **Yayımlanan kaynak:** `785ba89`; son uygulama/UI değişiklikleri `d5bc1b3` içinde.
-- **Hosting sürümü:** `23beeb1d595bfc72`; live release `1791292077097000`.
+- **İlk Hosting sürümü:** `23beeb1d595bfc72`; live release `1791292077097000`.
+- **Yeni sitenin sürümü:** `29a11734c239f3b4`; live release `1791293710006000`. [Alan adı geçişi ve kanıtları](DOMAIN-GECISI-2026-10-06.md).
 - **Yayın kaydının commit'i:** `4fe1146`. Yayın sonrası belge değişiklikleri uygulama paketini değiştirmedi.
 
 Kullanıcı son UI'ın çalıştığını tarayıcıda teyit etti ve ardından Firebase yayınını istedi. Kararlaştırılan geliştirme ve yayın kapsamı tamamlandı. Yerel önizleme kullanıcı isteğiyle durduruldu; 4175/4173 portları son kontrolde kapalıydı.
@@ -115,6 +117,8 @@ Kurallar zaten eşleştiği ve indeks dosyası değişmediği için son adımda 
 Gerçek Chromium ile masaüstü/mobil genişliklerinde altı rota/yenileme, giriş penceresi/Google düğmesi/şifre alanı/Escape, tema değişimi ve yenilemede korunması kontrol edildi. Yatay taşma/runtime hatası görülmedi. İlk Node bağlantı zaman aşımı IPv4 seçimiyle giderildi; uygulama değişmedi. [Yayın raporu](HOSTING-YAYINI-2026-10-06.md) ve [sürüm/dosya manifesti](kanit/hosting-yayini-2026-10-06/ozet.json) kalıcı kayıttır.
 
 ## 9. Bakım ve doğrulama notları
+
+İlk yayından sonra kullanıcı daha kısa bir adres istedi. `vektor.web.app` başka projeye ayrıldığı için `vektor-sunum.web.app` seçildi. Aynı doğrulanmış paket, aynı Firebase projesindeki yeni Hosting sitesine kopyalandı; iki yeni alan adı giriş için yetkilendirildi. Yeni adreste 49 dosyanın hash'i ve 12 masaüstü/mobil rota kontrolü tekrar geçti. Sonraki yayınların hedefi `hosting:vektor`; eski site ilk sürümü sunmaya devam eder. Bu adımda uygulama, kurallar veya hesap/veri içeriği değiştirilmedi.
 
 Bu maddeler yeni geliştirme talebi değil, teslimde kayıtlı sınırlar ve sonraki bakım için referanstır:
 

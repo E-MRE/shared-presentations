@@ -1,6 +1,8 @@
 # Operations
 
-Current October 6 state: UI source `d5bc1b3` is on `main`, Firestore rules were deployed at `2026-10-06T11:24:21.854713Z` and read back exactly matching the tested local file. Hosting was deployed at `2026-10-06T13:07:57.097Z` to https://shared-presentations.web.app; all 49 files matched the build and desktop/mobile visitor checks passed. See the [Hosting release record](HOSTING-YAYINI-2026-10-06.md). Local previews on 4175/4173 were stopped. See the [latest verification and secret-scan record](UI-SON-DUZELTMELER-2026-10-06.md); earlier lane-specific test counts below are historical.
+Current canonical address: **https://vektor-sunum.web.app**, alternative https://vektor-sunum.firebaseapp.com. The validated initial release was cloned to site `vektor-sunum` at `2026-10-06T13:35:10.006Z`; both new domains are authorized for Authentication. `.firebaserc` maps Hosting target `vektor` to this site; `firebase.json` references that target. Future approved deploys use `--only hosting:vektor`. The old default site still serves its initial version and is not updated by this target. [Domain transition record](DOMAIN-GECISI-2026-10-06.md).
+
+Initial October 6 publication record: UI source `d5bc1b3` is on `main`, Firestore rules were deployed at `2026-10-06T11:24:21.854713Z` and read back exactly matching the tested local file. Hosting was deployed at `2026-10-06T13:07:57.097Z` to https://shared-presentations.web.app; all 49 files matched the build and desktop/mobile visitor checks passed. See the [Hosting release record](HOSTING-YAYINI-2026-10-06.md). Local previews on 4175/4173 were stopped. See the [latest verification and secret-scan record](UI-SON-DUZELTMELER-2026-10-06.md); earlier lane-specific test counts below are historical.
 
 All Firebase CLI commands must include `--project shared-presentations`, in addition to the committed `.firebaserc` selection. Public Firebase web configuration is committed; it is not an administrator credential. No credentials, real administrator identities, email addresses or UID values should be copied into logs or committed documentation.
 
@@ -27,7 +29,7 @@ Deploy rules first, then approved indexes, then Hosting. The user authorized the
 ```sh
 npx -y --engine-strict=false firebase-tools deploy --project shared-presentations --only firestore:rules
 npx -y --engine-strict=false firebase-tools deploy --project shared-presentations --only firestore:indexes
-npx -y --engine-strict=false firebase-tools deploy --project shared-presentations --only hosting
+npx -y --engine-strict=false firebase-tools deploy --project shared-presentations --only hosting:vektor
 ```
 
 Validate the Hosting URL, all six direct links/reloads, immutable asset caching, HTML cache policy, actual response CSP, Google OAuth and mail on the deployed origin. Local Vite does not apply Firebase Hosting headers. Check iframe isolation under that CSP, keyboard/fullscreen behavior and target browsers/devices manually. The user authorized Hosting deployment; live visitor smoke checks and response-header verification passed. Signed-in OAuth/mail and live data actions still require the account holder's acceptance.

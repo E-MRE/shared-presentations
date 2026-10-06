@@ -1,5 +1,7 @@
 # Firebase Hosting yayını — 6 Ekim 2026
 
+Bu rapor 16:07'deki ilk yayını kaydeder. Kullanıcı daha sonra yeni adresi seçti; aynı paket 16:35'te **https://vektor-sunum.web.app** adresine kopyalandı. Güncel adres ve deploy hedefi [alan adı geçiş raporunda](DOMAIN-GECISI-2026-10-06.md).
+
 Kullanıcının canlı yayın talimatıyla güncel Vektör uygulaması `shared-presentations` projesinin varsayılan Hosting sitesine yayımlandı.
 
 - Ana adres: **https://shared-presentations.web.app**

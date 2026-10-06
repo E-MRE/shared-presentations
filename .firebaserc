@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "shared-presentations"
+  },
+  "targets": {
+    "shared-presentations": {
+      "hosting": {
+        "vektor": [
+          "vektor-sunum"
+        ]
+      }
+    }
   }
 }

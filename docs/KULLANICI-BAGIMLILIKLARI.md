@@ -2,7 +2,7 @@
 
 UI düzeltmeleri için başka tasarım kararı gerekmiyor. Bu dosya önceki bağımlılık listesinin güncel karşılığıdır; tarihsel test sonuçları SON-KONTROL-RAPORU.md ve Git geçmişinde korunuyor.
 
-**Son durum:** `d5bc1b3` UI düzenlemeleri kullanıcı tarafından tarayıcıda teyit edildi ve `main` dalına gönderildi. Güncel Firestore kuralları 6 Ekim 14:24'te canlıya yayımlandı; Hosting 6 Ekim 16:07'de yayımlandı: https://shared-presentations.web.app. [Yayın doğrulaması](HOSTING-YAYINI-2026-10-06.md). Yerel 4175 önizlemesi kullanıcı isteğiyle durduruldu. [Son UI, doğrulama ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md).
+**Son durum:** `d5bc1b3` UI düzenlemeleri kullanıcı tarafından tarayıcıda teyit edildi ve `main` dalına gönderildi. Güncel Firestore kuralları 6 Ekim 14:24'te canlıya yayımlandı. İlk Hosting yayını 6 Ekim 16:07'de tamamlandı; 16:35'te kullanıcı seçimiyle aynı paket **https://vektor-sunum.web.app** adresine kopyalandı. [Alan adı geçişi](DOMAIN-GECISI-2026-10-06.md). [Yayın doğrulaması](HOSTING-YAYINI-2026-10-06.md). Yerel 4175 önizlemesi kullanıcı isteğiyle durduruldu. [Son UI, doğrulama ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md).
 
 Gerçek doğrulama e-postası, şifre sıfırlama/yeni şifre, Google hesap seçimi/iptal/giriş, 60 saniyelik yeniden gönderme ve fiziksel telefonda giriş kullanıcı tarafından önceki sürümde test edildi. Bunlar yeniden bekleyen iş olarak listelenmiyor. Firebase bağlı; Firestore ve e-posta/Google sağlayıcıları etkin. Test sunumu için içerik koruma bağımlılığı yok.
 
@@ -67,7 +67,7 @@ Hazırlama/önizleme sunum kaydetmez. Kaydetme ve yönetim işlemleri için gere
 
 ## 5. Canlıya geçiş — kullanıcı yayın kararıyla
 
-**Firestore kural yayını tamamlandı.** 1. bölümde kabulü geçen dosya kullanıcı talimatıyla 6 Ekim 14:24'te `shared-presentations` projesine yayımlandı; canlı içerik yerel dosyayla birebir doğrulandı. Güncel v2 uyumlu uygulama 6 Ekim 16:07'de https://shared-presentations.web.app adresine yayımlandı; iki Firebase alan adı giriş için yetkili ve canlı dosyalar derlemeyle eşleşiyor. Eski açık v1 sekmeleri güncel sürüme yenilenmeli. Yerel önizleme kullanıcının kendi Mac'inde çalıştı ve talebiyle durduruldu.
+**Firestore kural yayını tamamlandı.** 1. bölümde kabulü geçen dosya kullanıcı talimatıyla 6 Ekim 14:24'te `shared-presentations` projesine yayımlandı; canlı içerik yerel dosyayla birebir doğrulandı. Güncel v2 uyumlu uygulama 6 Ekim 16:07'de ilk Hosting sitesine yayımlandı; 16:35'te aynı paket yeni **https://vektor-sunum.web.app** adresine kopyalandı. Yeni iki Firebase alan adı giriş için yetkili ve canlı dosyalar ilk üretim paketiyle eşleşiyor. Eski açık v1 sekmeleri güncel sürüme yenilenmeli. Yerel önizleme kullanıcının kendi Mac'inde çalıştı ve talebiyle durduruldu.
 
 [Mevcut operasyon ve geri dönüş talimatları](TESLIM-VE-CALISTIRMA.md) ve [v2 uyumluluk planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md) geçerli. Eski Hosting paketine tek başına geri dönmek v2 içeriği okuyamaz; v2 okuyabilen geri dönüş paketi ve güvenli uyumlu kurallar gerekir.
 
