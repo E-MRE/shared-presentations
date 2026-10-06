@@ -1,0 +1,66 @@
+[
+  {
+    "file": "backend.json",
+    "summary": {
+      "passed": 160,
+      "failed": 0,
+      "skipped": 0,
+      "total": 160
+    },
+    "statuses": {
+      "passed": 160
+    }
+  },
+  {
+    "file": "backend-v1-baseline.json",
+    "summary": {
+      "passed": 131,
+      "failed": 8,
+      "skipped": 0,
+      "total": 139
+    },
+    "statuses": {
+      "passed": 131,
+      "failed": 8
+    }
+  },
+  {
+    "file": "manifest-prototype.json",
+    "summary": {
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "total": 27
+    },
+    "statuses": {
+      "passed": 27
+    }
+  },
+  {
+    "file": "unit.json",
+    "summary": {
+      "passed": 192,
+      "failed": 0,
+      "skipped": 130,
+      "total": 322
+    },
+    "statuses": {
+      "passed": 192,
+      "skipped": 130
+    }
+  },
+  {
+    "file": "e2e.json",
+    "summary": {
+      "stats": {
+        "startTime": "2026-10-06T02:10:26.910Z",
+        "duration": 79050.83399999999,
+        "expected": 35,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    "statuses": {}
+  }
+]

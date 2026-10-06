@@ -1,0 +1,52 @@
+{
+  "reviewedCommit": "ee4f5c061c94d35f197506d3c934a36247fc9ab9",
+  "baseCommit": "4e85348950127888cf0bd2045555061ee1294f56",
+  "date": "2026-10-06",
+  "timezone": "Europe/Istanbul",
+  "local": {
+    "build": "passed",
+    "lint": "passed",
+    "release": "passed",
+    "unitPassed": 192,
+    "unitSkipped": 130,
+    "e2ePassed": 35,
+    "serviceReproductionCases": 4
+  },
+  "submitted": {
+    "backendPassed": 160,
+    "backendSkipped": 0,
+    "architecturePassed": 27,
+    "architectureSkipped": 0,
+    "all130UnitSkipsCovered": true,
+    "originalEvidenceHashesVerified": 28,
+    "rulesHashMatches": true,
+    "distHashesMatch": 48
+  },
+  "backendRerun": "blocked before tests: Firestore emulator JAR download not allowed; submitted evidence verified, not re-executed",
+  "findings": [
+    {
+      "id": "I01",
+      "priority": "P1",
+      "title": "Counter decrement does not bind to a pending deck transition",
+      "verification": "Source review; requires emulator negative regression test; predates v2"
+    },
+    {
+      "id": "I02",
+      "priority": "P1",
+      "title": "One malformed external link aborts the whole list",
+      "verification": "Real service methods with mocked SDK reads; no live request"
+    },
+    {
+      "id": "I03",
+      "priority": "P2",
+      "title": "List eagerly hydrates up to 120 link documents per 12-card page",
+      "verification": "Real service methods with mocked SDK reads; no live request"
+    },
+    {
+      "id": "I04",
+      "priority": "P2",
+      "title": "Firebase CLI dependency audit: 3 high package entries in one braces chain",
+      "verification": "Current npm audit; production audit zero"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "case": "12 cards, 10 links each",
+    "items": 12,
+    "childReads": 120
+  },
+  {
+    "case": "missing child in a two-deck queue",
+    "result": {
+      "ok": false,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Sunum bağlantısı (0) eksik veya geçersiz."
+      }
+    }
+  },
+  {
+    "case": "whitespace label in a two-deck feed",
+    "result": {
+      "ok": false,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Sunum bağlantısı (0) eksik veya geçersiz."
+      }
+    }
+  },
+  {
+    "case": "legacy inline label",
+    "ok": true,
+    "childReads": 0
+  }
+]
