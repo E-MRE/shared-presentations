@@ -1,6 +1,6 @@
 # Operations
 
-Current October 6 state: UI source `d5bc1b3` is on `main`, Firestore rules were deployed at `2026-10-06T11:24:21.854713Z` and read back exactly matching the tested local file. Hosting is pending. Local previews on 4175/4173 were stopped. See the [latest verification and secret-scan record](UI-SON-DUZELTMELER-2026-10-06.md); earlier lane-specific test counts below are historical.
+Current October 6 state: UI source `d5bc1b3` is on `main`, Firestore rules were deployed at `2026-10-06T11:24:21.854713Z` and read back exactly matching the tested local file. Hosting was deployed at `2026-10-06T13:07:57.097Z` to https://shared-presentations.web.app; all 49 files matched the build and desktop/mobile visitor checks passed. See the [Hosting release record](HOSTING-YAYINI-2026-10-06.md). Local previews on 4175/4173 were stopped. See the [latest verification and secret-scan record](UI-SON-DUZELTMELER-2026-10-06.md); earlier lane-specific test counts below are historical.
 
 All Firebase CLI commands must include `--project shared-presentations`, in addition to the committed `.firebaserc` selection. Public Firebase web configuration is committed; it is not an administrator credential. No credentials, real administrator identities, email addresses or UID values should be copied into logs or committed documentation.
 
@@ -20,7 +20,9 @@ npm run build
 node scripts/check-release.mjs
 ```
 
-The original refresh did not deploy live Firebase; a later explicit user instruction authorized the Firestore-only deployment recorded above. Published metadata and chunks require membership in the deployed rules; the old rules allowed anonymous published reads. Future releases require user authorization, local gates, external verification and a secret scan. Do not infer publication permission from passing tests. The following commands describe the deployment order; only the Firestore rules step has been executed in this session:
+The original refresh did not deploy live Firebase; a later explicit user instruction authorized the Firestore-only deployment recorded above. Published metadata and chunks require membership in the deployed rules; the old rules allowed anonymous published reads. Future releases require user authorization, local gates, external verification and a secret scan. Do not infer publication permission from passing tests. The following commands describe the deployment order; the Firestore rules and Hosting steps have been executed in this session; indexes were unchanged:
+
+Deploy rules first, then approved indexes, then Hosting. The user authorized the current Hosting deployment on October 6 after accepting the UI.
 
 ```sh
 npx -y --engine-strict=false firebase-tools deploy --project shared-presentations --only firestore:rules
@@ -28,7 +30,7 @@ npx -y --engine-strict=false firebase-tools deploy --project shared-presentation
 npx -y --engine-strict=false firebase-tools deploy --project shared-presentations --only hosting
 ```
 
-Validate the Hosting URL, all six direct links/reloads, immutable asset caching, HTML cache policy, actual response CSP, Google OAuth and mail on the deployed origin. Local Vite does not apply Firebase Hosting headers. Check iframe isolation under that CSP, keyboard/fullscreen behavior and target browsers/devices manually. Hosting smoke tests and deployment are pending manual approval.
+Validate the Hosting URL, all six direct links/reloads, immutable asset caching, HTML cache policy, actual response CSP, Google OAuth and mail on the deployed origin. Local Vite does not apply Firebase Hosting headers. Check iframe isolation under that CSP, keyboard/fullscreen behavior and target browsers/devices manually. The user authorized Hosting deployment; live visitor smoke checks and response-header verification passed. Signed-in OAuth/mail and live data actions still require the account holder's acceptance.
 
 The app replaces the frozen provider's asynchronous composition with a generation-checked boundary. Membership requires a refreshed current-user token with Google sign-in provider or verified-email claim before features mount. Current confirmed role feeds stable data/admin getters. Account/route/role transitions dispose registered listeners and remount the badge. Already-sent SDK/profile writes cannot be recalled; late UI results and navigation are suppressed. The frozen signup service catches verification-mail dispatch errors, so signup completion does not certify mail delivery; the unverified screen offers explicit resend with an honest result.
 

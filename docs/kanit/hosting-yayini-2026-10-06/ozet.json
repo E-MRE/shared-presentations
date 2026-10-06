@@ -1,0 +1,306 @@
+{
+  "date": "2026-10-06",
+  "timezone": "Europe/Istanbul",
+  "sourceCommit": "785ba89160f7057958015bcad700f7eb58b5f807",
+  "project": "shared-presentations",
+  "url": "https://shared-presentations.web.app",
+  "alternativeUrl": "https://shared-presentations.firebaseapp.com",
+  "hosting": {
+    "channel": "projects/shared-presentations/sites/shared-presentations/channels/live",
+    "release": "projects/shared-presentations/sites/shared-presentations/channels/live/releases/1791292077097000",
+    "version": "projects/shared-presentations/sites/shared-presentations/versions/23beeb1d595bfc72",
+    "releaseTime": "2026-10-06T13:07:57.097Z"
+  },
+  "firestore": {
+    "releaseTime": "2026-10-06T11:24:21.854713Z",
+    "sha256": "a9eefa6914251260b18dd1a8167053aeed6f75b659729edff35cdf19b6884869",
+    "exactMatch": true
+  },
+  "preflight": {
+    "lint": "passed",
+    "build": "passed",
+    "localReleaseFailures": 0,
+    "useEmulators": false,
+    "e2e": {
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "durationMs": 93569.051
+    },
+    "bundleSecretScan": {
+      "tool": "Gitleaks 8.30.1",
+      "findings": 1,
+      "classification": "Known public Firebase Browser key only"
+    },
+    "authorizedDeploymentDomains": [
+      "shared-presentations.web.app",
+      "shared-presentations.firebaseapp.com"
+    ]
+  },
+  "liveVerification": {
+    "checkedAt": "2026-10-06T13:10:24.712Z",
+    "htmlRequests": 8,
+    "assetRequests": 48,
+    "all49BuildFilesMatched": true,
+    "htmlNoCache": true,
+    "hashedAssetsImmutable": true,
+    "csp": true,
+    "nosniff": true,
+    "browserRouteAndReloadChecks": 12,
+    "authDialog": true,
+    "themePersistence": true,
+    "runtimeErrors": 0,
+    "scope": "Anonymous live-site checks; no account sign-in or data mutation"
+  },
+  "previousHostingVersion": null,
+  "localPreviewsRunning": false,
+  "files": [
+    {
+      "path": "assets/AdminPage-CWw--WBE.css",
+      "size": 1300,
+      "sha256": "b4e2a85d4e1fcf0d7c82aa02a67a2c4cee8c68b44c0c47752769584d4a5b2d6e"
+    },
+    {
+      "path": "assets/AdminPage-CXFQKppP.js",
+      "size": 6202,
+      "sha256": "7cb327e66c2923d5abfbd781b544da5385b7d1139bbff90b3670f5163cf3f4ab"
+    },
+    {
+      "path": "assets/chunks-BRTqHli9.js",
+      "size": 17503,
+      "sha256": "3c3dc1a267834668255c2241097e6b97f06f08aa540c46e14ea368330da8a138"
+    },
+    {
+      "path": "assets/cover-CzmTrSR6.js",
+      "size": 39820,
+      "sha256": "93859d3309162fd70ceda527f81c9f307b025ad50f9e0f1ed35f4524042683b7"
+    },
+    {
+      "path": "assets/firebase-auth-2qASohrh.js",
+      "size": 80132,
+      "sha256": "0b2e80cc4556f0aab359b2bbc387e73d7a2d99d3ea7c71c001ea6d7467bb3041"
+    },
+    {
+      "path": "assets/firebase-firestore-D3zwtJbM.js",
+      "size": 477021,
+      "sha256": "9b80f19faea54e0ac8a0e29e80536de2839f0f63fa57452bfead7bd2cd78ef68"
+    },
+    {
+      "path": "assets/index-Dw8-vyu7.css",
+      "size": 46508,
+      "sha256": "8f7f5d1dc8fe74dd28b9d7aba2c25bb156008f847802031e0812d0210beb38ae"
+    },
+    {
+      "path": "assets/index-rBDVwLYP.js",
+      "size": 65060,
+      "sha256": "e0cf8f51a31354ab83c75083cb8e2af36aba64a58fc7f7e5401f3d0a48e7c190"
+    },
+    {
+      "path": "assets/jetbrains-mono-latin-400-normal-6-qcROiO.woff",
+      "size": 27496,
+      "sha256": "658b9ee07b0249cf910a8d6f3d812d46c962bae81d7379a0355b1db35c61586f"
+    },
+    {
+      "path": "assets/jetbrains-mono-latin-400-normal-V6pRDFza.woff2",
+      "size": 21168,
+      "sha256": "14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb"
+    },
+    {
+      "path": "assets/jetbrains-mono-latin-ext-400-normal-Bc8Ftmh3.woff2",
+      "size": 7336,
+      "sha256": "505dfba8ecbe77e82765f36d317ed7ef4ac42719dc5f4ae68d1c483fd22d0d14"
+    },
+    {
+      "path": "assets/jetbrains-mono-latin-ext-400-normal-fXTG6kC5.woff",
+      "size": 10128,
+      "sha256": "e7131bbf591e1ed9b74e44e162f6a39affa00ac21654cb683585d085733f6355"
+    },
+    {
+      "path": "assets/LibraryPage-OxRDQC4K.js",
+      "size": 3712,
+      "sha256": "c18f1ddd3393bbb5474747879681078ce163ea168180e8550656ec0e1c800683"
+    },
+    {
+      "path": "assets/LibraryUI-CBzKg5ng.css",
+      "size": 1825,
+      "sha256": "940c9527d2c808ad2e4edcb1b7373fb700556831c65f89f9a3a54e55c31e4b9a"
+    },
+    {
+      "path": "assets/LibraryUI-DpDLSkZ2.js",
+      "size": 2199,
+      "sha256": "2a751ffc048087520ff68926023e399303b055530425a786c23ed8f87b2d70b9"
+    },
+    {
+      "path": "assets/lottie_light-DWNij8TF.js",
+      "size": 169135,
+      "sha256": "31d56ef8853a112454e2b1fae1e26acbdec838eeb5f58a85f4fc9b09ae2d5873"
+    },
+    {
+      "path": "assets/mime-BXmme3vB.js",
+      "size": 1078,
+      "sha256": "3b5958ad207467541552cb371c8ba787781b1ff6c9d32175ae46d2383abc3b46"
+    },
+    {
+      "path": "assets/MyDecksPage-DghSi73k.js",
+      "size": 2755,
+      "sha256": "d208cf2f50170df8fbef45f39edd16fccf34adc8073ff449cfb5de2c932b8270"
+    },
+    {
+      "path": "assets/pipeline-DoQs47mc.js",
+      "size": 4316,
+      "sha256": "c2c875f542b3fb1f95f021f4e9b55e4d2a1dcbd03280ff71f3f99484fbf4b6cd"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-400-normal-BDKaGhyp.woff",
+      "size": 15728,
+      "sha256": "9709167175cee7dcd331a7ed95be1182a5d5f00715b67a02107ecc80a55f490d"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-400-normal-Dhut76fR.woff2",
+      "size": 11816,
+      "sha256": "221a4135d06a4b33abbd535e9a0da4e565d19545ddd9267c4e678a916d54d9b6"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-500-normal-Bf-nb4oT.woff2",
+      "size": 12312,
+      "sha256": "bad081c8dbc15aed6c5e4cde5461914f7b3bdc295b7a7aed177e4beddb79bffa"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-500-normal-DYtqi0QS.woff",
+      "size": 16124,
+      "sha256": "a1b54d9fda75d8de13e283ef09668395160e23cbb7dd9ae1aec91d6199da85bb"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-600-normal-BR_Ojra4.woff",
+      "size": 16084,
+      "sha256": "d9569c0aacc16c33c52e57e1e48c1b94f3b0a6be99e75479edc6438cc44c48e0"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-600-normal-DLTa1BUW.woff2",
+      "size": 12188,
+      "sha256": "8872bb5c9111df9bd3162c2394aee6354d782b13408a4dd5bbf65c48207206e6"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-700-normal-CfpNZvy6.woff2",
+      "size": 12244,
+      "sha256": "2050755bf475817c96ac7d914c7f07cc3c2d11ff4b3fb4747b8d41de584aad17"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-700-normal-DqEcQeE5.woff",
+      "size": 16136,
+      "sha256": "6188f593f250aa25137865e8d07373fd0f585f5920a496c73ede84dbbdff7a92"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-ext-400-normal-2ppkqaOR.woff",
+      "size": 15312,
+      "sha256": "d0a823b74d65410a8faaf5efb1232813197cdc898d9191e5997428b42aa4cafd"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-ext-400-normal-D127hM_v.woff2",
+      "size": 10592,
+      "sha256": "65b5680bf2ba9c6c42af74ddd2e8aadde93af7c523454ebb3d4e32fdba3f94db"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-ext-500-normal-9VZagAe1.woff2",
+      "size": 10864,
+      "sha256": "d1584f50c388cae7e570bed35be331fa4a9afd6832ef45a32fa8bf81930e6db9"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-ext-500-normal-CqEEAICU.woff",
+      "size": 15620,
+      "sha256": "42793e2d60d4b62191fa9f1968002d76c1c7438e76b7c3bcc145af154803e9d5"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-ext-600-normal-B0WRRYJ1.woff",
+      "size": 15608,
+      "sha256": "ade6f23e14c20160f924f980f6610cd73979c03227541d8734b2c42563d11325"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-ext-600-normal-DQgPU_Cg.woff2",
+      "size": 10896,
+      "sha256": "080a1fea8589c2bd4fa08750d0d99b3388be63df8c41a649de05cb2dda1ec007"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-ext-700-normal-8-d-IyIQ.woff",
+      "size": 15616,
+      "sha256": "aaa9d5f7040bcf5ee2c9569f6c54aaf8327ee769fd2d02764a858f450a8fbf13"
+    },
+    {
+      "path": "assets/plus-jakarta-sans-latin-ext-700-normal-BajbvANd.woff2",
+      "size": 11008,
+      "sha256": "b202ec87899e78825db955e6ab43858b88c0cd444abe2dfac2e763f837b8f234"
+    },
+    {
+      "path": "assets/PresentationEditor-CfNZcEf_.js",
+      "size": 63159,
+      "sha256": "1fda9d914c965397513c481096b7b004f5e606f52af0538f5da8a07b31d91091"
+    },
+    {
+      "path": "assets/PresentationEditor-PmevRq0a.css",
+      "size": 7420,
+      "sha256": "e2e3edb9a67913ac274b503a058cf2db88ffa7821cbe55def8aa277d30fae3d9"
+    },
+    {
+      "path": "assets/react-router-BUiKsvmN.js",
+      "size": 258608,
+      "sha256": "e9f1e3cba8e9669342ecf12708c44a31df2d225152cf5be0e3ce66dbcf523378"
+    },
+    {
+      "path": "assets/rolldown-runtime-CbXtAM7H.js",
+      "size": 589,
+      "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
+    },
+    {
+      "path": "assets/state-motion-DPB1AEsP.js",
+      "size": 729,
+      "sha256": "34914fb1da4e3c740b98f6214bef28cdbcfa9a741ee61222520194eb5e32aeed"
+    },
+    {
+      "path": "assets/StatePanel-D55RaiS7.js",
+      "size": 3235,
+      "sha256": "7e5fc17967e1557c91ad8b14127535843c26fb22e22b947c38f77ddbbc7bc8f1"
+    },
+    {
+      "path": "assets/useDeckMutation-BU20Zdcj.js",
+      "size": 882,
+      "sha256": "88ca3851e916e7d5b87036402a178544cf7dfb9db217c166fc632dec5cfc0602"
+    },
+    {
+      "path": "assets/ViewerPage-0dHhCMbL.css",
+      "size": 7428,
+      "sha256": "7acf7f318dd1ee68d2cccca2d3b96cf7f093d6f462e575302363d75d2f5aa902"
+    },
+    {
+      "path": "assets/ViewerPage-CSY_WaCz.js",
+      "size": 12612,
+      "sha256": "d85f62da445e25e15e7a65d40783bfbaf85af18d8c41f106f4092534d6af9a5b"
+    },
+    {
+      "path": "favicon.svg",
+      "size": 248,
+      "sha256": "8c334cbd3ef687fbbd60db8aff0633c6f90a08a0bddc0c087fcebfdff0ec5fc9"
+    },
+    {
+      "path": "index.html",
+      "size": 1567,
+      "sha256": "5fb45130c6ba3bac88178216e200bf9fa61f5927bd1f0cae12bf435a5993e100"
+    },
+    {
+      "path": "licenses/jetbrains-mono-OFL.txt",
+      "size": 4524,
+      "sha256": "403581b69dac5cff4079205e01c6b467e56af449ecbd7247693ddb1baafa005b"
+    },
+    {
+      "path": "licenses/lottie-web-MIT.txt",
+      "size": 1075,
+      "sha256": "9d8d4d8b4bb99572ee8b51025a30b8493d949798cac465c6c15b1b29420bcb06"
+    },
+    {
+      "path": "licenses/plus-jakarta-sans-OFL.txt",
+      "size": 4534,
+      "sha256": "e07fd1167c2aaaa6fb965dd66e1e73b13c9c95b76b2d648b6e938780f30b37af"
+    }
+  ]
+}

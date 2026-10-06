@@ -1,5 +1,7 @@
 # Son UI düzenlemeleri ve yayın kaydı — 6 Ekim 2026
 
+Bu rapor UI teslimi ve Firestore-only yayın anını kaydeder. Daha sonra Hosting de 16:07'de yayımlandı; güncel canlı durum ve yeniden çalıştırılan 46 E2E sonucu [Hosting raporunda](HOSTING-YAYINI-2026-10-06.md).
+
 Kod sürümü [`d5bc1b3`](https://github.com/E-MRE/shared-presentations/commit/d5bc1b3) GitHub `main` dalına gönderildi. Kullanıcı son görünümün çalıştığını tarayıcıda teyit etti. Yerel önizleme kullanıcı isteğiyle durduruldu; 4175 ve test sunucusunun 4173 portlarında dinleyen süreç kalmadı.
 
 ## UI değişiklikleri

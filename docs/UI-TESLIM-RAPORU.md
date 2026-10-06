@@ -1,6 +1,6 @@
 # UI düzeltme teslimi — 6 Ekim 2026
 
-**Güncel durum:** Son kart/editör/admin düzenlemeleri `d5bc1b3` ile teslim edildi; kullanıcı tarayıcıda teyit etti. Firestore kuralları 6 Ekim 14:24'te yayımlandı ve birebir karşılaştırıldı. Hosting yayını bekliyor, localhost önizlemesi durduruldu. [Son düzenleme, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md).
+**Güncel durum:** Son kart/editör/admin düzenlemeleri `d5bc1b3` ile teslim edildi; kullanıcı tarayıcıda teyit etti. Firestore kuralları 6 Ekim 14:24'te yayımlandı ve birebir karşılaştırıldı. Hosting 6 Ekim 16:07'de yayımlandı; [canlı doğrulama kaydı](HOSTING-YAYINI-2026-10-06.md). Localhost önizlemesi durduruldu. [Son düzenleme, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md).
 
 Son kullanıcı geri bildirimiyle önizleme penceresi, kapak seçimi ve ortak geçici işlem bildirimleri eklendi: [güncel değişiklik raporu](ONIZLEME-VE-BILDIRIM-RAPORU.md). Aşağıdaki UI davranışları ilk teslimi anlatır.
 
@@ -42,4 +42,4 @@ Lazy hazırlama modülü indirilemezse eskiden genel “Dosyalar hazırlanamadı
 
 [Öncelikli iş listesi](UI-DUZELTME-PLANI.md) ve [kullanıcı/ortam dosyası](KULLANICI-BAGIMLILIKLARI.md) güncel. Admin belgesi `admins/{UID}` / boolean active=true; canlı kaydın varlığı bu ortamdan doğrulanamadı. Console adımları dosyada.
 
-İlk UI tesliminin kaynak, test, kural ve belgeleri GitHub'a gönderildi; son UI kodu `d5bc1b3` içinde. Dist izlenmeyen build çıktısıdır; kendi ortamında npm ci / npm run build ile yeniden üretilir. İlk teslimde kurallar ve Hosting değiştirilmemişti; daha sonra yalnız kurallar yayımlandı. Önizleme yeniden başlatıldığında kendi cihazında localhost:4175 ile denenebilir.
+İlk UI tesliminin kaynak, test, kural ve belgeleri GitHub'a gönderildi; son UI kodu `d5bc1b3` içinde. Dist izlenmeyen build çıktısıdır; kendi ortamında npm ci / npm run build ile yeniden üretilir. İlk teslimde kurallar ve Hosting değiştirilmemişti; daha sonra kurallar ve ardından Hosting yayımlandı. Önizleme yeniden başlatıldığında kendi cihazında localhost:4175 ile denenebilir.

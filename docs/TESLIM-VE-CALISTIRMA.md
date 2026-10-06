@@ -1,6 +1,6 @@
 # Vektör — Teslim ve çalıştırma
 
-6 Ekim 2026. Son UI kodu `d5bc1b3` ile GitHub `main` dalında; kullanıcı tarayıcıda çalıştığını teyit etti. Güncel Firestore kuralları kullanıcı talimatıyla canlıya yayımlandı ve birebir doğrulandı; Hosting yayını bekliyor. [Son UI, test, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md), [önceki tam kabul raporu](EMULATOR-TAMAMLAMA-RAPORU.md). Bu oturumda kullanıcı hesabı veya admin belgesi değiştirilmedi.
+6 Ekim 2026. Son UI kodu `d5bc1b3` ile GitHub `main` dalında; kullanıcı tarayıcıda çalıştığını teyit etti. Güncel Firestore kuralları kullanıcı talimatıyla canlıya yayımlandı ve birebir doğrulandı; Hosting yayını da tamamlandı: **https://shared-presentations.web.app**. [Canlı yayın doğrulaması](HOSTING-YAYINI-2026-10-06.md). [Son UI, test, yayın ve secret taraması kaydı](UI-SON-DUZELTMELER-2026-10-06.md), [önceki tam kabul raporu](EMULATOR-TAMAMLAMA-RAPORU.md). Bu oturumda kullanıcı hesabı veya admin belgesi değiştirilmedi.
 
 ## Değişen davranış
 
@@ -70,7 +70,7 @@ Emülatörle geliştirme için `.env.example` → `.env.local`, `VITE_USE_EMULAT
 
 ## Yayına geçiş ve geri dönüş
 
-Firestore kuralları sıfır-skip backend/prototip kabulü sonrasında kullanıcı talimatıyla yayımlandı. Hosting için hedef hostname, güncel v2 uyumlu sürüm ve yayın kararı gerekir. Aşağıdaki sıra gelecekteki yayınlar için korunur; mevcut kural adımı tamamlandı:
+Firestore kuralları sıfır-skip backend/prototip kabulü sonrasında kullanıcı talimatıyla yayımlandı. Ardından kullanıcı talimatıyla Hosting 6 Ekim 16:07'de yayımlandı; canlı site ve üretim dosyaları doğrulandı. Aşağıdaki sıra gelecekteki yayınlar için korunur; mevcut kural ve Hosting adımları tamamlandı:
 
 ```sh
 npx firebase deploy --project shared-presentations --only firestore:rules
@@ -86,4 +86,4 @@ Son UI doğrulaması, kullanıcı teyidi, secret taraması ve gerçekleşen kura
 
 ## 6 Ekim v2 geçişi ve yapısal kural ölçümü
 
-[Geçiş ve ölçüm kaydı](MANIFEST-ALT-KOLEKSIYON-PLANI.md): etiket/bağlantı regex maliyeti ölçüldü; ana belge yine limite takılınca links de alt koleksiyona taşındı. Ana belge count/size metadata, çocuklar parça/bağlantı taşır. İlk mimari backend kabulü 160/160 idi; sonraki düzeltmelerle 174 backend + 27 prototip sıfır skip geçti. Gerçek servis v1 okuma/onay/edit ve içerik değişiminde v2’ye geçişi doğrular. Bu testlerdeki kural dosyası artık canlıda; Hosting yayını ayrı adım olarak bekliyor.
+[Geçiş ve ölçüm kaydı](MANIFEST-ALT-KOLEKSIYON-PLANI.md): etiket/bağlantı regex maliyeti ölçüldü; ana belge yine limite takılınca links de alt koleksiyona taşındı. Ana belge count/size metadata, çocuklar parça/bağlantı taşır. İlk mimari backend kabulü 160/160 idi; sonraki düzeltmelerle 174 backend + 27 prototip sıfır skip geçti. Gerçek servis v1 okuma/onay/edit ve içerik değişiminde v2’ye geçişi doğrular. Bu testlerdeki kural dosyası ve güncel v2 uyumlu Hosting uygulaması artık canlıda.

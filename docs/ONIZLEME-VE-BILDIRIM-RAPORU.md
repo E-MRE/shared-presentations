@@ -35,7 +35,7 @@ npm run preview -- --host 0.0.0.0 --port 4175
 3. Tekrar onaya gönder; kota/hata bildirimi bulunduğun kaydırma konumunda görünmeli. Başarısız gönderimde başlık ve dosya korunmalı. Bekleyenlerin sayısını Benim Sunumlarım'dan kontrol et.
 4. Giriş/çıkış, kendi test sunumunu silme ve yönetici işlem bildirimlerini kontrol et. Silme/onay gerçek veriyi değiştirir; yalnız test kayıtları kullan.
 
-Bu raporun ilk tesliminde canlı Hosting/Firestore yayını yapılmamıştı. Daha sonra 6 Ekim 14:24'te yalnız Firestore kuralları yayımlandı; Hosting hâlâ bekliyor. Yerel build canlı kuralları veya Hosting'i değiştirmez. Admin ataması ve kalan kabul/yayın adımları [kullanıcı adımlarında](KULLANICI-BAGIMLILIKLARI.md).
+Bu raporun ilk tesliminde canlı Hosting/Firestore yayını yapılmamıştı. Daha sonra 6 Ekim 14:24'te Firestore kuralları, 16:07'de de Hosting yayımlandı. [Canlı yayın doğrulaması](HOSTING-YAYINI-2026-10-06.md). Yerel build canlı kuralları veya Hosting'i değiştirmez. Admin ataması ve kalan kabul/yayın adımları [kullanıcı adımlarında](KULLANICI-BAGIMLILIKLARI.md).
 
 ## Doğrulama ve kanıt
 
