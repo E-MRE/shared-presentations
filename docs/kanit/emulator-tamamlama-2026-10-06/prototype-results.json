@@ -1,0 +1,143 @@
+{
+  "passed": 27,
+  "failed": 0,
+  "skipped": 0,
+  "files": 3,
+  "tests": [
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 1 chunks with 8 tags in single transactions",
+      "status": "passed",
+      "durationMs": 951.5444930000001
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 6 chunks with 8 tags in single transactions",
+      "status": "passed",
+      "durationMs": 397.4859270000002
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves 12 chunks with 8 tags in single transactions",
+      "status": "passed",
+      "durationMs": 354.947224
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves maximum html payload with 8 tags and maximum cover",
+      "status": "passed",
+      "durationMs": 661.691433
+    },
+    {
+      "name": "Manifest v2 isolated prototype creates and approves maximum pptx payload with 8 tags and maximum cover",
+      "status": "passed",
+      "durationMs": 755.0188049999997
+    },
+    {
+      "name": "Manifest v2 isolated prototype supports 12 chunks, 8 tags and 10 links together",
+      "status": "passed",
+      "durationMs": 308.27956899999936
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-size and rolls back the complete transaction",
+      "status": "passed",
+      "durationMs": 77.88501799999995
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-index and rolls back the complete transaction",
+      "status": "passed",
+      "durationMs": 65.5449439999993
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects wrong-data and rolls back the complete transaction",
+      "status": "passed",
+      "durationMs": 56.00127000000066
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects foreign-field and rolls back the complete transaction",
+      "status": "passed",
+      "durationMs": 60.66526899999917
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects missing-quota and rolls back the complete transaction",
+      "status": "passed",
+      "durationMs": 74.17574200000035
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 0",
+      "status": "passed",
+      "durationMs": 30.34883699999955
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 1",
+      "status": "passed",
+      "durationMs": 29.95589800000016
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 2",
+      "status": "passed",
+      "durationMs": 31.380419999999503
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 3",
+      "status": "passed",
+      "durationMs": 39.782272999999805
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 4",
+      "status": "passed",
+      "durationMs": 33.584757000000536
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 5",
+      "status": "passed",
+      "durationMs": 33.86919300000045
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 6",
+      "status": "passed",
+      "durationMs": 26.087179999999535
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 7",
+      "status": "passed",
+      "durationMs": 32.25184799999988
+    },
+    {
+      "name": "Manifest v2 isolated prototype rejects invalid parent schema 8",
+      "status": "passed",
+      "durationMs": 28.358218000000306
+    },
+    {
+      "name": "Manifest v2 isolated prototype binds root ownership to the authenticated caller",
+      "status": "passed",
+      "durationMs": 38.91113700000005
+    },
+    {
+      "name": "Parent validator expression measurements measures tags independently with 8 tags and 10 links",
+      "status": "passed",
+      "durationMs": 470.535924
+    },
+    {
+      "name": "Parent validator expression measurements measures links independently with 8 tags and 10 links",
+      "status": "passed",
+      "durationMs": 302.8123280000001
+    },
+    {
+      "name": "Parent validator expression measurements measures other independently with 8 tags and 10 links",
+      "status": "passed",
+      "durationMs": 294.23551900000007
+    },
+    {
+      "name": "Parent validator expression measurements measures stored independently with 8 tags and 10 links",
+      "status": "passed",
+      "durationMs": 288.605231
+    },
+    {
+      "name": "Expression budget scope controls one transaction of 12 individually costly writes passes",
+      "status": "passed",
+      "durationMs": 105.23043600000005
+    },
+    {
+      "name": "Expression budget scope controls one over-budget document fails with the actual 1000-expression diagnostic",
+      "status": "passed",
+      "durationMs": 48.33054199999992
+    }
+  ]
+}

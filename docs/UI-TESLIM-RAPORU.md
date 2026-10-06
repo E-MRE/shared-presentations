@@ -1,6 +1,6 @@
 # UI düzeltme teslimi — 6 Ekim 2026
 
-Kullanıcının toplu ekran görüntüleri ile önceki I01–I04 incelemesi birlikte ele alındı. UI değişiklikleri, liste izolasyonu/okuma azaltma ve kota kuralı düzeltmesi uygulandı. **Canlı yayın yapılmadı; değişen Firestore kurallarının emülatör kabulü ve kullanıcının hatalı HTML dosyasıyla tekrar kontrolü açık.**
+Kullanıcının toplu ekran görüntüleri ile önceki I01–I04 incelemesi birlikte ele alındı. UI değişiklikleri, liste izolasyonu/okuma azaltma ve kota kuralı düzeltmesi uygulandı. **Canlı yayın yapılmadı; kullanıcının hatalı HTML dosyasıyla tekrar kontrolü açık.** Ağ erişimi açılınca değişen kuralların backend kabulü **174/174, sıfır skip** tamamlandı; devam doğrulaması [emülatör tamamlama raporunda](EMULATOR-TAMAMLAMA-RAPORU.md). Aşağıdaki tablo ilk UI tesliminin tarihsel sonuçlarını korur.
 
 ## Değişen davranış
 

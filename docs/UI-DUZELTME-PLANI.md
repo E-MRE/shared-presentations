@@ -4,7 +4,7 @@ Kullanıcının “bitti” mesajından sonra uygulanan toplu düzeltme. Başlan
 
 | Öncelik | İş | Son durum |
 |---|---|---|
-| P1 | I01: bağımsız sayaç azaltarak 5 bekleyen sunum kotasını aşma | Kural, önceki sunumun hedef kullanıcıya ait ve pending olmasını, işlem sonunda pending'den çıkmasını/silinmesini zorunlu kılıyor. Admin sayaç değişikliği başka profil alanlarını değiştiremiyor. 6 negatif regresyon eklendi; emülatör doğrulaması bekliyor. |
+| P1 | I01: bağımsız sayaç azaltarak 5 bekleyen sunum kotasını aşma | Kural, önceki sunumun hedef kullanıcıya ait ve pending olmasını, işlem sonunda pending'den çıkmasını/silinmesini zorunlu kılıyor. Admin sayaç değişikliği başka profil alanlarını değiştiremiyor. 6 negatif regresyon dahil yeni kurallarla backend kabulü 174/174, sıfır skip geçti. |
 | P1 | I02: tek eksik/geçersiz bağlantının bütün listeyi kapatması | Arşiv, kendi sunumları ve onay kuyruğu yalnız üst belgeyi okuyor. Yönetici işlem sonrası bağlantı okumuyor; kusurlu sunumu reddetme/silme mümkün. Detayda kaynaklar ayrıca doğrulanıyor; kusurlu kayıt kendi detayında hata verir. |
 | P1 | Tek HTML'de “Dosyalar hazırlanamadı” hatası | Basit HTML ve dört tasarım HTML'i hazırlandı; kullanıcının dosyasındaki hata yeniden üretilemedi. Dosya okuma ve lazy modül indirme hataları ayrıldı. Modül hatası artık yenileme yönlendirmesi veriyor; buna özel tarayıcı testi eklendi. Kullanıcının aynı dosyayla yeni sürümü denemesi gerekiyor. Kök neden kesinleşmedi. |
 | P2 | I03: 12 kart için 120 gereksiz kaynak okuması | Liste kaynak okuması sıfır. Detay açılınca kaynaklar okunuyor. 5 gerçek servis/mock taşıma regresyonu eklendi. |
@@ -23,4 +23,4 @@ Kullanıcının “bitti” mesajından sonra uygulanan toplu düzeltme. Başlan
 | P2 | Kayıt modalında iki benzer tanıtım mesajı | İkonlu ikinci slogan kaldırıldı; başlık ve tek açıklama kaldı. |
 | P2 | Admin nasıl atanır/mevcut admin var mı? | Kod/kurallar `admins/{UID}` ve boolean active kontrol ediyor. Canlı yönetim erişimi bulunmadığı için mevcut kayıt doğrulanamadı. Console adımları bağımlılık dosyasında. |
 
-Test ve teslim sonucu: [UI teslim raporu](UI-TESLIM-RAPORU.md). Kullanıcı/ortam işleri: [Bağımlılıklar](KULLANICI-BAGIMLILIKLARI.md).
+Test ve teslim sonucu: [UI teslim raporu](UI-TESLIM-RAPORU.md), [ağ erişimi açıldıktan sonraki doğrulama](EMULATOR-TAMAMLAMA-RAPORU.md). Kullanıcı/ortam işleri: [Bağımlılıklar](KULLANICI-BAGIMLILIKLARI.md).

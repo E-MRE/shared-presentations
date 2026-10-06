@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-06",
+  "timezone": "Europe/Istanbul",
+  "sourceCommit": "08eabdfbc5ce3e200b5f443dbe1a8ad0502272a4",
+  "firestoreRulesSha256": "a9eefa6914251260b18dd1a8167053aeed6f75b659729edff35cdf19b6884869",
+  "codeChanged": false,
+  "rulesChanged": false,
+  "deployed": false,
+  "environment": {
+    "node": "v24.19.0",
+    "java": "21.0.12.1",
+    "firebaseCLI": "15.32.1",
+    "firestoreEmulator": "1.22.0",
+    "playwright": "1.63.0"
+  },
+  "backend": {
+    "passed": 174,
+    "failed": 0,
+    "skipped": 0,
+    "files": 10
+  },
+  "prototype": {
+    "passed": 27,
+    "failed": 0,
+    "skipped": 0,
+    "files": 3
+  },
+  "unit": {
+    "passed": 200,
+    "failed": 0,
+    "skipped": 139,
+    "files": 25
+  },
+  "e2e": {
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "durationMs": 111779.307,
+    "scope": "Chromium; production visitor gates and composed React feature tests with controlled service/auth transport; not live Firebase acceptance"
+  },
+  "gates": {
+    "lint": "passed",
+    "build": "passed",
+    "release": "passed"
+  },
+  "audit": {
+    "production": 0,
+    "allDependencies": 3,
+    "severity": "high",
+    "affectedChain": "firebase-tools 15.32.1 -> chokidar 3.6.0 -> braces 3.0.3",
+    "compatibleUpstreamFixAvailable": false
+  },
+  "backendSocketHosts": [
+    "127.0.0.1"
+  ],
+  "registryLatest": {
+    "firebase-tools": "15.32.1",
+    "braces": "3.0.3",
+    "chokidar3": "3.6.0"
+  },
+  "remaining": [
+    "Live admin marker needs Console management access",
+    "Original failing HTML requires user file/browser reproduction",
+    "Manual desktop/physical-phone browser review",
+    "CLI development dependency advisory",
+    "Live release decision and rules-first deployment"
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "sourceSha256": "6d51de115556f2b02adbb8c41d0a26ec6b150700d8cc35b27bcac98ab7ba45f3",
+  "scope": "Recorded AST evaluations across the trial; NOT exact per-document budget charge. Helpers exclusive, unexecuted markers excluded.",
+  "functions": {
+    "userPath": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "adminPath": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "presentationPath": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isSignedIn": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isMember": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isAdmin": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isOwner": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "isHttpsUrl": {
+      "recorded": 0,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "validateSizes": {
+      "recorded": 92,
+      "undefined": 0,
+      "unexecutedMarkers": 6
+    },
+    "validateManifest": {
+      "recorded": 44,
+      "undefined": 0,
+      "unexecutedMarkers": 78
+    },
+    "validateStoredLinks": {
+      "recorded": 36,
+      "undefined": 0,
+      "unexecutedMarkers": 38
+    },
+    "isValidTag": {
+      "recorded": 96,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidTags": {
+      "recorded": 144,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "areValidCatalog": {
+      "recorded": 32,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "validateDeckFields": {
+      "recorded": 274,
+      "undefined": 0,
+      "unexecutedMarkers": 6
+    },
+    "measurement": {
+      "recorded": 10,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    },
+    "matchStatements": {
+      "recorded": 8,
+      "undefined": 0,
+      "unexecutedMarkers": 0
+    }
+  }
+}

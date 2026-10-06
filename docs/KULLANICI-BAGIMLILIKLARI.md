@@ -4,22 +4,23 @@ UI düzeltmeleri için başka tasarım kararı gerekmiyor. Bu dosya önceki bağ
 
 Gerçek doğrulama e-postası, şifre sıfırlama/yeni şifre, Google hesap seçimi/iptal/giriş, 60 saniyelik yeniden gönderme ve fiziksel telefonda giriş kullanıcı tarafından önceki sürümde test edildi. Bunlar yeniden bekleyen iş olarak listelenmiyor. Firebase bağlı; Firestore ve e-posta/Google sağlayıcıları etkin. Test sunumu için içerik koruma bağımlılığı yok.
 
-## 1. Yeni kuralları emülatörde doğrula — yayın öncesi gerekli
+## 1. Yeni kuralların emülatör doğrulaması — burada tamamlandı
 
-**Neden sende:** Bu çalışma ortamı Firestore JAR indirmesinin `storage.googleapis.com` hedefine erişemiyor. Yeni kota/bağlantı kuralları burada gerçek emülatörde çalıştırılamadı. Önceki 160/160 backend sonucu eski `ee4f5c0` kuralları içindir; yeni kuralları kanıtlamaz.
+**Senden işlem gerekmiyor:** Ağ erişimi açıldı; Firestore JAR indirildi ve `08eabdf` kaynak/kuralları ile backend kabulü **174/174**, manifest/prototip **27/27**, ikisi de **sıfır skip** geçti. Yeni bağımsız sayaç azaltma retleri, Unicode boş bağlantı etiketi retleri, olumlu kota geçişleri ve 12 parça + 8 etiket + 10 bağlantı birlikte doğrulandı. Güncel sonuçlar ve kanıtlar [emülatör tamamlama raporunda](EMULATOR-TAMAMLAMA-RAPORU.md).
 
-Node 24 LTS ve Java 21 bulunan, indirme erişimi olan ortamda depoyu güncelle:
+İstersen Node 24 LTS ve Java 21 ile kendi ortamında da tekrarlayabilirsin:
 
 ```bash
 git pull --ff-only
 node --version
 java --version
 npm ci
+npx playwright install chromium
 npm run test:backend
 npm run test:manifest-prototype
 ```
 
-Her komut başarılı çıkmalı; backend/prototip için skip olmamalı. Kota geçişlerinin olumlu senaryoları, yeni bağımsız sayaç azaltma retleri, Unicode boş bağlantı etiketi retleri ve 12 parça + 8 etiket + 10 bağlantı sınırı birlikte doğrulanmalı. Çıktıyı dosyaya kaydet; başarısız senaryo adını ve hassas olmayan hata metnini ilet. Testler yalnız `demo-shared-presentations` ve yerel emülatörleri kullanır, canlı proje üzerinde deney yapmaz.
+Backend/prototip için skip başarı sayılmaz. Testler yalnız demo projeleri ve yerel emülatörleri kullanır, canlı proje üzerinde deney yapmaz. Bu sonuçlar canlıya kural yayımlandığı anlamına gelmez.
 
 ## 2. Admin hesabını Console'da belirle
 
@@ -46,9 +47,21 @@ Kendi makinenizde `http://localhost:4175`, aynı ağdaki telefonda makinenizin g
 
 Eski önizlemeyi kapat, yeni build'i aç, sayfayı yenile. Yeni Sunum → **Tek HTML** → aynı dosya. “Sunum hazır” ve önizlemeyi kontrol et. Hazırlama bileşeni yüklenemedi mesajı varsa sayfayı yenileyip tekrar seç. Sorun sürerse hataya yol açan HTML dosyasını ve tarayıcı adı/sürümünü ilet; e-posta/şifre/token gerekmez. Bu hazırlama adımı canlıya sunum kaydetmez; gönderim ayrı işlemdir.
 
-## 4. Canlıya geçiş — kullanıcı yayın kararıyla
+## 4. Güncel UI'ı tarayıcıda kontrol et
 
-**Bu çalışmada deploy yapılmadı.** Önce 1. bölümdeki yeni kuralların testleri geçmeli. Ardından hedef hostname ve yayın penceresi belirlenmeli. V2 uyumlu kurallar önce, yeni Hosting sonra yayımlanmalı. Eski açık v1 sekmeleri yenilenmeli. Tam yükleme/onay kabulünü güncel kurallar canlıya alındıktan sonra yap; yalnız yerel build canlı kuralları değiştirmez.
+3. bölümdeki yeni build/preview ile masaüstünde ve telefonda şu noktaları kontrol et:
+
+- Arşivde arama, kategori ve sunum kartları; yalnız mevcut sayfanın seçili navigasyonu; açık/koyu tema ve yenilemede tercihin korunması.
+- Giriş ekranında tek giriş düğmesi, şifre gösterme ve alanın altındaki kurtarma bağlantısı; kayıt penceresinde tek açıklama.
+- Yeni Sunum'da üç yükleme sekmesi, seçilen türe ait dosya alanları ve baştan açık kaynak bağlantıları. Tamamen boş kaynak satırı isteğe bağlı; yarım dolu satır hata vermeli.
+- Aynı hatalı HTML dosyasıyla “Sunum hazır” ve önizleme. Ayrıca kendi kullandığın ZIP/klasör ve PPTX dosyalarının hazırlama/önizlemesi.
+- Benim Sunumlarım'da uygun bir test kaydını silince geçici bildirim ve boş listede gereksiz “0 sunum” yazısının olmaması. Silme gerçek veriyi değiştirir; yalnız silinebilecek test kaydını kullan.
+
+Hazırlama/önizleme sunum kaydetmez. Kaydetme, admin onay/ret, yeniden onay, yayından kaldırma ve kota davranışının canlı kabulü için güncel Firestore kurallarının ayrıca yayımlanması gerekir. Yerel `npm run build` canlı kuralları değiştirmez.
+
+## 5. Canlıya geçiş — kullanıcı yayın kararıyla
+
+**Bu çalışmada deploy yapılmadı.** 1. bölümdeki yeni kuralların backend kabulü tamamlandı. Hedef hostname ve yayın penceresi belirlenmeli. V2 uyumlu kurallar önce, yeni Hosting sonra yayımlanmalı. Eski açık v1 sekmeleri yenilenmeli. Tam yükleme/onay kabulünü güncel kurallar canlıya alındıktan sonra yap; yalnız yerel build canlı kuralları değiştirmez.
 
 [Mevcut operasyon ve geri dönüş talimatları](TESLIM-VE-CALISTIRMA.md) ve [v2 uyumluluk planı](MANIFEST-ALT-KOLEKSIYON-PLANI.md) geçerli. Eski Hosting paketine tek başına geri dönmek v2 içeriği okuyamaz; v2 okuyabilen geri dönüş paketi ve güvenli uyumlu kurallar gerekir.
 
@@ -56,4 +69,4 @@ Bu ortamda dışarıdan erişilebilir önizleme paylaşım aracı yok. Buradaki 
 
 ## Açık teknik iş — CLI bağımlılığı
 
-Firebase CLI 15.32.1 → chokidar → braces 3.0.3 zincirinde bir advisory üç high paket girdisi oluşturuyor. Production bağımlılıklarında audit sıfır. Registry'de uyumlu düzeltilmiş sürüm yok; CLI'yi eski 6.x sürüme indirmek veya chokidar major sürümünü zorla değiştirmek güvenilir çözüm değil. Uyumlu upstream düzeltme geldiğinde güncelleme ve backend/release kontrolleri yapılmalı. Bu iş kullanıcıdan Firebase ayarı değiştirmesini gerektirmiyor ve kapatılmış sayılmadı.
+6 Ekim'de registry ve audit yeniden kontrol edildi: Firebase CLI hâlâ 15.32.1, braces hâlâ 3.0.3. CLI → chokidar → braces zincirinde bir advisory üç high paket girdisi oluşturuyor. Production bağımlılıklarında audit sıfır. Uyumlu düzeltilmiş sürüm yok; CLI'yi eski 6.x sürüme indirmek veya chokidar major sürümünü zorla değiştirmek güvenilir çözüm değil. Uyumlu upstream düzeltme geldiğinde güncelleme ve backend/release kontrolleri yapılmalı. Bu iş kullanıcıdan Firebase ayarı değiştirmesini gerektirmiyor ve kapatılmış sayılmadı.

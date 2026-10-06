@@ -1,0 +1,7 @@
+{
+  "projectId": "demo-shared-presentations",
+  "budgetProjectId": "demo-shared-presentations-budget",
+  "firestore": "127.0.0.1:8080",
+  "auth": "127.0.0.1:9099",
+  "liveProject": false
+}
