@@ -56,6 +56,8 @@ export interface PaginatedResult<T> {
 export interface CreateDeckInput {
   title: string;
   description: string;
+  category?: string;
+  tags?: string[];
   links: DeckLink[];
   kind: DeckKind;
   fileName: string;
@@ -72,6 +74,8 @@ export interface UpdateDeckInput {
   id: string;
   title: string;
   description: string;
+  category?: string;
+  tags?: string[];
   links: DeckLink[];
   cover?: Uint8Array;
   coverSource?: CoverSource;

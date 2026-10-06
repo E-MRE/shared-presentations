@@ -84,3 +84,5 @@ export const RULES_LIMITS_MAP = {
   MAX_PPTX_BYTES,
   MANIFEST_VERSION,
 } as const;
+
+export const MAX_SOURCE_COVER_BYTES = 10 * 1024 * 1024;

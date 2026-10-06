@@ -53,9 +53,8 @@ export function setupEmulators(
 const isBrowser = typeof window !== 'undefined';
 const useEmulators =
   isBrowser &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
-  (import.meta.env.VITE_USE_EMULATORS === 'true' || import.meta.env.DEV);
+  import.meta.env.VITE_USE_EMULATORS === 'true';
 
 if (useEmulators) {
-  setupEmulators();
+  setupEmulators(import.meta.env.VITE_FIRESTORE_EMULATOR_HOST || 'localhost', Number(import.meta.env.VITE_FIRESTORE_EMULATOR_PORT || 8080), import.meta.env.VITE_AUTH_EMULATOR_URL || 'http://localhost:9099');
 }

@@ -14,13 +14,13 @@ test('built production entry loads emitted SDK app assets and visitor gates on d
   page.on('response', response => { if (/\/assets\/.*\.js$/.test(new URL(response.url()).pathname)) scripts.push(response.url()); });
   for (const path of ['/', '/benim', '/yeni', '/duzenle/html', '/admin', '/s/html', '/unknown']) {
     await page.goto(origin + path);
-    await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible();
     await expect(page.getByRole('main')).toHaveCount(1);
     await expect(page.locator('.foundation-placeholder')).toHaveCount(0);
     await expect(page.getByText('Uygulama temeli hazır.')).toHaveCount(0);
     expect(await page.evaluate(() => 'e2e' in window)).toBe(false);
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible();
   }
   expect(scripts.length).toBeGreaterThan(0);
   expect(transport.some(event => event.includes('/tests/e2e/'))).toBe(false);

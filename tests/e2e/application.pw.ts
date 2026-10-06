@@ -7,7 +7,7 @@ test('visitor and unverified gates keep all six routes free of feature calls; or
     await role(page, value);
     for (const path of ['/', '/benim', '/yeni', '/duzenle/html', '/admin', '/s/html']) {
       await navigate(page, path);
-      await expect(page.getByRole('heading', { name: value === 'visitor' ? 'Ekibin sunumları burada' : 'E-posta adresinizi doğrulayın' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: value === 'visitor' ? /İyi fikirler/ : 'E-posta adresinizi doğrulayın' })).toBeVisible();
       await expect(page.getByRole('main')).toHaveCount(1);
       await expect(page.locator('iframe')).toHaveCount(0);
     }
@@ -67,21 +67,21 @@ test('Google and verified-email actions open member features; errors/signup/rese
   await dialog.getByRole('button', { name: 'Google ile giriş yap' }).click();
   await expect(page.getByRole('heading', { name: 'Sunum Arşivi' })).toBeVisible();
   expect(await page.evaluate(() => window.e2e.store.getMember()?.isGoogle)).toBe(true);
-  await page.getByRole('button', { name: 'Çıkış Yap' }).click();
+  await page.getByLabel('Hesap menüsü').click(); await page.getByRole('button', { name: 'Çıkış Yap' }).click();
   await page.getByRole('button', { name: 'Giriş Yap', exact: true }).first().click();
   await dialog.getByRole('button', { name: 'Şifremi unuttum' }).click();
   await dialog.getByLabel('E-posta', { exact: true }).fill('fixture@example.invalid');
   await flags(page, { mailFail: true }); await dialog.getByRole('button', { name: 'Sıfırlama bağlantısı gönder' }).click();
   await expect(dialog.getByRole('alert')).toHaveText('Sıfırlama e-postası gönderilemedi.');
   await flags(page, { mailFail: false }); await dialog.getByRole('button', { name: 'Sıfırlama bağlantısı gönder' }).click();
-  await expect(dialog.getByRole('status')).toContainText('isteği tamamlandı');
+  await expect(dialog.getByRole('status')).toContainText('Bu adresle bir hesap varsa');
   await dialog.getByRole('button', { name: 'Girişe dön' }).click();
   await dialog.getByLabel('E-posta', { exact: true }).fill('fixture@example.invalid');
   await dialog.getByLabel('Şifre', { exact: true }).fill('fixture-only');
   await dialog.getByRole('button', { name: 'E-posta ile giriş yap' }).click();
   await expect(page.getByRole('heading', { name: 'Sunum Arşivi' })).toBeVisible();
   expect(await page.evaluate(() => window.e2e.store.getMember()?.isEmailVerified)).toBe(true);
-  await page.getByRole('button', { name: 'Çıkış Yap' }).click();
+  await page.getByLabel('Hesap menüsü').click(); await page.getByRole('button', { name: 'Çıkış Yap' }).click();
   await page.getByRole('button', { name: 'Giriş Yap', exact: true }).first().click();
   await dialog.getByRole('button', { name: 'Hesap oluştur', exact: true }).click();
   await dialog.getByLabel('Ad soyad').fill('Test Üyesi'); await dialog.getByLabel('E-posta', { exact: true }).fill('fixture@example.invalid'); await dialog.getByLabel('Şifre', { exact: true }).fill('fixture-only');
@@ -96,13 +96,13 @@ test('unverified resend/reload/token failures remain visible and verification en
   await flags(page, { mailFail: true }); await page.getByRole('button', { name: 'Doğrulama e-postasını yeniden gönder' }).click();
   await expect(page.getByRole('alert')).toHaveText('Doğrulama e-postası gönderilemedi.');
   await flags(page, { mailFail: false }); await page.getByRole('button', { name: 'Doğrulama e-postasını yeniden gönder' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Doğrulama e-postası gönderildi.' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Gönderim isteği kabul edildi.' })).toBeVisible();
   await flags(page, { reloadFail: true }); await page.getByRole('button', { name: 'Doğruladım, yeniden kontrol et' }).click();
   await expect(page.getByRole('alert')).toContainText('Doğrulama kontrol edilemedi');
   await expect(page.getByRole('heading', { name: 'E-posta adresinizi doğrulayın' })).toBeVisible();
   expect((await metrics(page)).calls).toEqual([]);
   await flags(page, { reloadFail: false, tokenFail: true }); await page.getByRole('button', { name: 'Doğruladım, yeniden kontrol et' }).click();
-  await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible();
   await expect(page.getByRole('alert')).toContainText('Ağ bağlantısı');
   await flags(page, { tokenFail: false }); await role(page, 'unverified');
   await page.getByRole('button', { name: 'Doğruladım, yeniden kontrol et' }).click();
@@ -118,7 +118,7 @@ test('route navigation and role/logout transitions dispose and reopen one admin 
   await page.getByRole('link', { name: 'Benim Sunumlarım', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Benim Sunumlarım' })).toBeVisible();
   const next = await metrics(page);
-  expect(next.subscriptions).toBe(start.subscriptions + 1); expect(next.disposals).toBe(start.disposals + 1); expect(next.active).toBe(1);
+  expect(next.subscriptions).toBe(start.subscriptions); expect(next.disposals).toBe(start.disposals); expect(next.active).toBe(1);
   await page.goBack(); await expect(page.getByRole('heading', { name: 'Onay Masası' })).toBeVisible();
   await page.evaluate(() => window.e2e.countError());
   await expect(page.getByRole('alert')).toContainText('Bekleyen sunum sayısı alınamadı');
@@ -130,8 +130,8 @@ test('route navigation and role/logout transitions dispose and reopen one admin 
   await expect.poll(async () => (await metrics(page)).active).toBe(0);
   await role(page, 'admin'); await expect(page.getByRole('heading', { name: 'Onay Masası' })).toBeVisible();
   await expect.poll(async () => (await metrics(page)).active).toBe(1);
-  await page.getByRole('button', { name: 'Çıkış Yap' }).click();
-  await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible();
+  await page.getByLabel('Hesap menüsü').click(); await page.getByRole('button', { name: 'Çıkış Yap' }).click();
+  await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible();
   const end = await metrics(page); expect(end.active).toBe(0); expect(end.subscriptions).toBe(end.disposals); expect(end.roleSubscriptions).toBe(end.roleDisposals); expect(await page.evaluate(() => window.e2e.registryCount())).toBe(0); expect(end.unauthorized).toBe(0);
 });
 
@@ -139,7 +139,7 @@ test('late metadata and own-list reads cannot restore signed-out or replaced ses
   await mount(page, '/yeni'); await expect(page.getByRole('heading', { name: 'Yeni Sunum Yükle' })).toBeVisible();
   await flags(page, { hold: 'deck' }); await navigate(page, '/s/html');
   await expect.poll(async () => (await metrics(page)).calls.filter(call => call === 'deck').length).toBe(1);
-  await role(page, 'visitor'); await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible();
+  await role(page, 'visitor'); await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible();
   await flags(page, { hold: '' }); await page.evaluate(() => window.e2e.release());
   await expect(page.locator('iframe')).toHaveCount(0); expect((await metrics(page)).calls).not.toContain('chunks');
   await navigate(page, '/yeni'); await role(page, 'member'); await expect(page.getByRole('heading', { name: 'Yeni Sunum Yükle' })).toBeVisible();
@@ -208,7 +208,7 @@ test('review rejection note, owner published edit, unpublish/reapprove and delet
   await navigate(page, '/duzenle/html'); await expect(page.getByRole('heading', { name: 'Sunumu Düzenle' })).toBeVisible();
   await page.getByLabel('Sunum başlığı (zorunlu)').fill('Güncellenen Tasarım'); await page.getByRole('button', { name: 'Değişiklikleri onaya gönder' }).click();
   await expect(page).toHaveURL(/\/s\/html/); await expect(page.frameLocator('iframe').getByRole('heading', { name: /Güvenilir sistemler/ })).toBeVisible();
-  const update = await page.evaluate(() => window.e2e.metrics.updates[0]); expect(Object.keys(update).sort()).toEqual(['description', 'id', 'links', 'title']); expect(update.id).toBe('html'); expect(update.title).toBe('Güncellenen Tasarım');
+  const update = await page.evaluate(() => window.e2e.metrics.updates[0]); expect(Object.keys(update).sort()).toEqual(['category', 'description', 'id', 'links', 'tags', 'title']); expect(update.id).toBe('html'); expect(update.title).toBe('Güncellenen Tasarım');
   await navigate(page, '/'); await expect(card(page, 'html')).toHaveCount(0);
   await navigate(page, '/admin'); await role(page, 'admin'); await expect(card(page, 'html')).toContainText('Onay Bekliyor');
   await card(page, 'html').getByRole('button', { name: 'Onayla', exact: true }).click(); await expect(card(page, 'html')).toHaveCount(0);
@@ -220,20 +220,20 @@ test('review rejection note, owner published edit, unpublish/reapprove and delet
 });
 
 test('delayed auth admin, reload and login completions never revive a signed-out account', async ({ page }) => {
-  await mount(page, '/yeni', 'visitor'); await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible();
+  await mount(page, '/yeni', 'visitor'); await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible();
   await flags(page, { hold: 'admin' }); await role(page, 'admin');
   await expect(page.getByRole('heading', { name: 'Oturum kontrol ediliyor…' })).toBeVisible();
   await role(page, 'visitor'); await flags(page, { hold: '' }); await page.evaluate(() => window.e2e.release());
-  await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible(); expect((await metrics(page)).calls).toEqual([]); expect((await metrics(page)).subscriptions).toBe(0);
+  await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible(); expect((await metrics(page)).calls).toEqual([]); expect((await metrics(page)).subscriptions).toBe(0);
   await role(page, 'unverified'); await expect(page.getByRole('heading', { name: 'E-posta adresinizi doğrulayın' })).toBeVisible();
   await flags(page, { hold: 'reload' }); await page.getByRole('button', { name: 'Doğruladım, yeniden kontrol et' }).click();
   await expect(page.getByRole('heading', { name: 'Oturum kontrol ediliyor…' })).toBeVisible();
   await role(page, 'visitor'); await flags(page, { hold: '' }); await page.evaluate(() => window.e2e.release());
-  await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible(); expect((await metrics(page)).calls).toEqual([]);
+  await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible(); expect((await metrics(page)).calls).toEqual([]);
   await page.getByRole('button', { name: 'Giriş Yap', exact: true }).first().click();
   await flags(page, { hold: 'login' }); await page.getByRole('dialog').getByRole('button', { name: 'Google ile giriş yap' }).click();
   await expect.poll(async () => (await metrics(page)).authCalls.filter(call => call === 'google').length).toBe(1);
   await page.evaluate(() => window.e2e.store.actions.signOut()); await flags(page, { hold: '' }); await page.evaluate(() => window.e2e.release());
   await expect.poll(async () => (await metrics(page)).authCalls.filter(call => call === 'signout').length).toBe(2);
-  await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible(); expect(await page.evaluate(() => window.e2e.store.getMember())).toBeNull(); expect((await metrics(page)).calls).toEqual([]); expect((await metrics(page)).unauthorized).toBe(0);
+  await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible(); expect(await page.evaluate(() => window.e2e.store.getMember())).toBeNull(); expect((await metrics(page)).calls).toEqual([]); expect((await metrics(page)).unauthorized).toBe(0);
 });

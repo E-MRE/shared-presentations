@@ -32,7 +32,7 @@ const authDependencies: ApplicationAuthDependencies = {
   service: {
     async signInWithGoogle() { metrics.authCalls.push('google'); await hold('login'); if (flags.error === 'auth') return failure(); setAuth('google'); return ok(mapFirebaseUserToAuthUser(current!)); },
     async signInWithEmail() { metrics.authCalls.push('email'); if (flags.error === 'auth') return failure('E-posta adresi veya şifre hatalı.'); setAuth('member'); return ok(mapFirebaseUserToAuthUser(current!)); },
-    async signUpWithEmail() { metrics.authCalls.push('signup'); setAuth('unverified'); return ok(mapFirebaseUserToAuthUser(current!)); },
+    async signUpWithEmail() { metrics.authCalls.push('signup'); setAuth('unverified'); return ok({ ...mapFirebaseUserToAuthUser(current!), verificationDispatch: { sent: !flags.mailFail, message: flags.mailFail ? 'Hesabınız oluşturuldu fakat doğrulama e-postası gönderilemedi.' : 'Gönderim isteği kabul edildi.' } }); },
     async sendVerificationEmail() { metrics.authCalls.push('resend'); return flags.mailFail ? failure('Doğrulama e-postası gönderilemedi.') : ok(undefined); },
     async reloadUser(target = current) { metrics.authCalls.push('reload'); await hold('reload'); if (flags.reloadFail) return failure('Doğrulama kontrol edilemedi. Yeniden deneyin.'); if (current === target) role = 'member'; return ok(mapFirebaseUserToAuthUser(target!)); },
     async sendPasswordReset() { metrics.authCalls.push('reset'); return flags.mailFail ? failure('Sıfırlama e-postası gönderilemedi.') : ok(undefined); },
@@ -59,19 +59,19 @@ const service: PresentationDataService = {
   async getDeck(id) { if (!await boundary('deck')) return failure(); const deck = decks.get(id); return deck ? ok({ ...deck }) : err({ code: AppErrorCode.NOT_FOUND, message: 'Sunum bulunamadı.' }); },
   async getChunk(id, index) { await boundary('chunk'); return ok(chunks.get(id)![index]); },
   async getAllChunks(id) { if (!await boundary('chunks')) return failure(); return ok(chunks.get(id) ?? []); },
-  async getPublishedFeed() { if (!await boundary('feed')) return failure(); return page([...decks.values()].filter(deck => deck.status === 'published')); },
+  async getPublishedFeed(input = {}) { if (!await boundary('feed')) return failure(); const items = [...decks.values()].filter(deck => deck.status === 'published'); const start = input.cursor ? items.findIndex(deck => deck.id === input.cursor?.docId) + 1 : 0; const slice = items.slice(start, start + (input.pageSize || 12)); const hasMore = start + slice.length < items.length; return ok({ items: slice, hasMore, nextCursor: hasMore ? { docId: slice.at(-1)!.id, sortValue: slice.at(-1)!.publishedAt!.getTime() } : null }); },
   async getMyDecks(uid) { if (!await boundary('own')) return failure(); return page([...decks.values()].filter(deck => deck.ownerUid === uid)); },
   async getReviewQueue() { if (!await boundary('queue', true)) return failure(); return page([...decks.values()].filter(deck => deck.status === 'pending')); },
   async createDeck(input) {
     if (!await boundary('create')) return failure(); const valid = validateCreateDeckInput(input); if (!valid.ok) return valid;
     metrics.creates.push(input); const id = `created-${metrics.creates.length}`;
-    const deck: Deck = { ...decks.get('html')!, id, title: input.title, description: input.description, links: input.links, fileName: input.fileName, cover: input.cover, coverSource: input.coverSource, sizes: input.sizes, kind: input.kind, chunkCount: input.chunkCount, chunks: input.manifest, ownerUid: store.getMember()!.uid, status: 'pending', publishedAt: null, rejectNote: '', quotaMarker: id };
+    const deck: Deck = { ...decks.get('html')!, id, title: input.title, description: input.description, category: input.category, tags: input.tags, links: input.links, fileName: input.fileName, cover: input.cover, coverSource: input.coverSource, sizes: input.sizes, kind: input.kind, chunkCount: input.chunkCount, chunks: input.manifest, ownerUid: store.getMember()!.uid, status: 'pending', publishedAt: null, rejectNote: '', quotaMarker: id };
     decks.set(id, deck); chunks.set(id, input.chunks); counts(); return ok({ ...deck });
   },
   async updateDeck(input) {
     if (!await boundary('update')) return failure(); const valid = validateUpdateDeckInput(input); if (!valid.ok) return valid;
     metrics.updates.push(input); const old = decks.get(input.id)!;
-    const deck: Deck = { ...old, title: input.title, description: input.description, links: input.links, ...(input.cover ? { cover: input.cover, coverSource: input.coverSource! } : {}), status: 'pending', publishedAt: null, rejectNote: '' };
+    const deck: Deck = { ...old, title: input.title, description: input.description, category: input.category, tags: input.tags, links: input.links, ...(input.cover ? { cover: input.cover, coverSource: input.coverSource! } : {}), status: 'pending', publishedAt: null, rejectNote: '' };
     if (input.replacementContent) { const replacement = input.replacementContent; Object.assign(deck, { fileName: replacement.fileName, sizes: replacement.sizes, chunkCount: replacement.chunkCount, chunks: replacement.manifest }); chunks.set(input.id, replacement.chunks); }
     decks.set(input.id, deck); counts(); return ok({ ...deck });
   },
@@ -88,7 +88,7 @@ const adapter = {
     return registerListener(() => { if (active) { active = false; metrics.disposals++; metrics.active--; listeners.delete(listener); } }, true);
   },
 };
-const api = { registryCount: getActiveListenerCount, auth: setAuth, navigate: (_: string) => {}, flags: (value: Partial<typeof flags>) => Object.assign(flags, value), metrics, store, release: () => held.splice(0).forEach(resolve => resolve()), countError: () => listeners.forEach(listener => listener.error()), long: () => decks.forEach(deck => { deck.title = 'UzunBaşlık'.repeat(12); deck.description = 'UzunAçıklama'.repeat(150); deck.ownerName = 'UzunYazar'.repeat(15); }), summaries: () => [...decks.values()].map(deck => ({ id: deck.id, status: deck.status, title: deck.title, rejectNote: deck.rejectNote })) };
+const api = { seedFeed: () => { const base = decks.get('html')!; for (let index = 0; index < 20; index++) decks.set(`extra-${index}`, { ...base, id: `extra-${index}`, title: `Ek Sunum ${index}`, category: 'AI & LLM', tags: ['öğrenme'] }); }, registryCount: getActiveListenerCount, auth: setAuth, navigate: (_: string) => {}, flags: (value: Partial<typeof flags>) => Object.assign(flags, value), metrics, store, release: () => held.splice(0).forEach(resolve => resolve()), countError: () => listeners.forEach(listener => listener.error()), long: () => decks.forEach(deck => { deck.title = 'UzunBaşlık'.repeat(12); deck.description = 'UzunAçıklama'.repeat(150); deck.ownerName = 'UzunYazar'.repeat(15); }), summaries: () => [...decks.values()].map(deck => ({ id: deck.id, status: deck.status, title: deck.title, rejectNote: deck.rejectNote })) };
 declare global { interface Window { e2e: typeof api; prepaintTheme: string; } }
 window.e2e = api;
 function Harness() { const navigate = useNavigate(); useEffect(() => { api.navigate = path => navigate(path); }, [navigate]); return <App dependencies={{ auth: store, service, adapter }}/>; }

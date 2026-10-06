@@ -8,6 +8,8 @@
 
 /** User identity representation across the application */
 export interface AuthUser {
+  /** Account creation succeeds independently of the verification dispatch. */
+  verificationDispatch?: { sent: boolean; message: string; retryAt?: number };
   /** Firebase Auth UID */
   uid: string;
   /** Primary email address */

@@ -1,4 +1,7 @@
-import { extractZipArchive, findHtmlEntry, isPathTraversal, normalizePath, stripCommonRoot, type BundleFile, type PipelineInput } from '../../content';
+import { findHtmlEntry } from '../../content/bundler';
+import { extractZipArchive } from '../../content/zip';
+import { isPathTraversal, normalizePath, stripCommonRoot } from '../../content/paths';
+import type { BundleFile, PipelineInput } from '../../content/types';
 import { MAX_HTML_FILE_COUNT, MAX_HTML_UNPACKED_BYTES, MAX_PPTX_BYTES } from '../../contracts/limits';
 export class EditorInputError extends Error {}
 export interface SelectedInput { input: PipelineInput; candidates: string[]; entry: string; }

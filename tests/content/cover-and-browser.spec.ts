@@ -3,7 +3,7 @@
  *
  * Runs inside installed Chromium using Playwright and an ephemeral Vite server.
  * Proves runtime capture evidence for the 4 design fixtures, owned ZIP, and PPTX.
- * Saves visual artifacts to /opt/projects/shared-presentations/.orchestra/evidence/L04/worker/.
+ * Saves visual artifacts to EVIDENCE_DIR or test-results/unit.
  *
  * References:
  * - src/content/cover.ts
@@ -21,13 +21,10 @@ import { zipSync } from 'fflate';
 import { processCoverOverride } from '../../src/content/cover';
 import { AppErrorCode } from '../../src/contracts/errors';
 
-process.env.PLAYWRIGHT_BROWSERS_PATH =
-  process.env.PLAYWRIGHT_BROWSERS_PATH || '/opt/data/ms-playwright';
-
 const FIXTURES_DIR = join(process.cwd(), 'design/presentations');
 const EVIDENCE_DIR =
   process.env.EVIDENCE_DIR ||
-  '/opt/projects/shared-presentations/.orchestra/evidence/L04/resume3/worker';
+  'test-results/unit';
 
 const FIXTURE_FILES = [
   'flutter-fluid-rendering.html',

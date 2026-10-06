@@ -1,3 +1,4 @@
+import { clearDeckPageCache } from './useDeckPages';
 import { useRef, useState } from 'react';
 import type { Result } from '../../contracts/services';
 import { useSessionLifetime } from './session';
@@ -15,7 +16,7 @@ export function useDeckMutation(onSuccess: () => void) {
       const result = await operation();
       if (!alive()) return false;
       if (!result.ok) { setError('İşlem tamamlanamadı. Yetkinizi ve bağlantınızı kontrol edip yeniden deneyin.'); return false; }
-      setMessage(success); onSuccess(); return true;
+      clearDeckPageCache(); setMessage(success); onSuccess(); return true;
     } catch { if (alive()) setError('İşlem tamamlanamadı. Bağlantınızı kontrol edip yeniden deneyin.'); return false; }
     finally { if (alive()) { lock.current = false; setBusy(false); } }
   }

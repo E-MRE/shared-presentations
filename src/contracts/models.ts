@@ -55,6 +55,8 @@ export interface Deck {
   title: string;
   /** Presentation description / abstract (max 2000 chars) */
   description: string;
+  category?: string;
+  tags?: string[];
   /** Resource links (max 10 items) */
   links: DeckLink[];
   /** Format type: 'html' or 'pptx' */

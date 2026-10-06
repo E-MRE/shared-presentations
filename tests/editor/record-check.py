@@ -1,7 +1,7 @@
 """Record actual bounded commands without shell interpolation."""
 import datetime, json, os, pathlib, subprocess, sys
 name, *argv = sys.argv[1:]
-root = pathlib.Path('/opt/projects/shared-presentations/.orchestra/evidence/L08/worker')
+root = pathlib.Path(os.environ.get('EVIDENCE_DIR', 'test-results/unit'))
 root.mkdir(parents=True, exist_ok=True)
 start = datetime.datetime.now(datetime.timezone.utc).isoformat()
 with (root / (name + '.stdout')).open('w') as out, (root / (name + '.stderr')).open('w') as err:

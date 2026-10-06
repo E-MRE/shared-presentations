@@ -1,4 +1,15 @@
-# Acceptance record
+# Güncel kabul kaydı — 5 Ekim 2026
+
+Bu yenilemenin kapsamı ve sonuçları [teslim belgesinde](TESLIM-VE-CALISTIRMA.md) kayıtlıdır. Aşağıdaki L09 kayıtları tarihsel bağlamdır; yeni sürüm için başarı kanıtı sayılmaz. Kullanıcının güncel talimatları ve DUZELTME-PLANI bu çalışmanın kapsamını belirler.
+
+Güncel uygulama: yalnız üye erişimi; istemci/sunucu aynı active yönetici politikası; ayrı hesap/ileti gönderim sonuçları; yeni giriş ekranları, dosya odaklı düzenleyici, draft uyarısı, kategori/etiket, sayfalı arşiv, doğru önizleme dönüşü, yerel fontlar ve Lottie. Auth kabuğu rota değişiminde remount olmaz; sayaç aboneliği aynı üyelik/rol boyunca korunur. Kullanılmayan paralel auth ekranları kaldırıldı.
+
+Canlı Google OAuth, mail teslimi, authorized domains, Hosting CSP ve üretim kuralları bu ortamda doğrulanmadı. Firestore emülatörü JAR indirme alan adı ağ politikası dışında; backend skip sonuçları başarı sayılmaz. Yayın öncesinde test:backend komutu dış ortamda çalıştırılmalıdır. Canlı deploy veya veri silme yapılmadı.
+
+---
+
+## Tarihsel L09 kayıtları
+
 
 Lane L09, campaign vektor-l09, base `f4fdb972d4bbf941bfe532f17923838e26ed9b8b`, worker branch `work/app-integration`. The L09a release-checker/regression sublane was externally accepted at `e6d549380587ee55e681ca43cf2ddd7b122aaa22`. L09b functional Chromium was externally accepted at `9a2693535f0d58c7bfae92d02cdffbc034a842d0` (36/36 verifier checks); its worker handoff preserves twelve browser and seven Node results separately. L09c exact worker SHA, command results, screenshot/focus/fullscreen/theme records and limitations are recorded in ignored `L09c/worker/handoff.json`; its external verdict is still a separate gate. Historical records remain preserved. This file describes reproducible scope; it does not certify live release acceptance. The operator explicitly authorized only the body-module replacement in `index.html`; the original prepaint head is preserved.
 

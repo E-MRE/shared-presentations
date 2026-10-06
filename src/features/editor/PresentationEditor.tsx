@@ -1,3 +1,4 @@
+import { StatePanel } from '../../components/StatePanel';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { Deck } from '../../contracts/models';
@@ -20,7 +21,7 @@ export function EditPage(props: EditorPageProps) {
   return <PresentationEditor {...props} mode="edit" id={id} onClose={props.onClose ?? (() => navigate('/benim'))} onComplete={props.onComplete ?? (deck => navigate(`/s/${encodeURIComponent(deck.id)}`, { replace: true }))} />;
 }
 function Notice({ message, onClose, error = false, retry }: { message: string; onClose?: () => void; error?: boolean; retry?: () => void }) {
-  return <section className="vektor-editor" aria-label="Sunum düzenleyici"><button className="btn btn-secondary" onClick={onClose}>Geri dön</button><div className="editor-notice" role={error ? 'alert' : 'status'}><p className="editor-eyebrow">VEKTÖR</p><h1>{message}</h1>{retry && <button className="btn btn-secondary" onClick={retry}>Yeniden dene</button>}</div></section>;
+  return <section className="vektor-editor" aria-label="Sunum düzenleyici"><button className="btn btn-secondary" onClick={onClose}>Geri dön</button><StatePanel heading="h1" title={message} kind={error ? 'error' : message.includes('yükleniyor') ? 'loading' : 'empty'}>{retry && <button className="btn btn-secondary" onClick={retry}>Yeniden dene</button>}</StatePanel></section>;
 }
 export function PresentationEditor({ auth, mode = 'create', id, service, content, onClose, onComplete }: PresentationEditorProps) {
   if (auth.status !== 'authenticated' || !auth.isMember || !auth.user.isMember) return <Notice onClose={onClose} message={auth.status === 'loading' ? 'Oturum kontrol ediliyor…' : auth.status === 'unverified' ? 'Sunum yüklemek için e-posta adresinizi doğrulayın.' : 'Sunum yüklemek için giriş yapın.'} />;

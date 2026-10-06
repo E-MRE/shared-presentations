@@ -7,7 +7,7 @@ import type { ViewerHarness } from './harness';
 import { pptxBytes, type HarnessMetrics, type Scenario } from './fixtures';
 
 declare global { interface Window { viewer: ViewerHarness; viewerMetrics: HarnessMetrics; unmountViewer: () => void; } }
-const evidence = process.env.EVIDENCE_DIR || '/opt/projects/shared-presentations/.orchestra/evidence/L06/worker/artifacts';
+const evidence = process.env.EVIDENCE_DIR || 'test-results/unit';
 let server: ViteDevServer, browser: Browser, context: BrowserContext, page: Page, base: string;
 let errors: string[] = [];
 const reports: object[] = [];
@@ -249,15 +249,15 @@ describe('production presentation viewer in real Chromium', { timeout: 65_000 },
         await check(close()).toBeVisible(); await check(fullscreen()).toBeVisible();
         await page.keyboard.press('Tab'); await close().focus();
         expect(await close().evaluate(node => node.matches(':focus-visible'))).toBe(true);
-        expect(await close().evaluate(node => getComputedStyle(node).outlineWidth)).toBe('2px');
-        expect(await close().evaluate(node => getComputedStyle(node).outlineColor)).toBe('rgb(96, 165, 250)');
+        expect(await close().evaluate(node => getComputedStyle(node).outlineWidth)).toBe('3px');
+        expect(await close().evaluate(node => getComputedStyle(node).outlineColor)).toBe('rgb(165, 180, 252)');
         const layout = await page.evaluate(() => {
           const main = document.querySelector<HTMLElement>('.vektor-viewer')!, style = getComputedStyle(main);
           const controls = Array.from(main.querySelectorAll<HTMLButtonElement>('.viewer-topbar button')).map(node => { const r = node.getBoundingClientRect(); return { width: r.width, height: r.height, right: r.right, left: r.left, top: r.top, bottom: r.bottom }; });
           return { width: innerWidth, scrollWidth: document.documentElement.scrollWidth, mainScrollWidth: main.scrollWidth, background: style.backgroundColor, color: style.color, controls, frameCount: main.querySelectorAll('iframe').length, modal: main.getAttribute('aria-modal') };
         });
         expect(layout.scrollWidth).toBe(width); expect(layout.mainScrollWidth).toBe(width);
-        expect(layout.background).toBe('rgb(12, 14, 18)'); expect(layout.color).toBe('rgb(243, 244, 246)'); expect(layout.modal).toBeNull();
+        expect(layout.background).toBe('rgb(8, 12, 21)'); expect(layout.color).toBe('rgb(241, 245, 249)'); expect(layout.modal).toBeNull();
         for (const control of layout.controls) { expect(control.width).toBeGreaterThanOrEqual(44); expect(control.height).toBeGreaterThanOrEqual(44); expect(control.left).toBeGreaterThanOrEqual(0); expect(control.right).toBeLessThanOrEqual(width); expect(control.top).toBeGreaterThanOrEqual(0); expect(control.bottom).toBeLessThanOrEqual(900); }
         layouts.push({ theme, kind, ...layout });
       }

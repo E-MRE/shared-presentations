@@ -11,7 +11,7 @@
  */
 
 import modernScreenshotCode from 'modern-screenshot/dist/index.js?raw';
-import { MAX_COVER_BYTES } from '../contracts/limits';
+import { MAX_COVER_BYTES, MAX_SOURCE_COVER_BYTES } from '../contracts/limits';
 import { AppErrorCode } from '../contracts/errors';
 import { ok, err, type Result } from '../contracts/services';
 import type { CoverDescriptor } from '../contracts/content';
@@ -22,7 +22,7 @@ export const TARGET_COVER_HEIGHT = 360; // 16:9 aspect ratio
 
 export const MAX_IMAGE_DIMENSION = 8192;
 export const MAX_IMAGE_PIXELS = 16_777_216; // 16 MP
-export const MAX_SOURCE_COVER_BYTES = 10 * 1024 * 1024; // 10 MB source limit
+export { MAX_SOURCE_COVER_BYTES } from '../contracts/limits';
 
 /** Checks whether full DOM and Canvas APIs are available */
 export function isBrowserEnvironment(): boolean {

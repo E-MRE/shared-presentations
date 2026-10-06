@@ -32,22 +32,22 @@ for (const system of ['light', 'dark'] as const) for (const storage of ['explici
       expect(initial.theme).toBe(expected); expect(initial.colorScheme).toBe(expected); expect(initial.rootChildren).toBe(0); expect(initial.fixture).toBe(false);
       await record(`prepaint-${system}-${storage}`, { evidenceClass: 'built-production-entry-paused-emitted-module', origin, system, storage, expected, initial });
     } finally { release(); }
-    await expect(page.getByRole('heading', { name: 'Ekibin sunumları burada' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /İyi fikirler/ })).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('data-theme', expected);
   });
 }
 test('theme provider persists, reloads and responds to real cross-page storage and system changes', async ({ page, context }) => {
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' }); await mount(page, '/', 'visitor');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.getByRole('button', { name: 'Koyu temaya geç' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  if (!await page.locator('.vektor-theme-controls').getAttribute('open').then(value => value !== null)) await page.getByLabel('Tema seçenekleri').click(); await page.getByRole('button', { name: 'Koyu temaya geç' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(await page.evaluate(() => localStorage.getItem('vektor-theme'))).toBe('dark'); await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const external = await context.newPage(); await external.goto('/tests/e2e/harness.html?role=visitor');
   await external.evaluate(() => localStorage.setItem('vektor-theme', 'light')); await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await external.evaluate(() => localStorage.removeItem('vektor-theme')); await expect(page.getByRole('button', { name: 'Sistem teması' })).toHaveAttribute('aria-pressed', 'true');
+  await external.evaluate(() => localStorage.removeItem('vektor-theme')); if (await page.locator('.vektor-theme-controls:not([open])').count()) await page.getByLabel('Tema seçenekleri').click(); await expect(page.getByRole('button', { name: 'Sistem teması' })).toHaveAttribute('aria-pressed', 'true');
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' }); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.getByRole('button', { name: 'Açık temaya geç' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.getByRole('button', { name: 'Sistem teması' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  if (!await page.locator('.vektor-theme-controls').getAttribute('open').then(value => value !== null)) await page.getByLabel('Tema seçenekleri').click(); await page.getByRole('button', { name: 'Açık temaya geç' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  if (!await page.locator('.vektor-theme-controls').getAttribute('open').then(value => value !== null)) await page.getByLabel('Tema seçenekleri').click(); await page.getByRole('button', { name: 'Sistem teması' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(await page.evaluate(() => localStorage.getItem('vektor-theme'))).toBe(null);
   expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
   await record('theme-provider-storage', { evidenceClass: 'actual-provider-DI-application', persistenceReload: true, crossPageStorageSetAndRemove: true, systemChanges: true, reducedMotion: true }); await external.close();
@@ -56,8 +56,8 @@ test('theme provider keeps in-memory controls usable when storage reads and writ
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
   await page.addInitScript(() => { if (top === self) for (const method of ['getItem', 'setItem', 'removeItem']) Object.defineProperty(Storage.prototype, method, { value: () => { throw new DOMException('Storage denied for acceptance', 'SecurityError'); } }); });
   await mount(page, '/', 'visitor'); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.getByRole('button', { name: 'Açık temaya geç' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  if (!await page.locator('.vektor-theme-controls').getAttribute('open').then(value => value !== null)) await page.getByLabel('Tema seçenekleri').click(); await page.getByRole('button', { name: 'Açık temaya geç' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.reload(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.getByRole('button', { name: 'Açık temaya geç' }).click(); await page.getByRole('button', { name: 'Sistem teması' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  if (!await page.locator('.vektor-theme-controls').getAttribute('open').then(value => value !== null)) await page.getByLabel('Tema seçenekleri').click(); await page.getByRole('button', { name: 'Açık temaya geç' }).click(); if (!await page.locator('.vektor-theme-controls').getAttribute('open').then(value => value !== null)) await page.getByLabel('Tema seçenekleri').click(); await page.getByRole('button', { name: 'Sistem teması' }).click(); await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await record('theme-provider-denied', { evidenceClass: 'actual-provider-DI-application', deniedRead: true, deniedWrite: true, inMemoryToggle: true, reloadSystemFallback: true, systemReset: true });
 });

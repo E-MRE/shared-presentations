@@ -1,3 +1,5 @@
+> Tarihsel tasarım araştırması. 5 Ekim 2026 uygulama yenilemesinin onaylı standardı `docs/TASARIM-KARARLARI.md` ve `src/styles/tokens.css` dosyalarıdır. Bu belge yeni kullanıcı talimatı değildir.
+
 # Vektör Design System Master Specification
 
 > **MİMARİ PRENSİP:** Bu doküman, Vektör Ekip Sunum Platformu'nun tekil tasarım doğruluk kaynağıdır (Single Source of Truth).

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { StatePanel } from '../../components/StatePanel';
+import { categoryLabel } from '../../contracts/catalog';
 import type { AuthState } from '../../contracts/auth';
 import type { Deck } from '../../contracts/models';
 import type { PresentationDataService } from '../../contracts/services';
@@ -23,7 +25,12 @@ export type ViewerPageProps = Omit<PresentationViewerProps, 'id' | 'onClose'> & 
 export function ViewerPage({ auth, service, onClose }: ViewerPageProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  return <PresentationViewer id={id} auth={auth} service={service} onClose={onClose ?? (() => navigate('/', { replace: true }))} />;
+  const location = useLocation();
+  const origin = location.state?.returnTo;
+  let returnScroll = 0;
+  try { returnScroll = Number(sessionStorage.getItem('vektor-return-scroll') || 0); } catch { /* Optional scroll memory. */ }
+  const returnTo = typeof origin === 'string' && /^(\/|\/benim|\/admin)(\?[^#]*)?$/.test(origin) ? origin : '/';
+  return <PresentationViewer id={id} auth={auth} service={service} onClose={onClose ?? (() => navigate(returnTo, { replace: true, state: { restoreScroll: returnScroll } }))} />;
 }
 
 const serviceKeys = new WeakMap<ViewerReadService, number>();
@@ -60,6 +67,7 @@ function Metadata({ deck }: { deck: Deck }) {
   return <div className="viewer-metadata">
     <p className="viewer-eyebrow">SUNUM HAKKINDA</p><h2>{deck.title}</h2><p className="viewer-author">{deck.ownerName || 'İsimsiz üye'}</p>
     <p className="viewer-description">{deck.description || 'Bu sunum için açıklama eklenmemiş.'}</p>
+    <p className="card-category">{categoryLabel(deck.category)}</p>{!!deck.tags?.length && <div className="card-tags">{deck.tags.map(tag => <span className="card-tag" key={tag}>#{tag}</span>)}</div>}
     {links.length > 0 && <section aria-label="Kaynak bağlantıları"><h3>Kaynaklar</h3><ul>{links.map((link, index) => <li key={index}><a href={link.href!} target="_blank" rel="noopener noreferrer">{link.label || link.href}<span aria-hidden="true"> ↗</span><span className="viewer-sr"> (yeni sekmede açılır)</span></a></li>)}</ul></section>}
     <dl><div><dt>Dosya</dt><dd>{deck.fileName}</dd></div><div><dt>Biçim</dt><dd>{deck.kind === 'html' ? 'HTML' : 'PowerPoint · PPTX'}</dd></div><div><dt>Dosya boyutu</dt><dd>{new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 }).format(deck.sizes.encoded / 1024 / 1024)} MB</dd></div><div><dt>Güncellendi</dt><dd>{new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium' }).format(deck.updatedAt)}</dd></div></dl>
   </div>;
@@ -89,6 +97,7 @@ const corrupt = 'Sunum içeriği eksik veya bozuk. Tekrar deneyin.';
 
 function ViewerSession({ id, uid, isAdmin, service, onClose }: { id: string; uid: string; isAdmin: boolean; service: ViewerReadService; onClose: () => void }) {
   const root = useRef<HTMLElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null);
   const alive = useRef(true);
   const busy = useRef(false);
   const retainedDownloads = useRef(new Map<string, number>());
@@ -206,12 +215,12 @@ function ViewerSession({ id, uid, isAdmin, service, onClose }: { id: string; uid
       </div>
     </header>
     {fullscreenError && <p className="viewer-inline-error" role="alert">{fullscreenError}</p>}
-    {state.status === 'loading' && <div className="viewer-notice" role="status"><span className="viewer-eyebrow">VEKTÖR</span><h2>Sunum yükleniyor…</h2><p>İçerik hazırlanırken lütfen bekleyin.</p></div>}
-    {state.status === 'error' && <div className="viewer-notice"><div role="alert"><h2>{state.message}</h2></div><button className="viewer-button" onClick={() => { setState({ status: 'loading' }); setAttempt(value => value + 1); }}>Tekrar dene</button></div>}
+    {state.status === 'loading' && <StatePanel title="Sunum yükleniyor…" description="İçerik hazırlanırken lütfen bekleyin." kind="loading"/>}
+    {state.status === 'error' && <StatePanel title={state.message} kind="error"><button className="viewer-button" onClick={() => { setState({ status: 'loading' }); setAttempt(value => value + 1); }}>Tekrar dene</button></StatePanel>}
     {state.status === 'ready' && (state.deck.kind === 'html' ? <div className={`viewer-stage${info ? ' viewer-stage-info' : ''}`}>
-      <div className="viewer-frame-area"><iframe title={`${state.deck.title} — sunum`} sandbox="allow-scripts" allow="fullscreen" srcDoc={state.html} /></div>
+      <div className="viewer-frame-area"><iframe ref={frame} title={`${state.deck.title} — sunum`} sandbox="allow-scripts" allow="fullscreen" srcDoc={state.html} /></div>
       <aside id={panelId} className="viewer-panel" hidden={!info} aria-label="Sunum bilgileri"><Metadata deck={state.deck} /></aside>
     </div> : <div className="viewer-pptx"><div className="viewer-pptx-grid"><Cover deck={state.deck} /><div><Metadata deck={state.deck} /><div className="viewer-download"><button className="viewer-button viewer-primary" onClick={() => void download()} disabled={downloading}><Icon type="download" />{downloading ? 'İndiriliyor…' : 'PPTX dosyasını indir'}</button><p className="viewer-warning">Bu dosya antivirüs taramasından geçirilmemiştir. Açmadan önce güvenlik yazılımınızla tarayın.</p><p role="status" aria-live="polite">{downloading ? 'Dosya indirme için hazırlanıyor…' : ''}</p>{downloadError && <p role="alert">{downloadError}</p>}</div></div></div></div>)}
-    <footer className="viewer-footer"><span>VEKTÖR</span><p>Uygulama kontrollerindeyken F: Tam Ekran · Esc: Kapat</p></footer>
+    <footer className="viewer-footer"><span>VEKTÖR</span>{deck?.kind === 'html' && <button className="viewer-button" onClick={() => frame.current?.focus()}>Sunuma odaklan</button>}<p>{deck?.kind === 'html' ? 'Sunumun kendi kontrollerini kullanın. Tuşlarla kontrol için önce sunuma tıklayın. ' : ''}Uygulama kontrollerindeyken F: Tam Ekran · Esc: Kapat</p></footer>
   </main>;
 }

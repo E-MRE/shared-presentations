@@ -43,7 +43,8 @@ export async function checkIsAdmin(
 
     // Rule: allow get: if isMember() && isOwner(uid) && isAdmin();
     // Non-admins will receive a permission-denied error, which is caught below.
-    const isAdmin = snap.exists() && snap.data()?.active !== false;
+    const data = snap.data();
+    const isAdmin = snap.exists() && (data?.active === undefined || data.active === true);
     adminCache.set(uid, { isAdmin, timestamp: now });
     return isAdmin;
   } catch {

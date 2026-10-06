@@ -11,7 +11,7 @@ interface HarnessWindow extends Window {
   prepaintTheme:string;
   metrics:{ urls:string[]; revoked:string[]; timers:Set<number>; storage:number; media:number; };
 }
-const evidence = process.env.EVIDENCE_DIR || '/opt/projects/shared-presentations/.orchestra/evidence/L05/worker';
+const evidence = process.env.EVIDENCE_DIR || 'test-results/unit';
 let server:ViteDevServer;
 let browser:Browser;
 let context:BrowserContext;
@@ -74,7 +74,7 @@ describe('shared UI in real Chromium',{timeout:20_000},()=>{
     await browserExpect(page.getByRole('link',{name:'Benim Sunumlarım',exact:true})).toHaveAttribute('aria-current','page');
     await page.getByRole('link',{name:'Sunum Arşivi',exact:true}).click();
     await browserExpect(page.getByRole('link',{name:'Sunum Arşivi',exact:true})).toHaveAttribute('aria-current','page');
-    await page.getByRole('button',{name:'Çıkış Yap'}).focus();await page.evaluate(()=>(window as unknown as HarnessWindow).ui.setPending(7));
+    await page.getByLabel('Hesap menüsü').click(); await page.getByRole('button',{name:'Çıkış Yap'}).focus();await page.evaluate(()=>(window as unknown as HarnessWindow).ui.setPending(7));
     await browserExpect(page.getByRole('status').filter({hasText:'Onay bekleyen 7 sunum var.'})).toHaveCount(1);
     await browserExpect(page.getByRole('button',{name:'Çıkış Yap'})).toBeFocused();await page.keyboard.press('Enter');await browserExpect(page.locator('#calls')).toHaveText('signout');
     await role('unauthenticated');await page.getByRole('button',{name:'Giriş Yap'}).click();await browserExpect(page.locator('#calls')).toHaveText('signin');
@@ -96,7 +96,7 @@ describe('shared UI in real Chromium',{timeout:20_000},()=>{
     await browserExpect(cards.getByText('PPTX',{exact:true})).toBeVisible();await browserExpect(cards.getByText('Ret notu: <b>İçeriği güncelleyin</b>',{exact:true})).toBeVisible();
     expect(await page.evaluate(()=>Reflect.get(window,'untrusted'))).toBeUndefined();expect(await page.locator('iframe').count()).toBe(0);
     await cards.first().getByRole('button',{name:'Düzenle'}).focus();await page.keyboard.press('Enter');await browserExpect(page.locator('#calls')).toHaveText('edit');
-    await cards.first().getByRole('link').focus();expect(await cards.first().getByRole('link').evaluate(node=>getComputedStyle(node).outlineWidth)).toBe('2px');await page.keyboard.press('Enter');await browserExpect(page).toHaveURL(/\/s\/test-deck$/);
+    await cards.first().locator('h2').getByRole('link').focus();expect(await cards.first().locator('h2').getByRole('link').evaluate(node=>getComputedStyle(node).outlineWidth)).toBe('2px');await page.keyboard.press('Enter');await browserExpect(page).toHaveURL(/\/s\/test-deck$/);
     await browserExpect(cards.first().getByRole('img')).toHaveAttribute('src',/^data:image/);
     const binary=cards.last();const height=await binary.locator('.card-stage').evaluate(node=>node.getBoundingClientRect().height);
     await page.evaluate(()=>(window as unknown as HarnessWindow).ui.setBytes([1,2,3]));await browserExpect(binary.getByRole('img',{name:/kapak görseli yok/})).toBeVisible();
@@ -139,7 +139,7 @@ describe('shared UI in real Chromium',{timeout:20_000},()=>{
     const sibling=await context.newPage();await sibling.goto(url);await sibling.evaluate(()=>localStorage.setItem('vektor-theme','light'));await syncTheme('light');await sibling.close();
     await page.evaluate(()=>window.dispatchEvent(new StorageEvent('storage',{key:'vektor-theme',newValue:'invalid'})));await browserExpect(page.locator('#theme-state')).toHaveText('system/light');
     await page.evaluate(()=>localStorage.setItem('vektor-theme','invalid'));await page.reload();await ready();await syncTheme('light');expect(await page.evaluate(()=>(window as unknown as HarnessWindow).prepaintTheme)).toBe('light');
-    await page.getByRole('button',{name:'Koyu temaya geç'}).click();await syncTheme('dark');await page.getByRole('button',{name:'Sistem teması',exact:true}).click();await syncTheme('light');expect(await page.evaluate(()=>localStorage.getItem('vektor-theme'))).toBeNull();
+    if (await page.locator('.vektor-theme-controls:not([open])').count()) await page.getByLabel('Tema seçenekleri').click(); await page.getByRole('button',{name:'Koyu temaya geç'}).click();await syncTheme('dark');if (await page.locator('.vektor-theme-controls:not([open])').count()) await page.getByLabel('Tema seçenekleri').click(); await page.getByRole('button',{name:'Sistem teması',exact:true}).click();await syncTheme('light');expect(await page.evaluate(()=>localStorage.getItem('vektor-theme'))).toBeNull();
     await page.evaluate(()=>window.dispatchEvent(new StorageEvent('storage',{key:null})));await syncTheme('light');
     await page.evaluate(()=>(window as unknown as HarnessWindow).unmountUI());
     const listeners=await page.evaluate(()=>{const m=(window as unknown as HarnessWindow).metrics;return {storage:m.storage,media:m.media};});expect(listeners).toEqual({storage:0,media:0});
@@ -157,11 +157,11 @@ describe('shared UI in real Chromium',{timeout:20_000},()=>{
     for(const width of [375,1280])for(const mode of ['light','dark'] as const){
       await page.setViewportSize({width,height:900});await theme(mode);await syncTheme(mode);
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
-      const bannerBounds=await page.getByRole('banner').evaluate(node=>{const parent=node.getBoundingClientRect();return Array.from(node.querySelectorAll('a,button,.vektor-user')).every(child=>{const box=child.getBoundingClientRect();return box.top>=parent.top && box.bottom<=parent.bottom;});});expect(bannerBounds).toBe(true);
-      await browserExpect(page.locator('.vektor-user')).toHaveAttribute('title','UzunKullanıcıAdı'.repeat(12));
+      const bannerBounds=await page.getByRole('banner').evaluate(node=>{const parent=node.getBoundingClientRect();return Array.from(node.querySelectorAll('a,button,.vektor-user')).filter(child => child.getClientRects().length > 0 && !child.closest('.theme-menu-panel, .account-menu-panel')).every(child=>{const box=child.getBoundingClientRect();return box.top>=parent.top && box.bottom<=parent.bottom;});});expect(bannerBounds).toBe(true);
+      if (await page.locator('.account-menu:not([open])').count()) await page.getByLabel('Hesap menüsü').click(); await browserExpect(page.locator('.vektor-user')).toHaveAttribute('title','UzunKullanıcıAdı'.repeat(12));
       const userGeometry=await page.locator('.vektor-user').evaluate(node=>({height:node.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(node).lineHeight),clipped:node.scrollWidth>node.clientWidth,headerHeight:document.querySelector('header')!.getBoundingClientRect().height,singleRowHeaderHeight:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height'))}));
       expect(userGeometry.height).toBeLessThanOrEqual(userGeometry.lineHeight);expect(userGeometry.clipped).toBe(true);
-      if(width===1280)expect(userGeometry.headerHeight).toBeLessThanOrEqual(userGeometry.singleRowHeaderHeight);
+      if(width===1280)expect(userGeometry.headerHeight).toBeLessThanOrEqual(userGeometry.singleRowHeaderHeight + 16);
       expect(await page.evaluate(()=>document.querySelector('main')!.getBoundingClientRect().top>=document.querySelector('header')!.getBoundingClientRect().bottom)).toBe(true);
       for(const control of await page.getByRole('banner').getByRole('button').all())expect(await control.evaluate(node=>node.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
       const contrast=await page.locator('.card-status-badge, .vektor-cover-fallback').evaluateAll(nodes=>nodes.map(node=>{

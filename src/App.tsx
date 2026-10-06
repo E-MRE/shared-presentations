@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- The typed external store is also the deterministic test seam. */
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useLocation } from 'react-router-dom';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -14,7 +14,12 @@ import { err, ok, type Result, type PresentationDataService } from './contracts/
 import { FirestorePresentationDataService } from './data/service';
 import { createFirestoreAdminAdapter, type AdminReadAdapter } from './features/admin/adapter';
 import { usePendingCount } from './features/admin/usePendingCount';
-import { Modal } from './components';
+import { clearDeckPageCache } from './features/library/useDeckPages';
+import { RouteScroll } from './routing/RouteScroll';
+import { NavigationGuard } from './features/editor/useUnsavedChanges';
+import { VerificationActions } from './auth/VerificationActions';
+import { AuthenticationDialog } from './auth/AuthenticationDialog';
+import { StateIllustration } from './components/StatePanel';
 import { AppLayout } from './layout';
 import { ThemeToggle } from './theme';
 import { ApplicationRouter } from './routing/Router';
@@ -39,13 +44,14 @@ export class ApplicationAuthStore {
   private cancelledLogin = false;
   private loginPending = false;
   private lastError = "";
+  private verification = new Map<string, AuthUser['verificationDispatch']>();
   constructor(private dependencies: ApplicationAuthDependencies) {}
   getSnapshot = () => this.state;
   getError = () => this.lastError;
   getMember = (): AuthUser | null => this.state.status === 'authenticated' && this.dependencies.currentUser()?.uid === this.state.user.uid && !this.cancelledLogin ? this.state.user : null;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   private publish(next: AuthState) {
-    if (this.state.user?.uid !== next.user?.uid || this.state.status !== next.status || this.state.isAdmin !== next.isAdmin) closeAllListeners();
+    if (this.state.user?.uid !== next.user?.uid || this.state.status !== next.status || this.state.isAdmin !== next.isAdmin) { closeAllListeners(); clearDeckPageCache(); }
     this.state = next;
     this.listeners.forEach(listener => listener());
   }
@@ -57,7 +63,7 @@ export class ApplicationAuthStore {
       const google = token.signInProvider === 'google.com';
       const member = google || token.claims.email_verified === true;
       const mapped = mapFirebaseUserToAuthUser(user);
-      const base = { ...mapped, isGoogle: google, isEmailVerified: token.claims.email_verified === true, isMember: member, isAdmin: false };
+      const base = { ...mapped, verificationDispatch: this.verification.get(user.uid), isGoogle: google, isEmailVerified: token.claims.email_verified === true, isMember: member, isAdmin: false };
       if (!member) {
         this.publish({ status: 'unverified', user: base, isAdmin: false, isMember: false });
         return ok(base);
@@ -113,6 +119,10 @@ export class ApplicationAuthStore {
         return stale();
       }
       if (result.ok && this.dependencies.currentUser()?.uid !== result.value.uid) return stale();
+      if (result.ok && result.value.verificationDispatch) {
+        this.verification.set(result.value.uid, result.value.verificationDispatch);
+        if (this.state.status === 'unverified' && this.state.user.uid === result.value.uid) this.publish({ ...this.state, user: { ...this.state.user, verificationDispatch: result.value.verificationDispatch } });
+      }
       return result;
     });
   }
@@ -124,8 +134,16 @@ export class ApplicationAuthStore {
     sendVerificationEmail: () => this.run(async () => {
       const user = this.dependencies.currentUser(), generation = this.generation;
       if (!user) return stale();
+      const retryAt = this.verification.get(user.uid)?.retryAt ?? 0;
+      if (retryAt > Date.now()) return err({ code: AppErrorCode.QUOTA_EXCEEDED, message: 'Yeni gönderim için bir dakika bekleyin.' });
       const result = await this.dependencies.service.sendVerificationEmail(user);
-      return this.current(user, generation) ? result : stale();
+      if (!this.current(user, generation)) return stale();
+      if (result.ok) {
+        const dispatch = { sent: true, retryAt: Date.now() + 60_000, message: 'Gönderim isteği kabul edildi. Gelen kutunuzu ve spam klasörünüzü kontrol edin.' };
+        this.verification.set(user.uid, dispatch);
+        if (this.state.status === 'unverified') this.publish({ ...this.state, user: { ...this.state.user, verificationDispatch: dispatch } });
+      }
+      return result;
     }),
     reloadUser: () => this.run(async () => {
       const user = this.dependencies.currentUser(), generation = this.generation;
@@ -139,7 +157,7 @@ export class ApplicationAuthStore {
     signOut: async () => {
       ++this.action; ++this.generation;
       this.cancelledLogin = this.loginPending;
-      clearAdminCache(); this.publish(visitor);
+      clearAdminCache(); this.verification.clear(); this.publish(visitor);
       try { const result = await this.dependencies.service.signOut(); if (!result.ok) { this.lastError = result.error.message; this.publish({ ...visitor }); } return result; } catch (error) { this.lastError = mapAuthError(error).message; this.publish({ ...visitor }); return err(mapAuthError(error)); }
     },
   };
@@ -149,7 +167,7 @@ export function createProductionDependencies(): ApplicationDependencies {
   const store = new ApplicationAuthStore({
     service: new FirebaseAuthService(auth, db), currentUser: () => auth.currentUser,
     observe: callback => onAuthStateChanged(auth, callback), resolveAdmin: uid => checkIsAdmin(db, uid, true),
-    watchAdmin: (uid, callback) => onSnapshot(doc(db, 'admins', uid), snapshot => callback(snapshot.exists() && snapshot.data()?.active !== false), () => callback(false)),
+    watchAdmin: (uid, callback) => onSnapshot(doc(db, 'admins', uid), snapshot => callback(snapshot.exists() && (snapshot.data()?.active === undefined || snapshot.data()?.active === true)), () => callback(false)),
   });
   return { auth: store, service: new FirestorePresentationDataService({ auth, db, getCurrentUser: store.getMember }), adapter: createFirestoreAdminAdapter({ db, getAuthState: store.getSnapshot }) };
 }
@@ -157,17 +175,15 @@ export function App({ dependencies }: { dependencies?: ApplicationDependencies }
   const [runtime] = useState(() => dependencies ?? createProductionDependencies());
   const state = useSyncExternalStore(runtime.auth.subscribe, runtime.auth.getSnapshot, runtime.auth.getSnapshot);
   useEffect(() => runtime.auth.start(), [runtime]);
-  const location = useLocation();
-  const session = `${location.pathname}:${state.status}:${state.user?.uid ?? ''}:${state.isAdmin}`;
-  return <AuthContext.Provider value={{ ...runtime.auth.actions, state }}><RouteLifetime key={session} runtime={runtime} state={state}/></AuthContext.Provider>;
+  return <NavigationGuard><AuthContext.Provider value={{ ...runtime.auth.actions, state }}><RouteScroll/><RouteLifetime runtime={runtime} state={state}/></AuthContext.Provider></NavigationGuard>;
 }
 function RouteLifetime({ runtime, state }: { runtime: ApplicationDependencies; state: AuthState }) {
-  useLayoutEffect(() => { const stop = runtime.auth.connectRole(); return () => { stop(); closeAllListeners(); }; }, [runtime]);
+  useLayoutEffect(() => { const stop = runtime.auth.connectRole(); return () => { stop(); closeAllListeners(); }; }, [runtime, state.status, state.user?.uid, state.isAdmin]);
   const count = usePendingCount(state, runtime.adapter);
   const [dialog, setDialog] = useState<'login' | 'signup' | 'reset' | null>(null);
   const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [error, setError] = useState('');
   const alive = useRef(true), lock = useRef(false);
-  useLayoutEffect(() => () => { alive.current = false; }, []);
+  useLayoutEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   async function action(operation: () => Promise<Result<unknown>>, success: string) {
     if (lock.current) return;
     lock.current = true; setBusy(true); setError(''); setMessage('');
@@ -178,48 +194,26 @@ function RouteLifetime({ runtime, state }: { runtime: ApplicationDependencies; s
     } catch { if (alive.current) setError('İşlem tamamlanamadı. Yeniden deneyin.'); }
     finally { lock.current = false; if (alive.current) setBusy(false); }
   }
+  async function finishLogin(operation: () => Promise<Result<AuthUser>>) { const result = await operation(); if (result.ok && alive.current) setDialog(null); return result; }
+  const dialogActions = { ...runtime.auth.actions,
+    signInWithGoogle: () => finishLogin(runtime.auth.actions.signInWithGoogle),
+    signInWithEmail: (credentials: Parameters<AuthContextValue['signInWithEmail']>[0]) => finishLogin(() => runtime.auth.actions.signInWithEmail(credentials)),
+    signUpWithEmail: (credentials: Parameters<AuthContextValue['signUpWithEmail']>[0]) => finishLogin(() => runtime.auth.actions.signUpWithEmail(credentials)),
+  };
   const location = useLocation();
   const member = state.status === 'authenticated' && state.isMember && state.user.isMember;
   const viewer = member && /^\/s\/[^/]+$/.test(location.pathname);
-  const gates = <section className="main-content" style={{ maxWidth: 640, margin: '48px auto', padding: 24 }}>
-    <h1>{state.status === 'loading' ? 'Oturum kontrol ediliyor…' : state.status === 'unverified' ? 'E-posta adresinizi doğrulayın' : 'Ekibin sunumları burada'}</h1>
-    <p>{state.status === 'unverified' ? 'Doğrulama bağlantısını açtıktan sonra oturumunuzu yenileyin. İlk doğrulama iletisinin teslimi kontrol edilmelidir.' : 'Sunum arşivini görmek ve ekiple paylaşmak için giriş yapın.'}</p>
-    {state.status === 'unauthenticated' && <button className="btn btn-primary" onClick={() => setDialog('login')}>Giriş Yap</button>}
-    {state.status === 'unverified' && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}><button className="btn btn-primary" disabled={busy} onClick={() => void action(runtime.auth.actions.sendVerificationEmail, 'Doğrulama e-postası gönderildi.')}>Doğrulama e-postasını yeniden gönder</button><button className="btn btn-secondary" disabled={busy} onClick={() => void action(runtime.auth.actions.reloadUser, 'Oturum yenilendi.')}>Doğruladım, yeniden kontrol et</button></div>}
+  const gates = <section className="welcome-gate">
+    <div className="welcome-copy"><span className="welcome-eyebrow">EKİBİN BİLGİ ALANI</span>
+    <h1>{state.status === 'loading' ? 'Oturum kontrol ediliyor…' : state.status === 'unverified' ? 'E-posta adresinizi doğrulayın' : <>İyi fikirler<br/><span>paylaşılmayı hak eder.</span></>}</h1>
+    <p>{state.status === 'unverified' ? `${state.user.email} adresine gelen bağlantıyı açın. Sonra buradan doğrulamayı kontrol edin.` : 'Sunumlarını bir araya getir. Ekibinin deneyiminden öğren, kendi bildiklerinle ilham ver.'}</p>
+    {state.status === 'unauthenticated' && <div className="welcome-actions"><button className="btn btn-primary" onClick={() => setDialog('login')}>Giriş Yap</button><button className="btn btn-secondary" onClick={() => setDialog('signup')}>Hesap oluştur</button></div>}
+    {state.status === 'unverified' && <>{!error && <p className="auth-feedback" role={state.user.verificationDispatch?.sent === false ? 'alert' : 'status'}>{state.user.verificationDispatch?.message || 'İleti görünmüyorsa spam klasörünü kontrol edin veya yeni bir gönderim isteyin.'}</p>}<VerificationActions busy={busy} retryAt={state.user.verificationDispatch?.retryAt} resend={() => void action(runtime.auth.actions.sendVerificationEmail, '')} reload={() => void action(runtime.auth.actions.reloadUser, 'Doğrulama henüz görünmüyor. E-postadaki bağlantıyı açtıktan sonra tekrar kontrol edin.')}/></>}
+    {state.status === 'unauthenticated' && <div className="welcome-details"><span>HTML & PowerPoint</span><span>Yalnızca ekip üyeleri</span><span>Tek bir arşiv</span></div>}</div><div className="welcome-visual"><StateIllustration kind={state.status === 'unverified' ? 'mail' : state.status === 'loading' ? 'loading' : 'empty'}/><span>Bir sunum. Yeni bir bakış açısı.</span></div>
   </section>;
   const contents = member ? <ApplicationRouter auth={state} service={runtime.service} adapter={runtime.adapter}/> : gates;
   return <>
-    {viewer ? contents : <AppLayout auth={state} onSignIn={() => setDialog('login')} onSignOut={() => void action(runtime.auth.actions.signOut, 'Çıkış yapıldı.')} pendingCount={count.count ?? undefined} actions={<ThemeToggle/>} footer={<span className="footer-meta" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>Vektör · Ekip sunum arşivi</span>}>{contents}{runtime.auth.getError() && <p role="alert" className="main-content">{runtime.auth.getError()}</p>}{count.error && <div role="alert" className="main-content">{count.error} <button className="btn btn-secondary" onClick={count.retry}>Sayacı yeniden dene</button></div>}{error && <p role="alert" className="main-content">{error}</p>}{message && <p role="status" className="main-content">{message}</p>}</AppLayout>}
-    <AuthenticationDialog mode={dialog} close={() => setDialog(null)} change={setDialog} actions={runtime.auth.actions}/>
+    {viewer ? contents : <AppLayout auth={state} onSignIn={() => setDialog('login')} onSignOut={() => { setDialog(null); void action(runtime.auth.actions.signOut, 'Çıkış yapıldı.'); }} pendingCount={count.count ?? undefined} actions={<ThemeToggle/>} footer={<span className="footer-meta" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>Vektör · Ekip sunum arşivi</span>}>{contents}{count.error && <div role="alert" className="main-content">{count.error} <button className="btn btn-secondary" onClick={count.retry}>Sayacı yeniden dene</button></div>}{(error || runtime.auth.getError()) && <p role="alert" className="main-content">{error || runtime.auth.getError()}</p>}{message && <p role="status" className="main-content">{message}</p>}</AppLayout>}
+    {dialog && (state.status === 'unauthenticated' || state.status === 'loading') && <AuthenticationDialog key={dialog} mode={dialog} close={() => setDialog(null)} change={setDialog} actions={dialogActions}/>}
   </>;
-}
-function AuthenticationDialog({ mode, close, change, actions }: { mode: 'login' | 'signup' | 'reset' | null; close: () => void; change: (mode: 'login' | 'signup' | 'reset') => void; actions: Omit<AuthContextValue, 'state'> }) {
-  const email = useRef<HTMLInputElement>(null), lock = useRef(false), alive = useRef(true);
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState('');
-  useLayoutEffect(() => () => { alive.current = false; }, []);
-  async function run(operation: () => Promise<Result<unknown>>, success: string) {
-    if (lock.current) return;
-    lock.current = true; setBusy(true); setError(''); setMessage('');
-    try { const result = await operation(); if (!alive.current) return; if (result.ok) setMessage(success); else setError(result.error.message); }
-    catch { if (alive.current) setError('İşlem tamamlanamadı. Yeniden deneyin.'); }
-    finally { lock.current = false; if (alive.current) setBusy(false); }
-  }
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const data = new FormData(event.currentTarget);
-    const address = String(data.get('email') ?? '');
-    void run(() => mode === 'reset' ? actions.sendPasswordReset(address) : mode === 'signup' ? actions.signUpWithEmail({ email: address, password: String(data.get('password')), displayName: String(data.get('name')) }) : actions.signInWithEmail({ email: address, password: String(data.get('password')) }), mode === 'reset' ? 'Şifre sıfırlama isteği tamamlandı. E-posta kutunuzu kontrol edin.' : mode === 'signup' ? 'Hesabınız oluşturuldu. E-posta doğrulamasını kontrol edin.' : 'Oturum kontrol ediliyor…');
-  }
-  return <Modal open={!!mode} title={mode === 'signup' ? 'Hesap oluştur' : mode === 'reset' ? 'Şifrenizi sıfırlayın' : 'Vektör’e giriş yapın'} onClose={() => { if (!busy) close(); }} initialFocus={email}>
-    <form onSubmit={submit}>
-      {mode === 'signup' && <div className="form-group"><label className="form-label" htmlFor="auth-name">Ad soyad</label><input className="form-input" id="auth-name" name="name" autoComplete="name" required disabled={busy}/></div>}
-      <div className="form-group"><label className="form-label" htmlFor="auth-email">E-posta</label><input ref={email} className="form-input" id="auth-email" name="email" type="email" autoComplete="email" required disabled={busy}/></div>
-      {mode !== 'reset' && <div className="form-group"><label className="form-label" htmlFor="auth-password">Şifre</label><input className="form-input" id="auth-password" name="password" type="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} minLength={6} required disabled={busy}/></div>}
-      {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
-      <button className="btn btn-primary" type="submit" disabled={busy}>{busy ? 'İşleniyor…' : mode === 'signup' ? 'Hesap oluştur' : mode === 'reset' ? 'Sıfırlama bağlantısı gönder' : 'E-posta ile giriş yap'}</button>
-    </form>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 24 }}>
-      {mode === 'login' && <><button className="btn btn-secondary" disabled={busy} onClick={() => void run(actions.signInWithGoogle, 'Oturum kontrol ediliyor…')}>Google ile giriş yap</button><button className="btn btn-ghost" disabled={busy} onClick={() => { setError(''); setMessage(''); change('signup'); }}>Hesap oluştur</button><button className="btn btn-ghost" disabled={busy} onClick={() => { setError(''); setMessage(''); change('reset'); }}>Şifremi unuttum</button></>}
-      {mode !== 'login' && <button className="btn btn-ghost" disabled={busy} onClick={() => { setError(''); setMessage(''); change('login'); }}>Girişe dön</button>}
-    </div>
-  </Modal>;
 }

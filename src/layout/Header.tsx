@@ -1,3 +1,5 @@
+import { useMenuDismiss } from '../components/useMenuDismiss';
+import { BrandMark } from '../components/BrandMark';
 import { NavLink, Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import type { AuthState } from '../contracts/auth';
@@ -10,12 +12,13 @@ export interface HeaderProps {
   actions?: ReactNode;
 }
 export function Header({ auth, onSignIn, onSignOut, pendingCount = 0, actions }: HeaderProps) {
+  const menu = useMenuDismiss();
   const member = auth.status === 'authenticated' && auth.isMember;
   const admin = member && auth.isAdmin;
   const count = Math.max(0, Math.floor(Number.isFinite(pendingCount) ? pendingCount : 0));
   return <header className="site-header vektor-header">
     <div className="header-container">
-      <Link to="/" className="brand" aria-label="Vektör ana sayfa"><span className="brand-title">Vektör</span></Link>
+      <Link to="/" className="brand" aria-label="Vektör ana sayfa"><BrandMark/><span className="brand-title">Vektör</span></Link>
       {member && <nav className="vektor-navigation" aria-label="Ana gezinme">
         <NavLink to="/" end className="btn btn-ghost">Sunum Arşivi</NavLink>
         <NavLink to="/benim" className="btn btn-ghost">Benim Sunumlarım</NavLink>
@@ -25,8 +28,8 @@ export function Header({ auth, onSignIn, onSignOut, pendingCount = 0, actions }:
       <div className="header-actions">
         {actions}
         {auth.status === 'loading' ? <span role="status">Oturum yükleniyor…</span> : auth.user ? <>
-          <span className="vektor-user" title={auth.user.displayName || auth.user.email}>{auth.user.displayName || auth.user.email}</span>
-          <button type="button" className="btn btn-ghost" onClick={onSignOut}>Çıkış Yap</button>
+          <details ref={menu} className="account-menu"><summary aria-label="Hesap menüsü"><span className="account-avatar">{(auth.user.displayName || auth.user.email).slice(0, 1).toLocaleUpperCase('tr-TR')}</span></summary><div className="account-menu-panel"><span className="vektor-user" title={auth.user.displayName || auth.user.email}>{auth.user.displayName || auth.user.email}</span>
+          <button type="button" className="btn btn-ghost" onClick={onSignOut}>Çıkış Yap</button></div></details>
         </> : <button type="button" className="btn btn-secondary" onClick={onSignIn}>Giriş Yap</button>}
       </div>
       {admin && <span className="vektor-sr-only" role="status" aria-live="polite" aria-atomic="true">Onay bekleyen {count} sunum var.</span>}

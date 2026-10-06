@@ -1,7 +1,8 @@
+import { reconstructPresentation as reconstructContent } from '../../content/chunks';
 import type { AuthState } from '../../contracts/auth';
 import type { Deck } from '../../contracts/models';
 import type { PresentationDataService } from '../../contracts/services';
-import { preparePresentation, processCoverOverride, reconstructPresentation, generateDefaultCover } from '../../content';
+import type { preparePresentation, processCoverOverride, reconstructPresentation, generateDefaultCover } from '../../content';
 
 export type EditorService = Pick<PresentationDataService, 'getDeck' | 'getAllChunks' | 'createDeck' | 'updateDeck'>;
 export interface EditorContent {
@@ -20,4 +21,9 @@ export interface PresentationEditorProps {
   onClose?: () => void;
 }
 export type EditorPageProps = Omit<PresentationEditorProps, 'mode' | 'id'>;
-export const productionContent: EditorContent = { prepare: preparePresentation, processCover: processCoverOverride, reconstruct: reconstructPresentation, defaultCover: generateDefaultCover };
+export const productionContent: EditorContent = {
+  prepare: async (...args) => (await import('../../content/pipeline')).preparePresentation(...args),
+  processCover: async (...args) => (await import('../../content/cover')).processCoverOverride(...args),
+  reconstruct: (...args) => reconstructContent(...args),
+  defaultCover: async (...args) => (await import('../../content/cover')).generateDefaultCover(...args),
+};

@@ -12,5 +12,6 @@ export * from './admin';
 export * from './listenerManager';
 export * from './service';
 export * from './authContext';
-export * from './context';
+export { AuthenticationDialog } from './AuthenticationDialog';
+export { VerificationActions } from './VerificationActions';
 export * from './useAuth';

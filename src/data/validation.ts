@@ -32,6 +32,14 @@ import type { DeckLink, DeckSizes, DeckKind, ChunkManifestEntry } from '../contr
 import type { PreparedChunk } from '../contracts/content';
 import type { CreateDeckInput, UpdateDeckInput } from '../contracts/services';
 
+import { DECK_CATEGORIES, MAX_TAGS, MAX_TAG_LENGTH } from '../contracts/catalog';
+
+export function validateCatalog(input: { category?: string; tags?: string[] }): Result<void> {
+  if (input.category !== undefined && input.category !== '' && !DECK_CATEGORIES.includes(input.category)) return err({ code: AppErrorCode.INVALID_ARGUMENT, message: 'Listeden geçerli bir kategori seçin.' });
+  if (input.tags !== undefined && (!Array.isArray(input.tags) || input.tags.length > MAX_TAGS || new Set(input.tags).size !== input.tags.length || input.tags.some(tag => typeof tag !== 'string' || !tag.trim() || tag.length > MAX_TAG_LENGTH))) return err({ code: AppErrorCode.INVALID_ARGUMENT, message: `En fazla ${MAX_TAGS} farklı etiket ekleyin; her etiket 1–${MAX_TAG_LENGTH} karakter olmalı.` });
+  return ok(undefined);
+}
+
 const HTTPS_REGEX = /^https:\/\/.+/;
 
 /** Validates deck title */
@@ -286,6 +294,8 @@ export function validateManifest(
 
 /** Validates complete CreateDeckInput payload */
 export function validateCreateDeckInput(input: CreateDeckInput): Result<void> {
+  const catalog = validateCatalog(input);
+  if (!catalog.ok) return catalog;
   const titleRes = validateTitle(input.title);
   if (!titleRes.ok) return titleRes;
 
@@ -330,6 +340,8 @@ export function validateUpdateDeckInput(input: UpdateDeckInput): Result<void> {
     });
   }
 
+  const catalog = validateCatalog(input);
+  if (!catalog.ok) return catalog;
   const titleRes = validateTitle(input.title);
   if (!titleRes.ok) return titleRes;
 

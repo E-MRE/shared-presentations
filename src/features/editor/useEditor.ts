@@ -1,10 +1,11 @@
+import { clearDeckPageCache } from '../library/useDeckPages';
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { CoverDescriptor, PipelineResult } from '../../content';
 import type { Deck, DeckLink } from '../../contracts/models';
 import type { CreateDeckInput, UpdateDeckInput } from '../../contracts/services';
 import { AppErrorCode } from '../../contracts/errors';
-import { MAX_SOURCE_COVER_BYTES } from '../../content/cover';
-import { validateCreateDeckInput, validateUpdateDeckInput, validateSizes } from '../../data/validation';
+import { MAX_SOURCE_COVER_BYTES } from '../../contracts/limits';
+import { validateCreateDeckInput, validateUpdateDeckInput, validateSizes, validateCatalog } from '../../data/validation';
 import { readPresentationFiles, EditorInputError, type SelectedInput } from './input';
 import { metadataErrors, validOriginalMetadata, type FieldErrors } from './validation';
 import type { EditorContent, EditorService } from './types';
@@ -16,6 +17,8 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
   const titleRef = useRef(title);
   const touched = useRef(!!deck);
   const [description, setDescription] = useState(deck?.description ?? '');
+  const [category, setCategory] = useState(deck?.category ?? '');
+  const [tags, setTags] = useState(deck?.tags?.join(', ') ?? '');
   const [links, setLinks] = useState<DeckLink[]>(deck?.links.map(link => ({ ...link })) ?? []);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState('');
@@ -24,6 +27,7 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
   const [phase, setPhase] = useState('');
   const [prepared, setPrepared] = useState<PipelineResult>();
   const [selected, setSelected] = useState<SelectedInput>();
+  const [hasInput, setHasInput] = useState(false);
   const [cover, setCover] = useState<CoverDescriptor>();
   const [preview, setPreview] = useState<{ html?: string; kind: 'html' | 'pptx' }>();
   const [previewError, setPreviewError] = useState('');
@@ -54,7 +58,7 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
   }
   async function selectFiles(files: File[], directory = false) {
     const token = begin('Dosyalar okunuyor…'); if (token === null) return;
-    lastFiles.current = { files, directory }; setFileError(''); setMessage(''); setPrepared(undefined); setSelected(undefined); setPreview(undefined); previewGeneration.current++;
+    setHasInput(true); lastFiles.current = { files, directory }; setFileError(''); setMessage(''); setPrepared(undefined); setSelected(undefined); setPreview(undefined); previewGeneration.current++;
     try {
       const value = await readPresentationFiles(files, directory, () => current(token));
       if (!current(token)) return;
@@ -112,10 +116,10 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
     finally { finish(token); }
   }
   function closePreview() { previewGeneration.current++; setPreview(undefined); setPreviewError(''); }
-  function clearReplacement() { if (lock.current) return; setPrepared(undefined); setSelected(undefined); lastFiles.current = undefined; setFileError(''); closePreview(); assignCover(undefined); }
+  function clearReplacement() { if (lock.current) return; setHasInput(false); setPrepared(undefined); setSelected(undefined); lastFiles.current = undefined; setFileError(''); closePreview(); assignCover(undefined); }
   function clearError(key: string) { setErrors(previous => { const next = { ...previous }; delete next[key]; return next; }); }
   function validateField(key: string) { const value = metadataErrors(title, description, links)[key]; setErrors(previous => { const next = { ...previous }; if (value) next[key] = value; else delete next[key]; return next; }); }
-  function validateFields() { const next = metadataErrors(title, description, links); setErrors(next); return next; }
+  function validateFields() { const next = metadataErrors(title, description, links); const catalog = validateCatalog({ category, tags: tags.split(',').map(tag => tag.trim()).filter(Boolean) }); if (!catalog.ok) next.tags = catalog.error.message; setErrors(next); return next; }
   async function submit(): Promise<'invalid' | 'sent' | 'ignored'> {
     if (lock.current || saved || !alive.current) return 'ignored';
     const next = validateFields();
@@ -124,7 +128,7 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
     if (Object.keys(next).length) { setErrors({ ...next }); return 'invalid'; }
     const token = begin('Sunum onaya gönderiliyor…'); if (token === null) return 'ignored'; setMessage('');
     try {
-      const metadata = { title: title.trim(), description, links: links.map(link => ({ label: link.label.trim(), url: link.url.trim() })) };
+      const metadata = { title: title.trim(), description, category, tags: tags.split(',').map(tag => tag.trim()).filter(Boolean), links: links.map(link => ({ label: link.label.trim(), url: link.url.trim() })) };
       let result;
       if (deck) {
         const input: UpdateDeckInput = { id: deck.id, ...metadata };
@@ -145,10 +149,11 @@ export function useEditor({ deck, service, content, onComplete }: { deck?: Deck;
       if (!current(token)) return 'sent';
       if (!result.ok) {
         setMessage(result.error.code === AppErrorCode.QUOTA_EXCEEDED ? 'En fazla 5 sunum onay bekleyebilir. Bir sunumun incelemesi tamamlandıktan sonra yeniden deneyin.' : result.error.code === AppErrorCode.PERMISSION_DENIED ? 'İşlem için izniniz yok. Oturumunuzu kontrol edip yeniden deneyin.' : 'Sunum kaydedilemedi. Bağlantınızı kontrol edip yeniden deneyin.');
-      } else { setSaved(true); setMessage('Sunum onaya gönderildi.'); onComplete?.(result.value); }
+      } else { clearDeckPageCache(); setSaved(true); setMessage('Sunum onaya gönderildi.'); onComplete?.(result.value); }
     } catch (error) { if (current(token)) setMessage(error instanceof PayloadError ? error.message : 'Sunum kaydedilemedi. Yeniden deneyin.'); }
     finally { finish(token); }
     return 'sent';
   }
-  return { title, changeTitle, description, setDescription, links, setLinks, errors, validateFields, validateField, clearError, message, fileError, coverError, phase, prepared, selected, cover, preview, previewError, saved, selectFiles, chooseEntry, retryFile, chooseCover, resetCover, openPreview, closePreview, clearReplacement, submit };
+  const dirty = !saved && (hasInput || !!selected || !!cover || title !== (deck?.title ?? '') || description !== (deck?.description ?? '') || category !== (deck?.category ?? '') || tags !== (deck?.tags?.join(', ') ?? '') || JSON.stringify(links) !== JSON.stringify(deck?.links ?? []));
+  return { dirty, category, setCategory, tags, setTags, title, changeTitle, description, setDescription, links, setLinks, errors, validateFields, validateField, clearError, message, fileError, coverError, phase, prepared, selected, cover, preview, previewError, saved, selectFiles, chooseEntry, retryFile, chooseCover, resetCover, openPreview, closePreview, clearReplacement, submit };
 }

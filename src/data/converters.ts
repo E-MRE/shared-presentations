@@ -39,6 +39,8 @@ export function deckFromDoc(id: string, data: DocumentData): Deck {
     ownerPhotoURL: data.ownerPhotoURL || undefined,
     title: data.title || '',
     description: data.description || '',
+    category: typeof data.category === 'string' ? data.category : '',
+    tags: Array.isArray(data.tags) ? data.tags.filter((tag: unknown) => typeof tag === 'string') : [],
     links: Array.isArray(data.links) ? data.links : [],
     kind: data.kind || 'html',
     fileName: data.fileName || '',

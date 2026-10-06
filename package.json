@@ -17,11 +17,16 @@
     "test:upload": "vitest run tests/content tests/editor",
     "test:rules:unit": "vitest run tests/rules",
     "test:rules": "npx -y --engine-strict=false firebase-tools emulators:exec --project shared-presentations --only firestore \"npm run test:rules:unit\"",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:backend": "firebase emulators:exec --project shared-presentations --only auth,firestore \"vitest run tests/auth tests/data tests/rules --maxWorkers=1\"",
+    "check:release": "node scripts/check-release.mjs"
   },
   "dependencies": {
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "@fontsource/plus-jakarta-sans": "5.3.0",
     "fflate": "0.8.3",
     "firebase": "12.19.0",
+    "lottie-web": "5.13.0",
     "modern-screenshot": "4.7.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",

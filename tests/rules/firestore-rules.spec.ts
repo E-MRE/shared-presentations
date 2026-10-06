@@ -153,14 +153,31 @@ describe.skipIf(!hasEmulator)('Firestore Security Rules Suite', () => {
   // =========================================================================
 
   describe('1. Read Permissions', () => {
-    it('anonymous user reads a published deck vs a non-published deck', async () => {
+    it('unverified users cannot read published metadata or chunks', async () => {
+      await seedDeck('published-private', 'alice', { status: 'published', publishedAt: Timestamp.now() });
+      const db = testEnv.authenticatedContext('unverified', { email: 'test@example.com', email_verified: false }).firestore();
+      await assertFails(getDoc(doc(db, 'presentations', 'published-private')));
+      await assertFails(getDoc(doc(db, 'presentations', 'published-private', 'chunks', '0')));
+    });
+
+    it('inactive or malformed admin markers grant no private read access', async () => {
+      await seedDeck('private-admin-test', 'alice');
+      for (const active of [false, 'true']) {
+        await testEnv.withSecurityRulesDisabled(context => setDoc(doc(context.firestore(), 'admins', 'revoked'), { active }));
+        const db = testEnv.authenticatedContext('revoked', { email: 'revoked@example.com', email_verified: true }).firestore();
+        await assertFails(getDoc(doc(db, 'presentations', 'private-admin-test')));
+        await assertFails(getDoc(doc(db, 'presentations', 'private-admin-test', 'chunks', '0')));
+      }
+    });
+
+    it('anonymous user cannot read published or pending decks', async () => {
       await seedDeck('pub-deck', 'alice', { status: 'published', publishedAt: Timestamp.now() });
       await seedDeck('pend-deck', 'alice', { status: 'pending' });
 
       const anonDb = testEnv.unauthenticatedContext().firestore();
 
-      // Published deck: ALLOWED
-      await assertSucceeds(getDoc(doc(anonDb, 'presentations', 'pub-deck')));
+      // Published deck: DENIED
+      await assertFails(getDoc(doc(anonDb, 'presentations', 'pub-deck')));
 
       // Non-published deck: DENIED
       await assertFails(getDoc(doc(anonDb, 'presentations', 'pend-deck')));

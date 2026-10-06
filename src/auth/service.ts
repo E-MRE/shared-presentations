@@ -106,6 +106,12 @@ export function mapAuthError(error: unknown): AppError {
           message: 'Ağ bağlantısı hatası. Lütfen internet bağlantınızı kontrol ediniz.',
           details: error,
         };
+      case 'auth/unauthorized-domain':
+        return { code: AppErrorCode.PERMISSION_DENIED, message: 'Bu adres Google ile giriş için henüz yetkilendirilmemiş. Site yöneticisiyle iletişime geçin.', details: error };
+      case 'auth/popup-blocked':
+        return { code: AppErrorCode.UNKNOWN, message: 'Tarayıcı giriş penceresini engelledi. Bu site için açılır pencerelere izin verip yeniden deneyin.', details: error };
+      case 'auth/account-exists-with-different-credential':
+        return { code: AppErrorCode.ALREADY_EXISTS, message: 'Bu e-posta farklı bir giriş yöntemiyle kayıtlı. Daha önce kullandığınız yöntemle giriş yapın.', details: error };
       default:
         break;
     }
@@ -187,10 +193,10 @@ export class FirebaseAuthService {
   /** Signs up with email and password, sends verification email, initializes user doc */
   async signUpWithEmail(credentials: EmailSignUpCredentials): Promise<Result<AuthUser>> {
     try {
-      if (!credentials.email || !credentials.password || !credentials.displayName) {
+      if (!credentials.email || !credentials.password || !credentials.displayName?.trim() || credentials.displayName.trim().length > 100) {
         return err({
           code: AppErrorCode.INVALID_ARGUMENT,
-          message: 'Ad soyad, e-posta ve şifre alanları zorunludur.',
+          message: 'Ad soyad (en fazla 100 karakter), e-posta ve şifre alanlarını kontrol edin.',
         });
       }
 
@@ -211,11 +217,13 @@ export class FirebaseAuthService {
         }
       }
 
-      // Send verification email
+      // Account creation and mail dispatch are separate outcomes.
+      let verificationDispatch: AuthUser['verificationDispatch'];
       try {
         await sendEmailVerification(cred.user);
+        verificationDispatch = { sent: true, retryAt: Date.now() + 60_000, message: 'Doğrulama e-postası gönderim isteği kabul edildi. Gelen kutunuzu ve spam klasörünüzü kontrol edin.' };
       } catch (mailErr) {
-        console.warn('[auth] Verification email dispatch warning:', mailErr);
+        verificationDispatch = { sent: false, message: `Hesabınız oluşturuldu fakat doğrulama e-postası gönderilemedi. ${mapAuthError(mailErr).message}` };
       }
 
       // Initialize users/{uid} document with pendingCount = 0
@@ -231,7 +239,7 @@ export class FirebaseAuthService {
         console.warn('[auth] Initial user profile creation warning:', dbErr);
       }
 
-      return ok(mapFirebaseUserToAuthUser(cred.user, false));
+      return ok({ ...mapFirebaseUserToAuthUser(cred.user, false), verificationDispatch });
     } catch (error) {
       return err(mapAuthError(error));
     }

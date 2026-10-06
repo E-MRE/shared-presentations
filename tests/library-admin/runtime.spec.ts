@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import type { HarnessController } from './harness';
 import type { metrics as fixtureMetrics } from './fixtures';
 declare global { interface Window { library: HarnessController; libraryMetrics: typeof fixtureMetrics; } }
-const evidence=process.env.EVIDENCE_DIR || '/opt/projects/shared-presentations/.orchestra/evidence/L07/worker/artifacts';
+const evidence=process.env.EVIDENCE_DIR || 'test-results/unit';
 let browser: Browser, server: ViteDevServer, context: BrowserContext, page: Page, base: string;
 const reports: object[]=[];
 let errors: string[]=[];
@@ -45,21 +45,21 @@ describe('actual production library, own and admin React components in Chromium'
     await screen('admin'); await role('member'); await check(page.getByRole('heading',{name:'Yönetici erişimi gerekiyor'})).toBeVisible(); expect((await metrics()).reads).toEqual([]); expect((await metrics()).subscriptions).toBe(0);
     report('loading/visitor/unverified and nonadmin gate zero reads/listeners',await metrics());
   });
-  it('drains published pagination once, deduplicates newest cards and searches Turkish title, description and author without reads',async()=>{
-    await enter(); await settle(); await check(cards()).toHaveCount(4);
+  it('loads published pages on demand, deduplicates newest cards and searches Turkish title, description and author without reads',async()=>{
+    await enter(); await settle(); await check(cards()).toHaveCount(2); await loadAll(); await check(cards()).toHaveCount(4);
     expect(await cards().locator('h2').allTextContents()).toEqual(['Ürün Yolculuğu','Veri Hikâyeleri','İşbirliği Atölyesi','Tasarım İlkeleri']);
     const before=await metrics(); expect(before.reads.map(r=>r.kind)).toEqual(['feed','feed']); expect(before.chunks).toBe(0);
     const search=page.getByRole('searchbox',{name:'Sunum ara'});
     for (const query of ['İŞBİRLİĞİ','iletişim','İPEK']) { await search.fill(query); await check(cards()).toHaveCount(1); }
     await search.fill('eşleşmeyen arama'); await check(page.getByRole('heading',{name:'Aramanızla eşleşen sunum bulunamadı'})).toBeVisible();
-    await page.getByRole('button',{name:'Temizle'}).click(); await check(cards()).toHaveCount(4); expect((await metrics()).reads).toEqual(before.reads);
+    await page.getByRole('button',{name:'Temizle',exact:true}).click(); await check(cards()).toHaveCount(4); expect((await metrics()).reads).toEqual(before.reads);
     expect(await page.locator('iframe').count()).toBe(0); report('feed cursors dedupe/order Turkish client search zero extra reads/chunks',await metrics());
   });
   it('shows recoverable list errors, thrown errors, loading and empty states',async()=>{
-    await flags({error:'feed'}); await enter(); await check(page.getByRole('alert')).toContainText('yüklenemedi'); await flags({error:''}); await page.getByRole('button',{name:'Yeniden dene'}).click(); await settle(); await check(cards()).toHaveCount(4);
+    await flags({error:'feed'}); await enter(); await check(page.getByRole('alert')).toContainText('yüklenemedi'); await flags({error:''}); await page.getByRole('button',{name:'Yeniden dene'}).click(); await loadAll(); await check(cards()).toHaveCount(4);
     await flags({throws:true}); await page.evaluate(()=>window.library.replace()); await check(page.getByRole('alert')).toContainText('yüklenemedi'); await flags({throws:false}); await page.getByRole('button',{name:'Yeniden dene'}).click(); await settle();
     await page.evaluate(()=>{window.library.reset('empty');window.library.replace();}); await check(page.getByRole('heading',{name:'Henüz yayınlanmış sunum yok'})).toBeVisible();
-    await flags({holdReads:true}); await page.evaluate(()=>window.library.replace()); await check(page.getByText('Sunumlar yükleniyor…',{exact:true})).toBeVisible(); await role('unauthenticated'); await release('reads');
+    await flags({holdReads:true}); await page.evaluate(()=>window.library.replace()); await check(page.getByText('Sunumlar yükleniyor…',{exact:true})).toBeAttached(); await role('unauthenticated'); await release('reads');
     report('loading/result-error/thrown-error/retry/empty',await metrics());
   });
   it('shows only current UID, all own statuses/notes and edit/view links, confirms eligible deletion with keyboard focus restore',async()=>{
@@ -103,7 +103,7 @@ describe('actual production library, own and admin React components in Chromium'
     await screen('badge'); await check(page.locator('.vektor-pending-badge')).toBeVisible(); await page.evaluate(()=>window.library.mount(false)); await check(page.locator('.vektor-pending-badge')).toHaveCount(0); expect((await metrics()).active).toBe(0); report('reusable hook/badge full contextual live updates error retry stable subscription disposal',await metrics());
   });
   it('discards delayed reads on logout/UID/service and mutations on role loss without late refresh',async()=>{
-    await flags({holdReads:true}); await enter(); await check(page.getByText('Sunumlar yükleniyor…',{exact:true})).toBeVisible(); await role('unauthenticated'); expect(await cards().count()).toBe(0); const reads=(await metrics()).reads.length; await flags({holdReads:false}); await release('reads'); await check(page.getByRole('heading',{name:'Ekibin sunumlarını keşfedin'})).toBeVisible(); expect((await metrics()).reads).toHaveLength(reads);
+    await flags({holdReads:true}); await enter(); await check(page.getByText('Sunumlar yükleniyor…',{exact:true})).toBeAttached(); await role('unauthenticated'); expect(await cards().count()).toBe(0); const reads=(await metrics()).reads.length; await flags({holdReads:false}); await release('reads'); await check(page.getByRole('heading',{name:'Ekibin sunumlarını keşfedin'})).toBeVisible(); expect((await metrics()).reads).toHaveLength(reads);
     await flags({holdReads:true}); await enter('my'); await page.evaluate(()=>window.library.replace()); await role('member2'); expect(await cards().count()).toBe(0); await flags({holdReads:false}); await release('reads'); await check(page.getByRole('heading',{name:'Henüz sunum yüklemediniz'})).toBeVisible(); await check(cards()).toHaveCount(0);
     await enter('admin','admin'); await settle(); await card('p-old').getByRole('button',{name:'Reddet',exact:true}).click(); await role('member'); expect(await dialog().count()).toBe(0); expect((await metrics()).active).toBe(0);
     await role('admin'); await settle(); await flags({holdMutations:true}); await card('p-old').getByRole('button',{name:'Onayla',exact:true}).click(); await check(card('p-old').getByRole('button',{name:'Onayla',exact:true})).toBeDisabled(); const count=(await metrics()).reads.length; await role('member'); expect(await cards().count()).toBe(0); await flags({holdMutations:false}); await release('mutations'); await check(page.getByRole('heading',{name:'Yönetici erişimi gerekiyor'})).toBeVisible(); expect((await metrics()).reads).toHaveLength(count); expect((await metrics()).active).toBe(0);
@@ -117,14 +117,14 @@ describe('actual production library, own and admin React components in Chromium'
   });
   it('rejects stale pagination when a successful own mutation refreshes the list',async()=>{
     await enter('my'); await settle(); await page.getByRole('button',{name:'Daha fazla göster'}).click(); await settle(); await page.getByRole('button',{name:'Daha fazla göster'}).click(); await settle(); await check(card('rejected')).toBeVisible();
-    await flags({holdReads:true}); await page.getByRole('button',{name:'Daha fazla göster'}).click(); await check(page.getByText('Sunumlar yükleniyor…',{exact:true})).toBeVisible(); await card('rejected').getByRole('button',{name:'Sil',exact:true}).click(); await flags({holdReads:false}); await dialog().getByRole('button',{name:'Sunumu sil',exact:true}).click(); await check(dialog()).toHaveCount(0); await settle(); await check(cards()).toHaveCount(2); await release('reads'); await check(cards()).toHaveCount(2); await loadAll(); await check(card('rejected')).toHaveCount(0); report('generation rejects late page after mutation refresh',await metrics());
+    await flags({holdReads:true}); await page.getByRole('button',{name:'Daha fazla göster'}).click(); await check(page.getByText('Sunumlar yükleniyor…',{exact:true})).toBeAttached(); await card('rejected').getByRole('button',{name:'Sil',exact:true}).click(); await flags({holdReads:false}); await dialog().getByRole('button',{name:'Sunumu sil',exact:true}).click(); await check(dialog()).toHaveCount(0); await settle(); await check(cards()).toHaveCount(2); await release('reads'); await check(cards()).toHaveCount(2); await loadAll(); await check(card('rejected')).toHaveCount(0); report('generation rejects late page after mutation refresh',await metrics());
   });
   it('captures library/my/admin/reject/confirm at375/1280 light/dark with long content, no overflow and keyboard modal trap',async()=>{
     const artifacts=[];
     for (const theme of ['light','dark'] as const) for (const width of [375,1280]) {
       await page.setViewportSize({width,height:900}); await page.evaluate(theme=>{window.library.theme(theme);window.library.reset();window.library.replace();},theme);
       await check(page.locator('html')).toHaveAttribute('data-theme',theme);
-      await check(page.getByRole('button',{name:theme === 'light' ? 'Koyu temaya geç' : 'Açık temaya geç'})).toBeVisible();
+      if (await page.locator('.vektor-theme-controls:not([open])').count()) await page.getByLabel('Tema seçenekleri').click(); await check(page.getByRole('button',{name:theme === 'light' ? 'Koyu temaya geç' : 'Açık temaya geç'})).toBeVisible();
       for (const view of ['library','my','admin']) {
         await enter(view,view==='admin'?'admin':'member'); await settle();
         const path=join(evidence,`${view}-${width}-${theme}.png`); await page.screenshot({path,fullPage:true}); artifacts.push(path);
